@@ -1,0 +1,148 @@
+* {
+    margin: 0;
+    padding: 0
+}
+body,html{
+    overscroll-behavior: none;
+    overflow: hidden;
+}
+
+canvas {
+    display: block;
+    opacity: 0;
+}
+
+#container {
+    width: 100vw;
+    height: 100vh
+}
+
+// #slide1, #slide2, #slide3, #slide4{width: 200px;height: 200px;float: left;position:absolute;top:0;left:0;visibility: hidden}
+// #slide1{background-color: red;visibility: visible;}
+// #slide2{background-color: blue;left: 200px}
+// #slide3{background-color: green;left: 400px}
+// #slide4{background-color: yellow;left: 600px}
+
+.gonext {
+    width: 72px;
+    height: 72px;
+    position: absolute;
+    bottom: 30px;
+    right: 20px;
+    background-color: #fff669;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: #4071fd;
+    text-decoration: none;
+    cursor: pointer;
+    border: 1px solid #fff669;
+
+    &:hover {
+        border: 1px solid #4071fd
+    }
+}
+
+.slide {
+    inset: 0;
+    position: absolute;
+    visibility: hidden;
+
+    &>img {
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: cover;
+    }
+    .character-face{
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: url('../assets/face.png') no-repeat center bottom;
+        background-size: contain;
+    }
+    .character-back{
+        height: 100%;
+        position: absolute;
+        bottom: 0;
+        right: 10%;
+        width: 30%;
+        object-fit: contain;
+        background: url('../assets/back.png') no-repeat center bottom;
+        background-size: contain;
+        img{
+            display: none;
+        }
+    }
+    .dog {
+        position: absolute;
+        left: 30%;
+        bottom: 0;
+        height: 50%;
+        aspect-ratio: 12/10;
+        &_left{
+            left: 5%;
+            height: 30%;
+        }
+        &>img{
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .flipped {
+            transform: scaleX(-1);
+        }
+    }
+    .bubble {
+   
+        position: absolute;
+        top: 0;
+        right: 0;
+        // margin-top: -100%;
+        // margin-right: -100%;
+        transform: translate(50%, -100%);
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        font-size: 20px;
+        line-height: 24px;
+        font-weight: 700;
+        color: #4071fd;
+        text-transform: uppercase;
+        
+        &__text{
+            padding: 50px;
+            position: absolute;
+            inset: 0px;
+            display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        }
+        &__textbig{
+            font-size: 40px;
+        }
+    }
+
+}
+
+
+.small-dog{
+    position: absolute;
+    bottom: 0;
+    right: 20%;
+    &__bubble{
+     position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(50%, -100%);
+        img{
+            width: 100%;
+            height: 100%;
+        }
+    }
+}
