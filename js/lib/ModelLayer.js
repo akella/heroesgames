@@ -61,20 +61,20 @@ export default class ModelLayer extends BaseLayer {
       this.model = gltf.scene;
       this.model.visible = false;
       // Center the model by computing its bounding box
-      let scale = 0.5;
+      let scale = 0.4;
       this.model.scale.set(scale, scale, scale);
       const boundingBox = new THREE.Box3().setFromObject(this.model);
       const center = boundingBox.getCenter(new THREE.Vector3());
       console.log(center);
       this.model.position.x = -center.x;
-      this.model.position.y = -center.y -0.5;
+      this.model.position.y = -center.y - 0.7;
       this.model.position.z = -center.z;
       this.modelY = this.model.position.y;
-      
       this.add(this.model);
       if (gltf.animations && gltf.animations.length > 0) {
         this.mixer = new THREE.AnimationMixer(this.model);
         this.actions = gltf.animations.map((clip) => this.mixer.clipAction(clip));
+        this.playAnimation(0);
       }
     });
   }
@@ -96,7 +96,7 @@ export default class ModelLayer extends BaseLayer {
     if (this.model && this.mouse) {
       // Rotate model based on mouse position
       this.targetMouse.lerp(this.mouse, 0.05);
-      this.model.rotation.y = -(this.targetMouse.x - 0.5) * Math.PI * 0.05;
+      this.model.rotation.y = -(this.targetMouse.x - 0.5) * Math.PI * 0.04;
       this.model.rotation.x = 0.07+(this.targetMouse.y - 0.5) * Math.PI * 0.02;
       this.model.position.y = this.modelY + (this.targetMouse.y - 0.5) * 0.05;
     }
