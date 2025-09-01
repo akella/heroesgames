@@ -19,6 +19,7 @@ import { flowMachine } from "./modules/flowmachine.js";
 import mitt from "mitt";
 import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
+import { OverlayObjectsManager } from './modules/OverlayObjectsManager.js';
 
 const layers = {
   slide1Layer: makeSlideLayer('slide1'),
@@ -87,6 +88,27 @@ class AppController {
       events: bus,
     });
 
+    // Overlay objects manager
+    this.overlayManager = new OverlayObjectsManager({
+      container: document.body,
+      mouse: this.mouse,
+      events: bus,
+    });
+    this.overlayManager.add({
+      id: 'picture1',
+      slides: ['slide6','slide7'],
+      initial: { centerOffset: { x: -545, y: 280, mode: 'px', anchor: 'center' }, width: '85px' },
+      parallax: { strengthX: 17, strengthY: 10, lerp: 0.08 },
+      images: { normal: 'assets/picture.png', hover: 'assets/picture-hover.png', hoverScale: 2 },
+      action: {
+        slides: ['slide6'],
+        onTrigger: () => {
+          flowActor.send({ type: 'NEXT' });
+        }
+      },
+      zIndex: 12,
+    });
+
     this.initPane();
 
     this.isPlaying = true;
@@ -116,6 +138,8 @@ class AppController {
       this.mouse.y = 1.0 - e.clientY / this.height;
     });
   }
+
+  // overlay objects now managed by OverlayObjectsManager
 
   setupResize() {
     window.addEventListener("resize", this.resize.bind(this));
@@ -150,6 +174,8 @@ class AppController {
     this.modelLayer.update(delta);
     this.renderer.clearDepth();
     this.modelLayer.render(this.renderer, this.perspCamera);
+    // simple parallax: move picture slightly with mouse (lerp already applied on layers)
+  if(this.overlayManager) this.overlayManager.update();
     requestAnimationFrame(this.render.bind(this));
   }
 }

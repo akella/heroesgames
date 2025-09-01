@@ -74,7 +74,7 @@ export default class ModelLayer extends BaseLayer {
       if (gltf.animations && gltf.animations.length > 0) {
         this.mixer = new THREE.AnimationMixer(this.model);
         this.actions = gltf.animations.map((clip) => this.mixer.clipAction(clip));
-        this.playAnimation(0);
+        // this.playAnimation(0);
       }
     });
   }

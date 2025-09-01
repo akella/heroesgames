@@ -2,7 +2,7 @@ import BaseLayer from './BaseLayer.js';
 import * as THREE from 'three';
 import fragment from '../shader/fragment.glsl';
 import vertex from '../shader/vertex.glsl';
-import room from '../../_room.png';
+import room from '../../assets/empty-room.png';
 import room_depth from '../../empty-room.jpg';
 
 export default class ShaderLayer extends BaseLayer {
