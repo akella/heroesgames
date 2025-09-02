@@ -9,8 +9,8 @@ export class OverlayObjectsManager {
     this.activeSlide = null;
     this._onFlow = this._onFlow.bind(this);
     events.on('flow.progress', this._onFlow);
-  this._onResize = this._onResize.bind(this);
-  window.addEventListener('resize', this._onResize);
+    this._onResize = this._onResize.bind(this);
+    window.addEventListener('resize', this._onResize);
   }
 
   add(cfg) {
@@ -21,9 +21,8 @@ export class OverlayObjectsManager {
     el.className = 'overlay-object';
     el.dataset.id = id;
     el.style.position = 'absolute';
-  // временная позиция, окончательная вычислится позже если есть centerOffset
-  el.style.top = (typeof initial.y === 'number' ? initial.y + 'px' : (initial.y || '10%'));
-  el.style.left = (typeof initial.x === 'number' ? initial.x + 'px' : (initial.x || '10%'));
+    el.style.top = (typeof initial.y === 'number' ? initial.y + 'px' : (initial.y || '10%'));
+    el.style.left = (typeof initial.x === 'number' ? initial.x + 'px' : (initial.x || '10%'));
     el.style.width = (initial.width || '200px');
     el.style.aspectRatio = initial.aspectRatio || '1/1';
     el.style.pointerEvents = 'auto';
@@ -43,14 +42,14 @@ export class OverlayObjectsManager {
     img.style.zIndex = 1;
     el.appendChild(img);
 
-    // hover overlay image (for smoother swap and to avoid src race / caching issues)
+    // hover overlay image
     let imgHover = null;
     if (images.hover) {
       imgHover = document.createElement('img');
       imgHover.src = images.hover;
       imgHover.alt = id + '-hover';
       const hoverScale = images.hoverScale || 1;
-      const hoverWidth = images.hoverWidth; // optional explicit sizing
+      const hoverWidth = images.hoverWidth;
       const hoverHeight = images.hoverHeight;
       imgHover.style.width = hoverWidth || '100%';
       imgHover.style.height = hoverHeight || '100%';
@@ -140,7 +139,7 @@ export class OverlayObjectsManager {
     this.items.forEach(item => {
       if (!item.slides.has(this.activeSlide)) return;
       if (item.centerOffset) {
-        this._applyCenterOffset(item); // можно оптимизировать и считать только на resize
+        this._applyCenterOffset(item);
       }
       // parallax calc
       const { strengthX, strengthY, lerp } = item.parallax;

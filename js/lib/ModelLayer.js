@@ -26,6 +26,9 @@ export default class ModelLayer extends BaseLayer {
     document.addEventListener('showCharacter', () => {
       this.showCharacter();
     })
+    document.addEventListener('hideCharacter', () => {
+      this.hideCharacter();
+    })
   }
 
   showCharacter() {

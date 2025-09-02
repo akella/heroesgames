@@ -5,7 +5,14 @@ const LAYERS = {
     slide4: ['slide4Layer'],
     slide5: ['slide5Layer'],
     slide6: ['slide6Layer'],
-    slide7: ['slide7Layer']
+    slide7: ['slide7Layer'],
+    slide8: ['slide8Layer'],
+  slide9: ['slide9Layer'],
+  slide10: ['slide10Layer'],
+  slide11: ['slide11Layer'],
+  slide12: ['slide12Layer'],
+  slide13: ['slide13Layer'],
+  slide14: ['slide14Layer'],
   };
   
   export class LayerManager {
