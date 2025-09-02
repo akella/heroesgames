@@ -19,40 +19,38 @@ import { flowMachine } from "./modules/flowmachine.js";
 import mitt from "mitt";
 import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
-import { OverlayObjectsManager } from './modules/OverlayObjectsManager.js';
-import { GameManager } from './modules/GameManager.js';
+import { OverlayObjectsManager } from "./modules/OverlayObjectsManager.js";
+import { GameManager } from "./modules/GameManager.js";
 
 const layers = {
-  slide1Layer: makeSlideLayer('slide1'),
-  slide2Layer: makeSlideLayer('slide2'),
-  slide3Layer: makeSlideLayer('slide3'),
-  slide4Layer: makeSlideLayer('slide4'),
-  slide5Layer: makeSlideLayer('slide5'),
-  slide6Layer: makeSlideLayer('slide6'),
-  slide7Layer: makeSlideLayer('slide7'),
-  slide8Layer: makeSlideLayer('slide8'),
-  slide9Layer: makeSlideLayer('slide9'),
-  slide10Layer: makeSlideLayer('slide10'),
-  slide11Layer: makeSlideLayer('slide11'),
-  slide12Layer: makeSlideLayer('slide12'),
-  slide13Layer: makeSlideLayer('slide13'),
-  slide14Layer: makeSlideLayer('slide14'),
+  slide1Layer: makeSlideLayer("slide1"),
+  slide2Layer: makeSlideLayer("slide2"),
+  slide3Layer: makeSlideLayer("slide3"),
+  slide4Layer: makeSlideLayer("slide4"),
+  slide5Layer: makeSlideLayer("slide5"),
+  slide6Layer: makeSlideLayer("slide6"),
+  slide7Layer: makeSlideLayer("slide7"),
+  slide8Layer: makeSlideLayer("slide8"),
+  slide9Layer: makeSlideLayer("slide9"),
+  slide10Layer: makeSlideLayer("slide10"),
+  slide11Layer: makeSlideLayer("slide11"),
+  slide12Layer: makeSlideLayer("slide12"),
+  slide13Layer: makeSlideLayer("slide13"),
+  slide14Layer: makeSlideLayer("slide14"),
 };
 
 const layerManager = new LayerManager(layers);
 
 const bus = mitt();
+
 const gameManager = new GameManager({ bus });
-// On completion: go to next slide, keep game visible but deactivate
-bus.on('game.finddiff.complete', () => {
+bus.on("game.finddiff.complete", () => {
   if (gameManager.active?.api) gameManager.active.api.setActive(false);
-  flowActor.send({ type: 'NEXT' });
+  flowActor.send({ type: "NEXT" });
 });
-// attach root once DOM is ready
-const gameRoot = document.getElementById('game-root');
+const gameRoot = document.getElementById("game-root");
 if (gameRoot) gameManager.attachRoot(gameRoot);
-// default: keep game below slides (slides at 10) until active gameplay
-if (gameRoot) gameRoot.style.zIndex = '5';
+if (gameRoot) gameRoot.style.zIndex = "5";
 
 let prevSnap;
 const flowActor = createActor(flowMachine);
@@ -60,33 +58,33 @@ flowActor.subscribe((snap) => {
   if (snap === prevSnap) return;
   prevSnap = snap;
   layerManager.syncToState(snap);
-  bus.emit('flow.progress', snap);
+  bus.emit("flow.progress", snap);
   const val = snap.value;
   if (!gameManager.active) return;
-  if (val === 'slide9') {
+  if (val === "slide9") {
     gameManager.active.api.show();
     gameManager.active.api.setActive(false);
-    if (gameRoot) gameRoot.style.zIndex = '5';
-  } else if (val === 'slide13') {
+    if (gameRoot) gameRoot.style.zIndex = "5";
+  } else if (val === "slide13") {
     gameManager.active.api.show();
     gameManager.active.api.setActive(true);
-    if (gameRoot) gameRoot.style.zIndex = '20';
-  } else if (val === 'slide14') {
+    if (gameRoot) gameRoot.style.zIndex = "20";
+  } else if (val === "slide14") {
     gameManager.active.api.show();
     gameManager.active.api.setActive(false);
-    if (gameRoot) gameRoot.style.zIndex = '5';
-  } else if (val === 'outro') {
+    if (gameRoot) gameRoot.style.zIndex = "5";
+  } else if (val === "outro") {
     gameManager.active.api.hide();
-    if (gameRoot) gameRoot.style.zIndex = '5';
+    if (gameRoot) gameRoot.style.zIndex = "5";
   }
 });
 flowActor.start();
-let gonext = [...document.querySelectorAll('.js-next')]
-gonext.forEach(el => {
-  el.addEventListener('click', () => {
+let gonext = [...document.querySelectorAll(".js-next")];
+gonext.forEach((el) => {
+  el.addEventListener("click", () => {
     flowActor.send({ type: "NEXT" });
-  })
-})
+  });
+});
 
 class AppController {
   constructor(options) {
@@ -98,7 +96,7 @@ class AppController {
     this.renderer.setSize(this.width, this.height);
     // this.renderer.setClearColor(0xeeeeee, 1);
     this.renderer.autoClear = false;
-    this.renderer.domElement.classList.add('gl-canvas');
+    this.renderer.domElement.classList.add("gl-canvas");
     this.container.appendChild(this.renderer.domElement);
 
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1);
@@ -128,29 +126,35 @@ class AppController {
       events: bus,
     });
     this.overlayManager.add({
-      id: 'picture1',
-      slides: ['slide7'],
-      initial: { centerOffset: { x: -525, y: 275, mode: 'px', anchor: 'center' }, width: '85px' },
+      id: "picture1",
+      slides: ["slide7"],
+      initial: {
+        centerOffset: { x: -500, y: 270, mode: "px", anchor: "center" },
+        width: "85px",
+      },
       parallax: { strengthX: 17, strengthY: 10, lerp: 0.08 },
-      images: { normal: 'assets/picture.png', hover: 'assets/picture-hover.png', hoverScale: 2 },
+      images: {
+        normal: "assets/picture.png",
+        hover: "assets/picture-hover.png",
+        hoverScale: 2,
+      },
       action: {
-        slides: ['slide7'],
+        slides: ["slide7"],
         onTrigger: () => {
-          flowActor.send({ type: 'NEXT' });
-        }
+          flowActor.send({ type: "NEXT" });
+        },
       },
       zIndex: 12,
     });
 
-
     this.initPane();
 
-  // Register games
-  gameManager.register('finddiff', () => import('./games/finddiff/index.js'));
+    // Register games
+    gameManager.register("finddiff", () => import("./games/finddiff/index.js"));
     // Preload game
     (async () => {
       try {
-        await gameManager.activate('finddiff', { bus });
+        await gameManager.activate("finddiff", { bus });
         gameManager.active?.api.setActive(false);
         gameManager.active?.api.hide();
       } catch (e) {}
@@ -183,8 +187,6 @@ class AppController {
       this.mouse.y = 1.0 - e.clientY / this.height;
     });
   }
-
-  // overlay objects now managed by OverlayObjectsManager
 
   setupResize() {
     window.addEventListener("resize", this.resize.bind(this));

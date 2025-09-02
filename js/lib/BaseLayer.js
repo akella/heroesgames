@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 
 export default class BaseLayer extends THREE.Scene {
   constructor() {
@@ -8,4 +8,4 @@ export default class BaseLayer extends THREE.Scene {
   render(renderer, camera) {
     renderer.render(this, camera);
   }
-} 
+}

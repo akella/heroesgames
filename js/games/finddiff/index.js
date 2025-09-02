@@ -1,344 +1,276 @@
-// Spot the difference game (cleaned)
+// Spot-the-difference mini game logic
+import { gsap } from "gsap";
 
-const DIFF_RADIUS = 32; // px radius for marking found spot
-const REQUIRED_DIFFS = 10; // updated total differences required
+// Game tuning values / assets
+const DIFF_RADIUS = 32; // marker radius
+const REQUIRED_DIFFS = 10; // how many to find to win
+const MASK_THRESHOLD = 200; // brightness threshold for mask
+const QUAD_OFFSET = 50; // margin from window for movement centers
+const HIGHLIGHT_SRC = "assets/games/finddiff/finded.png";
+const ROOM_SRC = "assets/games/finddiff/finddiff-room.png";
+const MASK_SRC = "assets/games/finddiff/finddiff-mask.png";
+const BRUSH_CURSOR_SRC = "assets/games/finddiff/brush.png";
+const HAND_IMG_SRC = "assets/games/finddiff/hand.png";
 
 export function createGame({ bus }) {
-  let root, canvas, ctx, maskImg, displayImg, overlayLayer, stage, handImg;
-  let width = 0,
-    height = 0;
-  let found = []; // {x,y}
-  let foundMask; // boolean 2d array flattened
-  let loading = true;
+  let root, canvas, ctx, overlayLayer, stage;
+  let maskData = null;
+  let found = [];
+  let active = false;
   let complete = false;
-  let active = false; // clicks only when active
-  const HIGHLIGHT_SRC = "assets/games/finddiff/finded.png";
-  let highlightTemplate = null; // preloaded image template
-  const BRUSH_CURSOR_SRC = "assets/games/finddiff/brush.png";
-  let brushFollower = null;
-  const brushHotspot = { x: 24, y: 24 }; // doubled hotspot for larger cursor
-
-  // Quadrant-follow movement state
+  let highlightTemplate;
+  let brushFollower;
   let quadCenters = [];
-  let targetCX = 0,
-    targetCY = 0;
-  let curCX = 0,
-    curCY = 0;
-  let startCX = 0,
-    startCY = 0;
-  let transitionStart = null;
-  const TRANSITION_DURATION = 600;
-  const QUAD_OFFSET = 50;
-  let animFrame = 0;
-  let lastMouseX = window.innerWidth / 2;
-  let lastMouseY = window.innerHeight / 2;
+  let handImg;
+  let lastQuadrant = -1;
+  let moveTween = null;
+  let rootSize = null;
+  let setX, setY;
+  let lastTarget = { x: null, y: null };
 
-  function computeQuadrants() {
-    const cw = window.innerWidth;
-    const ch = window.innerHeight;
-    quadCenters = [
-      { x: cw * 0.25 + QUAD_OFFSET, y: ch * 0.25 + QUAD_OFFSET },
-      { x: cw * 0.75 - QUAD_OFFSET, y: ch * 0.25 + QUAD_OFFSET },
-      { x: cw * 0.25 + QUAD_OFFSET, y: ch * 0.75 - QUAD_OFFSET },
-      { x: cw * 0.75 - QUAD_OFFSET, y: ch * 0.75 - QUAD_OFFSET },
-    ];
-    quadCenters.forEach((c) => {
-      c.x = Math.min(Math.max(c.x, QUAD_OFFSET), cw - QUAD_OFFSET);
-      c.y = Math.min(Math.max(c.y, QUAD_OFFSET), ch - QUAD_OFFSET);
+  const load = (src) =>
+    new Promise((res, rej) => {
+      const i = new Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = src;
     });
-    pickTarget(lastMouseX, lastMouseY, true);
-  }
 
-  function pickTarget(mx, my, immediate = false) {
-    lastMouseX = mx;
-    lastMouseY = my;
-    const cw = window.innerWidth;
-    const ch = window.innerHeight;
-    const left = mx < cw / 2;
-    const top = my < ch / 2;
-    const idx = top ? (left ? 0 : 1) : left ? 2 : 3;
-    const c = quadCenters[idx];
-    if (!c) return;
-    if (c.x === targetCX && c.y === targetCY) return;
-    targetCX = c.x;
-    targetCY = c.y;
-    if (immediate) {
-      curCX = targetCX;
-      curCY = targetCY;
-      transitionStart = null;
-      applyRootTransform();
-    } else {
-      startCX = curCX;
-      startCY = curCY;
-      transitionStart = performance.now();
-    }
-  }
-
-  function applyRootTransform() {
-    if (!root) return;
-    const rect = root.getBoundingClientRect();
-    const x = curCX - rect.width / 2;
-    const y = curCY - rect.height / 2;
-    root.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
-  }
-
-  function easeInOutCubic(t) {
-    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-  }
-
-  function animate() {
-    if (transitionStart !== null) {
-      const now = performance.now();
-      let t = (now - transitionStart) / TRANSITION_DURATION;
-      if (t >= 1) {
-        t = 1;
-        transitionStart = null;
-      }
-      const k = easeInOutCubic(Math.min(Math.max(t, 0), 1));
-      curCX = startCX + (targetCX - startCX) * k;
-      curCY = startCY + (targetCY - startCY) * k;
-      applyRootTransform();
-    }
-    animFrame = requestAnimationFrame(animate);
-  }
-  function onMouseMove(e) {
-    if (!active) return;
-    pickTarget(e.clientX, e.clientY);
-    if (brushFollower && !complete) {
-      brushFollower.style.transform = `translate(${
-        e.clientX - brushHotspot.x
-      }px, ${e.clientY - brushHotspot.y}px)`;
-    }
-  }
-  function onResize() {
-    computeQuadrants();
-  }
-
-  function loadImage(src) {
-    return new Promise((res, rej) => {
-      const img = new Image();
-      img.onload = () => res(img);
-      img.onerror = rej;
-      img.src = src;
-    });
-  }
-
-  async function init(container) {
+  // Build game DOM nodes
+  function buildDOM(container) {
     root = document.createElement("div");
     root.className = "finddiff-root";
-
     stage = document.createElement("div");
     stage.className = "finddiff-stage";
     canvas = document.createElement("canvas");
     canvas.className = "finddiff-canvas";
     overlayLayer = document.createElement("div");
     overlayLayer.className = "finddiff-overlay";
+    stage.append(canvas, overlayLayer);
     handImg = document.createElement("img");
     handImg.className = "finddiff-hand";
-    handImg.src = "assets/games/finddiff/hand.png";
-    handImg.alt = "";
-    handImg.setAttribute("aria-hidden", "true");
-
-    stage.appendChild(canvas);
-    stage.appendChild(overlayLayer);
+    handImg.src = HAND_IMG_SRC;
     stage.appendChild(handImg);
-    root.appendChild(stage);
-    container.appendChild(root);
+    root.append(stage);
+    container.append(root);
+  }
 
-    // Preload highlight asset
-    highlightTemplate = new Image();
-    highlightTemplate.src = HIGHLIGHT_SRC;
-    highlightTemplate.className = "finddiff-found";
-    highlightTemplate.style.position = "absolute";
-    highlightTemplate.style.pointerEvents = "none";
-    highlightTemplate.style.transform = "translate(-50%, -50%)";
-
-    // Preload brush cursor image; once loaded ensure usable size (cap to 96px)
-    try {
-      const brushImg = await loadImage(BRUSH_CURSOR_SRC);
-      const maxDim = 96; // reduce if image huge so browsers accept it
-      const w = brushImg.naturalWidth;
-      const h = brushImg.naturalHeight;
-      const scale = Math.min(1, maxDim / Math.max(w, h));
-      if (scale < 1) {
-        const c = document.createElement("canvas");
-        c.width = Math.round(w * scale);
-        c.height = Math.round(h * scale);
-        const cctx = c.getContext("2d");
-        cctx.drawImage(brushImg, 0, 0, c.width, c.height);
-        // (old cursor scaling logic removed)
-      }
-    } catch (e) {}
-    // Create brush follower element
+  // Create and inject custom brush cursor element
+  function setupCursor() {
     brushFollower = document.createElement("img");
-    brushFollower.src = BRUSH_CURSOR_SRC;
-    brushFollower.alt = "";
-    brushFollower.className = "finddiff-brush-cursor";
+    Object.assign(brushFollower, { src: BRUSH_CURSOR_SRC, alt: "" });
     Object.assign(brushFollower.style, {
       position: "fixed",
-      left: "0",
-      top: "0",
+      left: 0,
+      top: 0,
       width: "112px",
       height: "112px",
       pointerEvents: "none",
-      zIndex: "9999",
+      zIndex: 9999,
       transform: "translate(-9999px,-9999px)",
     });
     document.body.appendChild(brushFollower);
-
-    // Load images
-    const [img, mask] = await Promise.all([
-      loadImage("assets/games/finddiff/finddiff-room.png"),
-      loadImage("assets/games/finddiff/finddiff-mask.png"),
-    ]).catch((err) => {
-      throw err;
-    });
-    displayImg = img;
-    maskImg = mask;
-    width = img.naturalWidth;
-    height = img.naturalHeight;
-    canvas.width = width;
-    canvas.height = height;
-    ctx = canvas.getContext("2d");
-    ctx.drawImage(displayImg, 0, 0);
-
-    foundMask = new Uint8Array(width * height);
-
-    canvas.addEventListener("click", onClick);
-    loading = false;
-
-    // Movement system
-    root.style.left = "0px";
-    root.style.top = "0px";
-    computeQuadrants();
-    pickTarget(window.innerWidth / 2, window.innerHeight / 2, true);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("resize", onResize);
-    animFrame = requestAnimationFrame(animate);
   }
 
-  function relativePos(evt) {
-    const rect = canvas.getBoundingClientRect();
-    const x = (evt.clientX - rect.left) * (canvas.width / rect.width);
-    const y = (evt.clientY - rect.top) * (canvas.height / rect.height);
-    return { x, y };
+  // Precompute 4 clamped movement centers (corners-ish)
+  function computeQuadrants() {
+    const w = window.innerWidth,
+      h = window.innerHeight;
+    const halfW = (rootSize?.w || 0) / 2;
+    const halfH = (rootSize?.h || 0) / 2;
+    const minX = halfW + QUAD_OFFSET;
+    const maxX = w - halfW - QUAD_OFFSET;
+    const minY = halfH + QUAD_OFFSET;
+    const maxY = h - halfH - QUAD_OFFSET;
+    const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+    quadCenters = [
+      { x: w * 0.25, y: h * 0.25 },
+      { x: w * 0.75, y: h * 0.25 },
+      { x: w * 0.25, y: h * 0.75 },
+      { x: w * 0.75, y: h * 0.75 },
+    ].map((c) => ({ x: clamp(c.x, minX, maxX), y: clamp(c.y, minY, maxY) }));
   }
 
-  function isDiffPixel(x, y) {
-    if (!maskImg) return false;
-    const temp = document.createElement("canvas");
-    temp.width = maskImg.naturalWidth;
-    temp.height = maskImg.naturalHeight;
-    const tctx = temp.getContext("2d");
-    tctx.drawImage(maskImg, 0, 0);
-    const data = tctx.getImageData(0, 0, temp.width, temp.height).data;
-    const ix = (Math.floor(y) * temp.width + Math.floor(x)) * 4;
-    // Assume white (255,255,255) marks differences; threshold on brightness
-    const r = data[ix],
-      g = data[ix + 1],
-      b = data[ix + 2];
-    const bright = (r + g + b) / 3;
-    return bright > 200; // white-ish
-  }
-
-  // Optimize: cache mask pixel data once
-  let maskDataCache = null;
-  function ensureMaskData() {
-    if (maskDataCache) return maskDataCache;
-    const temp = document.createElement("canvas");
-    temp.width = maskImg.naturalWidth;
-    temp.height = maskImg.naturalHeight;
-    const tctx = temp.getContext("2d");
-    tctx.drawImage(maskImg, 0, 0);
-    maskDataCache = tctx.getImageData(0, 0, temp.width, temp.height);
-    return maskDataCache;
-  }
-
-  function isDiffPixelFast(x, y) {
-    const md = ensureMaskData();
-    const w = md.width;
-    const h = md.height;
-    if (x < 0 || y < 0 || x >= w || y >= h) return false;
-    const ix = (Math.floor(y) * w + Math.floor(x)) * 4;
-    const d = md.data;
-    const bright = (d[ix] + d[ix + 1] + d[ix + 2]) / 3;
-    return bright > 200;
-  }
-
-  function markFound(x, y) {
-    found.push({ x, y });
-    // Use preloaded template clone for instant display
-    const img = highlightTemplate ? highlightTemplate.cloneNode() : new Image();
-    if (!highlightTemplate) {
-      // fallback if preload failed
-      img.src = HIGHLIGHT_SRC;
-      img.className = "finddiff-found";
-      img.style.position = "absolute";
-      img.style.pointerEvents = "none";
-      img.style.transform = "translate(-50%, -50%)";
+  // Tween (or jump) game root so its center lands at (cx,cy)
+  function centerRootAt(cx, cy, instant = false) {
+    if (!root) return;
+    if (!rootSize) {
+      const r = root.getBoundingClientRect();
+      rootSize = { w: r.width, h: r.height };
     }
-    img.style.left = x + "px";
-    img.style.top = y + "px";
-    img.style.width = DIFF_RADIUS * 2 + "px";
-    img.style.height = DIFF_RADIUS * 2 + "px";
-    overlayLayer.appendChild(img);
-    if (found.length >= REQUIRED_DIFFS) finish();
+    const x = cx - rootSize.w / 2;
+    const y = cy - rootSize.h / 2;
+    if (moveTween) moveTween.kill();
+    if (instant) {
+      gsap.set(root, { x, y });
+      root._x = x;
+      root._y = y;
+    } else {
+      if (!setX || !setY) {
+        setX = gsap.quickSetter(root, "x", "px");
+        setY = gsap.quickSetter(root, "y", "px");
+      }
+      const startX =
+        root._x != null ? root._x : gsap.getProperty(root, "x") || 0;
+      const startY =
+        root._y != null ? root._y : gsap.getProperty(root, "y") || 0;
+      moveTween = gsap.to(
+        { px: startX, py: startY },
+        {
+          px: x,
+          py: y,
+          duration: 0.5,
+          ease: "power3.inOut",
+          overwrite: "auto",
+          onUpdate() {
+            const t = this.targets()[0];
+            setX(t.px);
+            setY(t.py);
+            root._x = t.px;
+            root._y = t.py;
+          },
+        }
+      );
+    }
   }
 
+  // Map mouse pos to quadrant index 0..3
+  function quadrantFromMouse(mx, my) {
+    const left = mx < window.innerWidth / 2;
+    const top = my < window.innerHeight / 2;
+    return top ? (left ? 0 : 1) : left ? 2 : 3;
+  }
+
+  // Move brush & maybe tween root to new quadrant center
+  function onMouseMove(e) {
+    if (brushFollower)
+      brushFollower.style.transform = `translate(${e.clientX - 24}px,${
+        e.clientY - 24
+      }px)`;
+    if (active && !complete) {
+      const qIdx = quadrantFromMouse(e.clientX, e.clientY);
+      const q = quadCenters[qIdx];
+      if (q) {
+        const need =
+          qIdx !== lastQuadrant ||
+          (lastTarget.x - q.x) ** 2 + (lastTarget.y - q.y) ** 2 > 25;
+        if (need) {
+          lastQuadrant = qIdx;
+          lastTarget.x = q.x;
+          lastTarget.y = q.y;
+          centerRootAt(q.x, q.y, false);
+        }
+      }
+    }
+  }
+
+  // Recompute centers on resize and reposition
+  function onResize() {
+    rootSize = null;
+    if (root) {
+      const r = root.getBoundingClientRect();
+      rootSize = { w: r.width, h: r.height };
+    }
+    computeQuadrants();
+    if (!complete) {
+      const idx = lastQuadrant >= 0 ? lastQuadrant : 0;
+      const q = quadCenters[idx];
+      if (q) centerRootAt(q.x, q.y, true);
+    } else freezeBottomRight();
+  }
+
+  // Convert mask image to pixel data
+  function buildMask(maskImg) {
+    const c = document.createElement("canvas");
+    c.width = maskImg.naturalWidth;
+    c.height = maskImg.naturalHeight;
+    const cctx = c.getContext("2d");
+    cctx.drawImage(maskImg, 0, 0);
+    maskData = cctx.getImageData(0, 0, c.width, c.height);
+  }
+
+  // Check if pixel belongs to a diff area
+  function isDiff(x, y) {
+    if (!maskData) return false;
+    if (x < 0 || y < 0 || x >= maskData.width || y >= maskData.height)
+      return false;
+    const i = ((y | 0) * maskData.width + (x | 0)) * 4;
+    const d = maskData.data;
+    return (d[i] + d[i + 1] + d[i + 2]) / 3 > MASK_THRESHOLD;
+  }
+
+  // Prevent duplicate finds near existing marker
   function alreadyFound(x, y) {
     return found.some(
       (f) => (f.x - x) ** 2 + (f.y - y) ** 2 < DIFF_RADIUS * DIFF_RADIUS
     );
   }
 
-  function onClick(evt) {
-    if (loading || complete || !active) return;
-    const { x, y } = relativePos(evt);
+  // Place a visual marker
+  function addMarker(x, y) {
+    const m = highlightTemplate.cloneNode();
+    m.style.left = x + "px";
+    m.style.top = y + "px";
+    m.style.width = m.style.height = DIFF_RADIUS * 2 + "px";
+    overlayLayer.appendChild(m);
+  }
+
+  // On click sample a small ring to validate a diff
+  function handleClick(e) {
+    if (!active || complete) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (canvas.height / rect.height);
     if (alreadyFound(x, y)) return;
-    // Tolerance sampling
-    const samples = 12;
+    const samples = 12,
+      r = 8;
     let hit = false;
-    const angleStep = (Math.PI * 2) / samples;
     for (let i = 0; i < samples; i++) {
-      const sx = x + Math.cos(i * angleStep) * 8;
-      const sy = y + Math.sin(i * angleStep) * 8;
-      if (isDiffPixelFast(sx, sy)) {
+      const a = (i * (Math.PI * 2)) / samples;
+      if (isDiff(x + Math.cos(a) * r, y + Math.sin(a) * r)) {
         hit = true;
         break;
       }
     }
-    if (hit) markFound(x, y);
+    if (hit) {
+      found.push({ x, y });
+      addMarker(x, y);
+      if (found.length >= REQUIRED_DIFFS) finish();
+    }
   }
 
   function finish() {
     complete = true;
     bus.emit("game.finddiff.complete");
-    // Freeze and move to bottom-right
-    freezeToBottomRight();
-    if (root) root.classList.remove("active-cursor");
+    freezeBottomRight();
     if (brushFollower) brushFollower.style.display = "none";
     document.body.style.cursor = "";
   }
 
-  function freezeToBottomRight() {
+  // Park game UI bottom-right when done
+  function freezeBottomRight() {
     if (!root) return;
-    if (animFrame) {
-      cancelAnimationFrame(animFrame);
-      animFrame = 0;
-    }
-    transitionStart = null;
-    const margin = 40;
     const rect = root.getBoundingClientRect();
+    const margin = 40;
     const x = Math.max(0, window.innerWidth - rect.width - margin);
     const y = Math.max(0, window.innerHeight - rect.height - margin);
-    root.style.transform = `translate(${x}px, ${y}px)`;
+    gsap.set(root, { x, y });
   }
 
-  function onResize() {
-    if (complete) {
-      freezeToBottomRight();
+  // Toggle active gameplay (cursor + movement)
+  function setActive(v) {
+    active = v;
+    root.classList.toggle("inactive", !v);
+    if (v && !complete) {
+      document.body.style.cursor = "none";
+      if (brushFollower) brushFollower.style.display = "block";
+      if (lastQuadrant >= 0) {
+        const q = quadCenters[lastQuadrant];
+        if (q) centerRootAt(q.x, q.y, false);
+      }
     } else {
-      computeQuadrants();
+      document.body.style.cursor = "";
+      if (brushFollower) brushFollower.style.display = "none";
     }
   }
 
@@ -348,38 +280,48 @@ export function createGame({ bus }) {
   function hide() {
     root.style.display = "none";
   }
-  function update(dt) {}
-  function destroy() {
-    canvas.removeEventListener("click", onClick);
-  }
-  function setActive(v) {
-    active = v;
-    root.classList.toggle("inactive", !active);
-    if (active && !complete) {
-      root.classList.add("active-cursor");
-      pickTarget(lastMouseX, lastMouseY, false);
-      if (brushFollower) {
-        brushFollower.style.display = "block";
-      }
-      document.body.style.cursor = "none";
-    } else {
-      root.classList.remove("active-cursor");
-      if (brushFollower) brushFollower.style.display = "none";
-      document.body.style.cursor = "";
-    }
-  }
 
-  const _origDestroy = destroy;
-  function destroyWrapped() {
-    _origDestroy();
+  // Remove listeners & detached nodes
+  function destroy() {
     window.removeEventListener("mousemove", onMouseMove);
     window.removeEventListener("resize", onResize);
-    if (animFrame) cancelAnimationFrame(animFrame);
-    if (root) root.classList.remove("active-cursor");
-    if (brushFollower && brushFollower.parentNode)
+    canvas.removeEventListener("click", handleClick);
+    if (brushFollower?.parentNode)
       brushFollower.parentNode.removeChild(brushFollower);
-    document.body.style.cursor = "";
+    if (handImg?.parentNode) handImg.parentNode.removeChild(handImg);
   }
 
-  return { init, show, hide, update, destroy: destroyWrapped, setActive };
+  // Entry point: build UI, load assets, start listeners
+  async function init(container) {
+    buildDOM(container);
+    setupCursor();
+    highlightTemplate = new Image();
+    highlightTemplate.src = HIGHLIGHT_SRC;
+    Object.assign(highlightTemplate.style, {
+      position: "absolute",
+      pointerEvents: "none",
+      transform: "translate(-50%, -50%)",
+    });
+    const [room, mask] = await Promise.all([load(ROOM_SRC), load(MASK_SRC)]);
+    canvas.width = room.naturalWidth;
+    canvas.height = room.naturalHeight;
+    ctx = canvas.getContext("2d");
+    ctx.drawImage(room, 0, 0);
+    buildMask(mask);
+    canvas.addEventListener("click", handleClick);
+    const r = root.getBoundingClientRect();
+    rootSize = { w: r.width, h: r.height };
+    computeQuadrants();
+    const startQ = quadCenters[3] || quadCenters[0]; // start bottom-right
+    if (startQ) {
+      lastQuadrant = quadCenters.indexOf(startQ);
+      lastTarget.x = startQ.x;
+      lastTarget.y = startQ.y;
+      centerRootAt(startQ.x, startQ.y, true);
+    }
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("resize", onResize);
+  }
+
+  return { init, show, hide, destroy, setActive };
 }

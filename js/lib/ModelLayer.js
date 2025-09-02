@@ -1,14 +1,14 @@
-import BaseLayer from './BaseLayer.js';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
-import modelUrl from '../../model/clay_guy_material_fix.glb?url';
+import BaseLayer from "./BaseLayer.js";
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+import modelUrl from "../../model/clay_guy_material_fix.glb?url";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import mitt from "mitt";
 
 const bus = mitt();
 export default class ModelLayer extends BaseLayer {
-  constructor({mouse, events}) {
+  constructor({ mouse, events }) {
     super();
     this.mouse = mouse;
     this.targetMouse = new THREE.Vector2(0.5, 0.5);
@@ -17,25 +17,25 @@ export default class ModelLayer extends BaseLayer {
     this.actions = [];
     this.initLoaders();
     this.loadModel();
-    this.addLighting()
-    bus.on('flow.progress', (state) => {
-      console.log(state,'state')
-      alert('WORKS')
-    })
+    this.addLighting();
+    bus.on("flow.progress", (state) => {
+      console.log(state, "state");
+      alert("WORKS");
+    });
     this.hideCharacter();
-    document.addEventListener('showCharacter', () => {
+    document.addEventListener("showCharacter", () => {
       this.showCharacter();
-    })
-    document.addEventListener('hideCharacter', () => {
+    });
+    document.addEventListener("hideCharacter", () => {
       this.hideCharacter();
-    })
+    });
   }
 
   showCharacter() {
-    if(this.model) this.model.visible = true;
+    if (this.model) this.model.visible = true;
   }
   hideCharacter() {
-    if(this.model) this.model.visible = false;
+    if (this.model) this.model.visible = false;
   }
 
   addLighting() {
@@ -46,7 +46,8 @@ export default class ModelLayer extends BaseLayer {
     this.add(directionalLight);
     const pmremGenerator = new THREE.PMREMGenerator(new THREE.WebGLRenderer());
     const roomEnvironment = new RoomEnvironment();
-    const roomEnvironmentMap = pmremGenerator.fromScene(roomEnvironment).texture;
+    const roomEnvironmentMap =
+      pmremGenerator.fromScene(roomEnvironment).texture;
     this.environment = roomEnvironmentMap;
     pmremGenerator.dispose();
   }
@@ -76,7 +77,9 @@ export default class ModelLayer extends BaseLayer {
       this.add(this.model);
       if (gltf.animations && gltf.animations.length > 0) {
         this.mixer = new THREE.AnimationMixer(this.model);
-        this.actions = gltf.animations.map((clip) => this.mixer.clipAction(clip));
+        this.actions = gltf.animations.map((clip) =>
+          this.mixer.clipAction(clip)
+        );
         // this.playAnimation(0);
       }
     });
@@ -100,8 +103,9 @@ export default class ModelLayer extends BaseLayer {
       // Rotate model based on mouse position
       this.targetMouse.lerp(this.mouse, 0.05);
       this.model.rotation.y = -(this.targetMouse.x - 0.5) * Math.PI * 0.04;
-      this.model.rotation.x = 0.07+(this.targetMouse.y - 0.5) * Math.PI * 0.02;
+      this.model.rotation.x =
+        0.07 + (this.targetMouse.y - 0.5) * Math.PI * 0.02;
       this.model.position.y = this.modelY + (this.targetMouse.y - 0.5) * 0.05;
     }
   }
-} 
+}
