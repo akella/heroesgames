@@ -53,12 +53,11 @@ html {
 .overlay-object[data-id="picture1"]::after {
   content: "";
   position: absolute;
-  inset: 13px; /* how far inside the edge */
-  border: 3px solid #fff; /* ring thickness */
+  inset: 45px;
+  border: 3px solid #fff;
   border-radius: 50%;
   pointer-events: none;
   box-sizing: border-box;
-  /* ensure above base image */
   z-index: 3;
   opacity: 1;
   transition: opacity 0.25s ease;
@@ -228,14 +227,13 @@ html {
   cursor: url("../assets/games/finddiff/brush.png") 4 28, pointer;
 }
 
-/* Force hide native cursor inside active game area to ensure only custom follower visible */
 .finddiff-root.active-cursor,
 .finddiff-root.active-cursor * {
   cursor: none !important;
 }
 
 body.cursor-brush {
-  cursor: none; /* JS sets explicit cursor style inline; hide default if custom fails */
+  cursor: none;
 }
 
 .finddiff-stage {
@@ -247,8 +245,8 @@ body.cursor-brush {
   position: absolute;
   top: 50%;
   left: 100%;
-  transform: translate(-80px, 0%) scaleX(-1);
-  width: clamp(100px, 16vw, 220px);
+  transform: translate(-90px, 0%) scaleX(-1);
+  width: clamp(100px, 18vw, 225px);
   height: auto;
   pointer-events: none;
   user-select: none;

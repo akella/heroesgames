@@ -5,12 +5,16 @@ import { gsap } from "gsap";
 const DIFF_RADIUS = 32; // marker radius
 const REQUIRED_DIFFS = 10; // how many to find to win
 const MASK_THRESHOLD = 200; // brightness threshold for mask
-const QUAD_OFFSET = 50; // margin from window for movement centers
+const QUAD_OFFSET = 70; // margin from window for movement centers
 const HIGHLIGHT_SRC = "assets/games/finddiff/finded.png";
 const ROOM_SRC = "assets/games/finddiff/finddiff-room.png";
 const MASK_SRC = "assets/games/finddiff/finddiff-mask.png";
 const BRUSH_CURSOR_SRC = "assets/games/finddiff/brush.png";
 const HAND_IMG_SRC = "assets/games/finddiff/hand.png";
+// Spring motion tuning (critically damped-ish subjective values)
+const SPRING_STIFFNESS = 0.04; // higher -> snappier
+const SPRING_DAMPING = 0.32; // higher -> less oscillation
+const SPRING_EPS = 0.05; // stop threshold (px)
 
 export function createGame({ bus }) {
   let root, canvas, ctx, overlayLayer, stage;
@@ -23,7 +27,14 @@ export function createGame({ bus }) {
   let quadCenters = [];
   let handImg;
   let lastQuadrant = -1;
-  let moveTween = null;
+  // Spring motion state
+  let posX = 0,
+    posY = 0,
+    velX = 0,
+    velY = 0,
+    targetX = 0,
+    targetY = 0;
+  let springRunning = false;
   let rootSize = null;
   let setX, setY;
   let lastTarget = { x: null, y: null };
@@ -91,47 +102,83 @@ export function createGame({ bus }) {
     ].map((c) => ({ x: clamp(c.x, minX, maxX), y: clamp(c.y, minY, maxY) }));
   }
 
-  // Tween (or jump) game root so its center lands at (cx,cy)
+  // Update target center (spring drives actual motion)
   function centerRootAt(cx, cy, instant = false) {
     if (!root) return;
     if (!rootSize) {
       const r = root.getBoundingClientRect();
       rootSize = { w: r.width, h: r.height };
     }
-    const x = cx - rootSize.w / 2;
-    const y = cy - rootSize.h / 2;
-    if (moveTween) moveTween.kill();
+    // desired top-left from requested center
+    let nx = cx - rootSize.w / 2;
+    let ny = cy - rootSize.h / 2;
+    const maxX = Math.max(0, window.innerWidth - rootSize.w);
+    const maxY = Math.max(0, window.innerHeight - rootSize.h);
+    if (nx < 0) nx = 0;
+    else if (nx > maxX) nx = maxX;
+    if (ny < 0) ny = 0;
+    else if (ny > maxY) ny = maxY;
+    targetX = nx;
+    targetY = ny;
     if (instant) {
-      gsap.set(root, { x, y });
-      root._x = x;
-      root._y = y;
-    } else {
+      posX = targetX;
+      posY = targetY;
+      velX = velY = 0;
       if (!setX || !setY) {
         setX = gsap.quickSetter(root, "x", "px");
         setY = gsap.quickSetter(root, "y", "px");
       }
-      const startX =
-        root._x != null ? root._x : gsap.getProperty(root, "x") || 0;
-      const startY =
-        root._y != null ? root._y : gsap.getProperty(root, "y") || 0;
-      moveTween = gsap.to(
-        { px: startX, py: startY },
-        {
-          px: x,
-          py: y,
-          duration: 0.5,
-          ease: "power3.inOut",
-          overwrite: "auto",
-          onUpdate() {
-            const t = this.targets()[0];
-            setX(t.px);
-            setY(t.py);
-            root._x = t.px;
-            root._y = t.py;
-          },
-        }
-      );
+      setX(posX);
+      setY(posY);
     }
+  }
+
+  function stepSpring(dt) {
+    // Clamp dt to avoid huge jumps (ms -> s)
+    if (dt > 0.05) dt = 0.05;
+    const dx = targetX - posX;
+    const dy = targetY - posY;
+    // Hooke's law with damping: a = k*x - c*v
+    const ax = SPRING_STIFFNESS * dx - SPRING_DAMPING * velX;
+    const ay = SPRING_STIFFNESS * dy - SPRING_DAMPING * velY;
+    velX += ax * dt * 60; // scale to feel independent of frame rate
+    velY += ay * dt * 60;
+    posX += velX * dt * 60;
+    posY += velY * dt * 60;
+    // Snap when near target & slow
+    if (
+      Math.abs(dx) < SPRING_EPS &&
+      Math.abs(dy) < SPRING_EPS &&
+      Math.abs(velX) < 0.02 &&
+      Math.abs(velY) < 0.02
+    ) {
+      posX = targetX;
+      posY = targetY;
+      velX = velY = 0;
+    }
+    if (!setX || !setY) {
+      setX = gsap.quickSetter(root, "x", "px");
+      setY = gsap.quickSetter(root, "y", "px");
+    }
+    setX(posX);
+    setY(posY);
+  }
+
+  function runSpringLoop() {
+    if (springRunning) return; // avoid multiple loops
+    springRunning = true;
+    let last = performance.now();
+    const loop = () => {
+      if (!springRunning) return;
+      if (!complete) {
+        const now = performance.now();
+        const dt = (now - last) / 1000;
+        last = now;
+        stepSpring(dt);
+        requestAnimationFrame(loop);
+      }
+    };
+    requestAnimationFrame(loop);
   }
 
   // Map mouse pos to quadrant index 0..3
@@ -250,6 +297,7 @@ export function createGame({ bus }) {
   // Park game UI bottom-right when done
   function freezeBottomRight() {
     if (!root) return;
+    springRunning = false; // stop spring updates
     const rect = root.getBoundingClientRect();
     const margin = 40;
     const x = Math.max(0, window.innerWidth - rect.width - margin);
@@ -319,6 +367,7 @@ export function createGame({ bus }) {
       lastTarget.y = startQ.y;
       centerRootAt(startQ.x, startQ.y, true);
     }
+    runSpringLoop();
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("resize", onResize);
   }

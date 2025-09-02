@@ -129,14 +129,13 @@ class AppController {
       id: "picture1",
       slides: ["slide7"],
       initial: {
-        centerOffset: { x: -500, y: 270, mode: "px", anchor: "center" },
-        width: "85px",
+        centerOffset: { x: -530, y: 280, mode: "px", anchor: "center" },
+        width: "150px",
       },
       parallax: { strengthX: 17, strengthY: 10, lerp: 0.08 },
       images: {
         normal: "assets/picture.png",
         hover: "assets/picture-hover.png",
-        hoverScale: 2,
       },
       action: {
         slides: ["slide7"],
