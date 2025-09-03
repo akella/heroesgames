@@ -21,6 +21,7 @@ import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
 import { OverlayObjectsManager } from "./modules/OverlayObjectsManager.js";
 import { GameManager } from "./modules/GameManager.js";
+import { ScoreBoard } from "./modules/ScoreBoard.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -42,6 +43,9 @@ const layers = {
 const layerManager = new LayerManager(layers);
 
 const bus = mitt();
+
+// Scoreboard instance (initially hidden)
+const scoreBoard = new ScoreBoard({ bus });
 
 const gameManager = new GameManager({ bus });
 bus.on("game.finddiff.complete", () => {
@@ -65,17 +69,21 @@ flowActor.subscribe((snap) => {
     gameManager.active.api.show();
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
+    bus.emit("score.hide");
   } else if (val === "slide13") {
     gameManager.active.api.show();
     gameManager.active.api.setActive(true);
     if (gameRoot) gameRoot.style.zIndex = "20";
+    bus.emit("score.show");
   } else if (val === "slide14") {
     gameManager.active.api.show();
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
+    bus.emit("score.hide");
   } else if (val === "outro") {
     gameManager.active.api.hide();
     if (gameRoot) gameRoot.style.zIndex = "5";
+    bus.emit("score.hide");
   }
 });
 flowActor.start();

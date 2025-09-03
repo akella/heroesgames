@@ -5,7 +5,10 @@ import { gsap } from "gsap";
 const DIFF_RADIUS = 32; // marker radius
 const REQUIRED_DIFFS = 10; // how many to find to win
 const MASK_THRESHOLD = 200; // brightness threshold for mask
-const QUAD_OFFSET = 70; // margin from window for movement centers
+// Safe area margins
+const SAFE_MARGIN = 70; // left, right, top
+const SAFE_MARGIN_BOTTOM = 100; // bottom
+const QUAD_OFFSET = SAFE_MARGIN; // base for quadrant placement
 const HIGHLIGHT_SRC = "assets/games/finddiff/finded.png";
 const ROOM_SRC = "assets/games/finddiff/finddiff-room.png";
 const MASK_SRC = "assets/games/finddiff/finddiff-mask.png";
@@ -51,6 +54,13 @@ export function createGame({ bus }) {
   function buildDOM(container) {
     root = document.createElement("div");
     root.className = "finddiff-root";
+    // Fix initial offset bug: lock root to viewport origin so gsap x/y are absolute to (0,0)
+    Object.assign(root.style, {
+      position: "fixed",
+      left: "0px",
+      top: "0px",
+      willChange: "transform",
+    });
     stage = document.createElement("div");
     stage.className = "finddiff-stage";
     canvas = document.createElement("canvas");
@@ -89,10 +99,10 @@ export function createGame({ bus }) {
       h = window.innerHeight;
     const halfW = (rootSize?.w || 0) / 2;
     const halfH = (rootSize?.h || 0) / 2;
-    const minX = halfW + QUAD_OFFSET;
-    const maxX = w - halfW - QUAD_OFFSET;
-    const minY = halfH + QUAD_OFFSET;
-    const maxY = h - halfH - QUAD_OFFSET;
+    const minX = halfW + SAFE_MARGIN;
+    const maxX = w - halfW - SAFE_MARGIN;
+    const minY = halfH + SAFE_MARGIN;
+    const maxY = h - halfH - SAFE_MARGIN_BOTTOM;
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
     quadCenters = [
       { x: w * 0.25, y: h * 0.25 },
@@ -109,15 +119,23 @@ export function createGame({ bus }) {
       const r = root.getBoundingClientRect();
       rootSize = { w: r.width, h: r.height };
     }
-    // desired top-left from requested center
+    // desired top-left from requested center respecting safe area
     let nx = cx - rootSize.w / 2;
     let ny = cy - rootSize.h / 2;
-    const maxX = Math.max(0, window.innerWidth - rootSize.w);
-    const maxY = Math.max(0, window.innerHeight - rootSize.h);
-    if (nx < 0) nx = 0;
-    else if (nx > maxX) nx = maxX;
-    if (ny < 0) ny = 0;
-    else if (ny > maxY) ny = maxY;
+    const minLeft = SAFE_MARGIN;
+    const maxLeft = Math.max(
+      minLeft,
+      window.innerWidth - rootSize.w - SAFE_MARGIN
+    );
+    const minTop = SAFE_MARGIN;
+    const maxTop = Math.max(
+      minTop,
+      window.innerHeight - rootSize.h - SAFE_MARGIN_BOTTOM
+    );
+    if (nx < minLeft) nx = minLeft;
+    else if (nx > maxLeft) nx = maxLeft;
+    if (ny < minTop) ny = minTop;
+    else if (ny > maxTop) ny = maxTop;
     targetX = nx;
     targetY = ny;
     if (instant) {
@@ -282,6 +300,8 @@ export function createGame({ bus }) {
     if (hit) {
       found.push({ x, y });
       addMarker(x, y);
+      // Emit score update
+      bus.emit("score.update", { value: found.length });
       if (found.length >= REQUIRED_DIFFS) finish();
     }
   }
@@ -299,9 +319,14 @@ export function createGame({ bus }) {
     if (!root) return;
     springRunning = false; // stop spring updates
     const rect = root.getBoundingClientRect();
-    const margin = 40;
-    const x = Math.max(0, window.innerWidth - rect.width - margin);
-    const y = Math.max(0, window.innerHeight - rect.height - margin);
+    const x = Math.max(
+      SAFE_MARGIN,
+      window.innerWidth - rect.width - SAFE_MARGIN
+    );
+    const y = Math.max(
+      SAFE_MARGIN,
+      window.innerHeight - rect.height - SAFE_MARGIN_BOTTOM
+    );
     gsap.set(root, { x, y });
   }
 
@@ -316,17 +341,21 @@ export function createGame({ bus }) {
         const q = quadCenters[lastQuadrant];
         if (q) centerRootAt(q.x, q.y, false);
       }
+      bus.emit("score.show");
     } else {
       document.body.style.cursor = "";
       if (brushFollower) brushFollower.style.display = "none";
+      if (!complete) bus.emit("score.hide");
     }
   }
 
   function show() {
     root.style.display = "block";
+    if (!complete) bus.emit("score.show");
   }
   function hide() {
     root.style.display = "none";
+    bus.emit("score.hide");
   }
 
   // Remove listeners & detached nodes
@@ -370,6 +399,8 @@ export function createGame({ bus }) {
     runSpringLoop();
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("resize", onResize);
+    // Initialize scoreboard now (value 0)
+    bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
   }
 
   return { init, show, hide, destroy, setActive };
