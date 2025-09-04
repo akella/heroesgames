@@ -19,7 +19,6 @@ import { flowMachine } from "./modules/flowmachine.js";
 import mitt from "mitt";
 import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
-import { OverlayObjectsManager } from "./modules/OverlayObjectsManager.js";
 import { GameManager } from "./modules/GameManager.js";
 import { ScoreBoard } from "./modules/ScoreBoard.js";
 
@@ -71,12 +70,10 @@ flowActor.subscribe((snap) => {
     if (gameRoot) gameRoot.style.zIndex = "5";
     bus.emit("score.hide");
   } else if (val === "slide13") {
-    gameManager.active.api.show();
     gameManager.active.api.setActive(true);
     if (gameRoot) gameRoot.style.zIndex = "20";
     bus.emit("score.show");
   } else if (val === "slide14") {
-    gameManager.active.api.show();
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
     bus.emit("score.hide");
@@ -125,33 +122,6 @@ class AppController {
     this.modelLayer = new ModelLayer({
       mouse: this.mouse,
       events: bus,
-    });
-
-    // Overlay objects manager
-    this.overlayManager = new OverlayObjectsManager({
-      container: document.body,
-      mouse: this.mouse,
-      events: bus,
-    });
-    this.overlayManager.add({
-      id: "picture1",
-      slides: ["slide7"],
-      initial: {
-        centerOffset: { x: -530, y: 280, mode: "px", anchor: "center" },
-        width: "150px",
-      },
-      parallax: { strengthX: 17, strengthY: 10, lerp: 0.08 },
-      images: {
-        normal: "assets/picture.png",
-        hover: "assets/picture-hover.png",
-      },
-      action: {
-        slides: ["slide7"],
-        onTrigger: () => {
-          flowActor.send({ type: "NEXT" });
-        },
-      },
-      zIndex: 12,
     });
 
     this.initPane();
