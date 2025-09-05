@@ -3,7 +3,8 @@
 // {
 //   id: 'picture',
 //   layers: { default: 'picture-2', active: 'picture-1', hover: 'picture-hover' },
-//   activeSlide: 'slide7',      // slide id when item becomes active
+//   activeSlide: 'slide7',      // slide id when item becomes ACTIVE (click/hover per config)
+//   visibleSlides: ['slide4','slide5','slide6','slide7'], // slides where any visual (default/active) should be shown
 //   hover: true,                // enable hover
 //   hoverWhenInactive: false,   // allow hover before active slide
 //   bboxLayer: 'active',        // which layer to use for bbox: 'active' | 'default' | 'hover'
@@ -21,6 +22,7 @@ export class InteractiveItem {
     this._bbox = null; // in mask/newUV space (same as shader newUV before parallax)
     this._isActiveSlide = false;
     this._isHover = false;
+    this._isVisible = true;
   }
 
   init() {
@@ -45,15 +47,32 @@ export class InteractiveItem {
   }
 
   onFlowProgress(val) {
-    const target = this.config.activeSlide;
-    const active = val === target;
-    if (active === this._isActiveSlide) return;
+    const { activeSlide, visibleSlides } = this.config;
+    const visible =
+      !Array.isArray(visibleSlides) || visibleSlides.includes(val);
+    const active = visible && activeSlide && val === activeSlide;
+    const changedVisibility = visible !== this._isVisible;
+    const changedActive = active !== this._isActiveSlide;
+    if (!(changedVisibility || changedActive)) return;
+    this._isVisible = visible;
     this._isActiveSlide = active;
-    this._applyState();
+    this._applyState(changedVisibility);
   }
 
-  _applyState() {
+  _applyState(visibilityChanged) {
     const { layers } = this.config;
+    if (!this._isVisible) {
+      // fully hide all variants
+      if (layers.default)
+        this.shaderLayer.setLayerEnabled(layers.default, false);
+      if (layers.active) this.shaderLayer.setLayerEnabled(layers.active, false);
+      if (layers.hover) this.shaderLayer.setLayerEnabled(layers.hover, false);
+      if (this._isHover) this._emit("hover.off");
+      if (visibilityChanged) this._emit("hide");
+      this._isHover = false;
+      return;
+    }
+    // visible
     if (this._isActiveSlide) {
       if (layers.default)
         this.shaderLayer.setLayerEnabled(layers.default, false);
@@ -68,11 +87,13 @@ export class InteractiveItem {
       if (this._isHover) this._emit("hover.off");
       this._isHover = false;
       this._emit("deactivate");
+      if (visibilityChanged) this._emit("show");
     }
   }
 
   pointerMove(x, y) {
     if (!this.config.hover) return;
+    if (!this._isVisible) return;
     if (!(this._isActiveSlide || this.config.hoverWhenInactive)) return;
     if (!this._bbox) return;
     // Map screen UV to newUV (same aspect correction as shader)
@@ -106,6 +127,7 @@ export class InteractiveItem {
 
   click(x, y) {
     if (!this.config.click) return false;
+    if (!this._isVisible) return false;
     if (!(this._isActiveSlide || this.config.clickWhenInactive)) return false;
     if (!this._bbox) return false;
     const depthAspect = this.shaderLayer.getDepthAspect();

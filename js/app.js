@@ -1,4 +1,10 @@
-// Core app bootstrap
+// structure- slides, or minigames, slides with transitions next-only
+// structure to visualize a lot of 2d images
+// visualize 3d hero, and play animations, make a module that accepts events to trigger animations
+// create dat-gui to go "next next or prev slides"
+// prepare images for game assets
+
+// create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
 
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -101,8 +107,7 @@ class AppController {
 
     this.filterEl = document.createElement("div");
     this.filterEl.className = "scene-filter";
-    this.filterOpacity = 0.5;
-    this._applyFilterOpacity();
+    this.filterEl.style.opacity = "0.5";
     const firstSlide = document.querySelector(".slide");
     if (firstSlide && firstSlide.parentNode === document.body) {
       this.container.appendChild(this.filterEl);
@@ -142,6 +147,7 @@ class AppController {
         hover: "picture-hover",
       },
       activeSlide: "slide7",
+      visibleSlides: ["slide4", "slide5", "slide6", "slide7"],
       hover: true,
       hoverWhenInactive: false,
       click: true,
@@ -150,19 +156,6 @@ class AppController {
       eventsPrefix: "picture",
     });
     this.interactionManager.attach();
-
-    this.bus.on("flow.progress", (snap) => {
-      const val = snap.value;
-      if (val > "slide7") {
-        ["picture-1", "picture-2", "picture-hover"].forEach((id) =>
-          this.shaderLayer.setLayerEnabled(id, false)
-        );
-        const picItem = this.interactionManager.items.find(
-          (it) => it.config.id === "picture"
-        );
-        if (picItem) picItem._isActiveSlide = false;
-      }
-    });
 
     bus.on("picture.click", () => {
       flowActor.send({ type: "NEXT" });

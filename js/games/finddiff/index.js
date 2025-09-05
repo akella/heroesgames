@@ -54,9 +54,9 @@ export function createGame({ bus }) {
   function buildDOM(container) {
     root = document.createElement("div");
     root.className = "finddiff-root";
-    // Fix initial offset bug: lock root to viewport origin so gsap x/y are absolute to (0,0)
+    // Let CSS control positioning (absolute). We'll translate via gsap x/y.
     Object.assign(root.style, {
-      position: "fixed",
+      position: "absolute",
       left: "0px",
       top: "0px",
       willChange: "transform",
@@ -386,22 +386,80 @@ export function createGame({ bus }) {
     ctx.drawImage(room, 0, 0);
     buildMask(mask);
     canvas.addEventListener("click", handleClick);
-    const r = root.getBoundingClientRect();
-    rootSize = { w: r.width, h: r.height };
-    computeQuadrants();
-    const startQ = quadCenters[3] || quadCenters[0]; // start bottom-right
-    if (startQ) {
-      lastQuadrant = quadCenters.indexOf(startQ);
-      lastTarget.x = startQ.x;
-      lastTarget.y = startQ.y;
-      centerRootAt(startQ.x, startQ.y, true);
+
+    let resizeObserver;
+    function measureAndPosition(initial = false) {
+      const r = root.getBoundingClientRect();
+      rootSize = { w: r.width, h: r.height };
+      computeQuadrants();
+      const startQ = quadCenters[3] || quadCenters[0]; // deterministic start (bottom-right fallback)
+      if (startQ) {
+        lastQuadrant = quadCenters.indexOf(startQ);
+        lastTarget.x = startQ.x;
+        lastTarget.y = startQ.y;
+        centerRootAt(startQ.x, startQ.y, true);
+      }
+      if (initial) {
+        // multi-pass stabilization: 2 RAFs + size observer to catch late style / max-width constraints
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            const prev = { ...rootSize };
+            const r2 = root.getBoundingClientRect();
+            if (
+              Math.abs(r2.width - prev.w) > 1 ||
+              Math.abs(r2.height - prev.h) > 1
+            ) {
+              rootSize = { w: r2.width, h: r2.height };
+              computeQuadrants();
+              const q2 =
+                quadCenters[lastQuadrant] || quadCenters[3] || quadCenters[0];
+              if (q2) centerRootAt(q2.x, q2.y, true);
+            }
+            runSpringLoop();
+          });
+        });
+        // Observe subsequent intrinsic size changes (e.g. responsive canvas shrink) and re-center once stable
+        resizeObserver = new ResizeObserver((entries) => {
+          if (!entries.length || complete) return;
+          const cr = entries[0].contentRect;
+          if (
+            Math.abs(cr.width - rootSize.w) > 1 ||
+            Math.abs(cr.height - rootSize.h) > 1
+          ) {
+            rootSize = { w: cr.width, h: cr.height };
+            computeQuadrants();
+            const q =
+              quadCenters[lastQuadrant] || quadCenters[3] || quadCenters[0];
+            if (q) centerRootAt(q.x, q.y, true);
+          }
+        });
+        resizeObserver.observe(root);
+      }
     }
-    runSpringLoop();
+
+    measureAndPosition(true);
+    // Extra safety: on window load (after fonts/images) recenter once
+    window.addEventListener(
+      "load",
+      () => {
+        if (!complete) measureAndPosition(false);
+      },
+      { once: true }
+    );
+
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("resize", onResize);
     // Initialize scoreboard now (value 0)
     bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
   }
 
-  return { init, show, hide, destroy, setActive };
+  return {
+    init,
+    show,
+    hide,
+    destroy: () => {
+      destroy();
+    },
+    setActive,
+  };
 }
