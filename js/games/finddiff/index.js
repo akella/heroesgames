@@ -1,5 +1,11 @@
 // Spot-the-difference mini game logic
 import { gsap } from "gsap";
+// Asset imports (so Vite includes them in build)
+import highlightImg from "../../../assets/games/finddiff/finded.png";
+import roomImg from "../../../assets/games/finddiff/finddiff-room.png";
+import maskImg from "../../../assets/games/finddiff/finddiff-mask.png";
+import brushImg from "../../../assets/games/finddiff/brush.png";
+import handImgSrc from "../../../assets/games/finddiff/hand.png";
 
 // Game tuning values / assets
 const DIFF_RADIUS = 32; // marker radius
@@ -9,11 +15,11 @@ const MASK_THRESHOLD = 200; // brightness threshold for mask
 const SAFE_MARGIN = 70; // left, right, top
 const SAFE_MARGIN_BOTTOM = 100; // bottom
 const QUAD_OFFSET = SAFE_MARGIN; // base for quadrant placement
-const HIGHLIGHT_SRC = "../../assets/games/finddiff/finded.png";
-const ROOM_SRC = "../../assets/games/finddiff/finddiff-room.png";
-const MASK_SRC = "../../assets/games/finddiff/finddiff-mask.png";
-const BRUSH_CURSOR_SRC = "../../assets/games/finddiff/brush.png";
-const HAND_IMG_SRC = "../../assets/games/finddiff/hand.png";
+const HIGHLIGHT_SRC = highlightImg;
+const ROOM_SRC = roomImg;
+const MASK_SRC = maskImg;
+const BRUSH_CURSOR_SRC = brushImg;
+const HAND_IMG_SRC = handImgSrc;
 // Spring motion tuning (critically damped-ish subjective values)
 const SPRING_STIFFNESS = 0.04; // higher -> snappier
 const SPRING_DAMPING = 0.32; // higher -> less oscillation
