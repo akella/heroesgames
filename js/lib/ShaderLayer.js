@@ -6,8 +6,12 @@ import {
   maskTextures as MASK_PATHS,
   layers as ROOM_LAYERS,
   layerById,
+  INITIAL_HIDE,
+  MID_GAME_REVEALABLE,
+  END_GAME_GROUP,
 } from "../modules/roomLayersConfig.js";
-import depthMap from "../../assets/room/room-depth-2.png";
+import depthMapFull from "../../assets/room/room-depth-2.png";
+import depthMapEmpty from "../../assets/room/room-depth-1.png";
 
 export default class ShaderLayer extends BaseLayer {
   constructor({ mouse, events }) {
@@ -16,18 +20,18 @@ export default class ShaderLayer extends BaseLayer {
     this.targetMouse = new THREE.Vector2(0.5, 0.5);
     this.time = 0;
     this.events = events;
-    this.variantState = {}; // id -> variant index
-    // callbacks that fire once bounding boxes are computed
+    this.variantState = {};
     this._bboxReadyCallbacks = [];
     this._buildMultiPass();
-    // Hook for future events
-    // this.events.on('layer.setVariant', ({id,variant}) => this.setVariant(id, variant));
-    setTimeout(() => this.setVariant("table", 1), 0); // second variant of table
+    this._applyInitialVisibility();
+    this._wireRevealEvents();
+    setTimeout(() => this.setVariant("table", 1), 0);
   }
 
   _buildMultiPass() {
     const loader = new THREE.TextureLoader();
-    this.depthTexture = loader.load(depthMap, (tex) => {
+    this._currentDepthMap = "empty";
+    this.depthTexture = loader.load(depthMapEmpty, (tex) => {
       const img = tex.image;
       if (img && img.width && img.height) {
         const aspect = img.width / img.height;
@@ -93,10 +97,12 @@ export default class ShaderLayer extends BaseLayer {
         fragmentShader: layerFragment,
       });
       const mesh = new THREE.Mesh(this.geometry, material);
-      mesh.renderOrder = 10 + idx; // ensure atop background
+      mesh.renderOrder = 10 + idx;
       this.add(mesh);
-      // Force picture-hover hidden initially
       if (entry.def.id === "picture-hover") {
+        material.uniforms.enabled.value = 0.0;
+      }
+      if (INITIAL_HIDE.includes(entry.def.id)) {
         material.uniforms.enabled.value = 0.0;
       }
       return { mesh, material, entry };
@@ -109,7 +115,54 @@ export default class ShaderLayer extends BaseLayer {
     });
   }
 
-  // _singleLayerFragment removed: shader moved to ../shader/layerFragment.glsl
+  _applyInitialVisibility() {}
+
+  _wireRevealEvents() {
+    if (!this.events) return;
+    this.events.on("room.reveal", ({ id }) => {
+      if (!id) return;
+      this.setLayerEnabled(id, true);
+      if (
+        MID_GAME_REVEALABLE.every((rid) => this._isLayerEnabled(rid)) &&
+        !this._midCompleted
+      ) {
+        this._midCompleted = true;
+        this.events.emit("room.midCompleted");
+      }
+    });
+    this.events.on("room.revealAll", () => {
+      END_GAME_GROUP.forEach((id) => this.setLayerEnabled(id, true));
+      this._swapDepthMap("full");
+      this.events.emit("room.fullVisible");
+    });
+    this.events.on("room.setDepth", ({ mode }) => {
+      this._swapDepthMap(mode === "full" ? "full" : "empty");
+    });
+  }
+
+  _isLayerEnabled(id) {
+    const entry = this.getLayerEntry(id);
+    return entry ? entry.material.uniforms.enabled.value > 0.5 : false;
+  }
+
+  _swapDepthMap(mode) {
+    if (mode === this._currentDepthMap) return;
+    const loader = new THREE.TextureLoader();
+    const texPath = mode === "full" ? depthMapFull : depthMapEmpty;
+    loader.load(texPath, (tex) => {
+      this.depthTexture = tex;
+      this.layerMeshes.forEach(({ material }) => {
+        material.uniforms.depthTexture.value = tex;
+        if (tex.image) {
+          const img = tex.image;
+          const aspect = img.width / img.height;
+          if (material.uniforms.depthAspect)
+            material.uniforms.depthAspect.value = aspect;
+        }
+      });
+      this._currentDepthMap = mode;
+    });
+  }
 
   _tryComputeBBoxes() {
     if (this._pendingMaskLoads > 0) return; // wait all loaded
@@ -158,7 +211,6 @@ export default class ShaderLayer extends BaseLayer {
       }
       return null;
     };
-    // Collect unique mask/channel combos used by layers
     const combos = [];
     this.layerDefs.forEach((def) => {
       const key = def.mask.i + "_" + def.mask.c;
@@ -185,7 +237,6 @@ export default class ShaderLayer extends BaseLayer {
         };
       }
     });
-    // Apply to materials
     this.layerMeshes.forEach((layer) => {
       const def = layer.entry.def;
       const key = def.mask.i + "_" + def.mask.c;
@@ -195,7 +246,6 @@ export default class ShaderLayer extends BaseLayer {
         layer.material.uniforms.bboxSize.value.set(box.size[0], box.size[1]);
       }
     });
-    // fire callbacks
     if (this._bboxReadyCallbacks.length) {
       this._bboxReadyCallbacks.forEach((cb) => {
         try {
@@ -224,13 +274,11 @@ export default class ShaderLayer extends BaseLayer {
     entry.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
   }
 
-  // Public utility: request callback when mask bounding boxes ready.
   onBBoxesReady(cb) {
     if (this._bboxesComputed) cb();
     else this._bboxReadyCallbacks.push(cb);
   }
 
-  // Get bounding box (UV space) for a given layer id. Returns {min:[x,y], size:[w,h]} or null.
   getLayerBBox(id) {
     const def = layerById[id];
     if (!def || !this._maskChannelBBoxes) return null;
@@ -238,18 +286,15 @@ export default class ShaderLayer extends BaseLayer {
     return this._maskChannelBBoxes[key] || null;
   }
 
-  // Convenience wrapper returning internal mesh/material entry
   getLayerEntry(id) {
     return this.layerMeshes.find((l) => l.entry.def.id === id) || null;
   }
 
-  // Get global depth aspect (from first material) or 1
   getDepthAspect() {
     if (!this.layerMeshes || !this.layerMeshes.length) return 1;
     return this.layerMeshes[0].material.uniforms.depthAspect?.value || 1;
   }
 
-  // Set parallax strength for specific layer id (all its material instances)
   setParallaxStrength(id, value) {
     const entry = this.getLayerEntry(id);
     if (entry) entry.material.uniforms.parallaxStrength.value = value;

@@ -21,6 +21,17 @@ html {
   height: 100vh;
 }
 
+.scene-filter {
+  position: absolute;
+  inset: 0;
+  background: #ffffff; /* white provides zero saturation, used for desaturation */
+  pointer-events: none;
+  z-index: 5; /* above canvas (0) but below slides (10) so slides stay unaffected */
+  opacity: 0.5; /* default intensity */
+  transition: opacity 0.4s ease, mix-blend-mode 0.2s ease;
+  mix-blend-mode: saturation; /* Figma: saturation blend over scene */
+}
+
 // generic overlay object styling (individual positioning handled inline)
 .overlay-object {
   transform: translate3d(0, 0, 0);

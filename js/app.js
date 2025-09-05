@@ -1,10 +1,4 @@
-// structure- slides, or minigames, slides with transitions next-only
-// structure to visualize a lot of 2d images
-// visualize 3d hero, and play animations, make a module that accepts events to trigger animations
-// create dat-gui to go "next next or prev slides"
-// prepare images for game assets
-
-// create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
+// Core app bootstrap
 
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -44,7 +38,6 @@ const layerManager = new LayerManager(layers);
 
 const bus = mitt();
 
-// Scoreboard instance (initially hidden)
 const scoreBoard = new ScoreBoard({ bus });
 
 const gameManager = new GameManager({ bus });
@@ -95,6 +88,7 @@ gonext.forEach((el) => {
 class AppController {
   constructor(options) {
     this.container = options.dom;
+    this.bus = options.bus;
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
     this.renderer = new THREE.WebGLRenderer();
@@ -104,6 +98,17 @@ class AppController {
     this.renderer.autoClear = false;
     this.renderer.domElement.classList.add("gl-canvas");
     this.container.appendChild(this.renderer.domElement);
+
+    this.filterEl = document.createElement("div");
+    this.filterEl.className = "scene-filter";
+    this.filterOpacity = 0.5;
+    this._applyFilterOpacity();
+    const firstSlide = document.querySelector(".slide");
+    if (firstSlide && firstSlide.parentNode === document.body) {
+      this.container.appendChild(this.filterEl);
+    } else {
+      this.container.appendChild(this.filterEl);
+    }
 
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1);
     this.perspCamera = new THREE.PerspectiveCamera(
@@ -125,7 +130,6 @@ class AppController {
       events: bus,
     });
 
-    // Interaction manager & items
     this.interactionManager = new InteractionManager({
       shaderLayer: this.shaderLayer,
       bus,
@@ -147,15 +151,26 @@ class AppController {
     });
     this.interactionManager.attach();
 
+    this.bus.on("flow.progress", (snap) => {
+      const val = snap.value;
+      if (val > "slide7") {
+        ["picture-1", "picture-2", "picture-hover"].forEach((id) =>
+          this.shaderLayer.setLayerEnabled(id, false)
+        );
+        const picItem = this.interactionManager.items.find(
+          (it) => it.config.id === "picture"
+        );
+        if (picItem) picItem._isActiveSlide = false;
+      }
+    });
+
     bus.on("picture.click", () => {
       flowActor.send({ type: "NEXT" });
     });
 
     this.initPane();
 
-    // Register games
     gameManager.register("finddiff", () => import("./games/finddiff/index.js"));
-    // Preload game
     (async () => {
       try {
         await gameManager.activate("finddiff", { bus });
@@ -170,6 +185,17 @@ class AppController {
     this.setupMouseMove();
     this.lastTime = performance.now();
     this.render();
+  }
+
+  showFilter(opacity = 0.5) {
+    this.filterOpacity = opacity;
+    this.filterEl.style.pointerEvents = "none";
+    this._applyFilterOpacity();
+  }
+
+  hideFilter() {
+    this.filterOpacity = 0;
+    this._applyFilterOpacity();
   }
 
   initPane() {
@@ -233,4 +259,5 @@ class AppController {
 
 new AppController({
   dom: document.getElementById("container"),
+  bus,
 });

@@ -171,6 +171,11 @@ const RAW = [
     tex: "assets/room/objects/books-table.png",
   },
   {
+    id: "books-shelf",
+    mask: { i: 24, c: "g" },
+    tex: "assets/room/objects/books-shelf.png",
+  },
+  {
     id: "book-floor",
     mask: { i: 11, c: "r" },
     tex: "assets/room/objects/book-floor.png",
@@ -380,6 +385,8 @@ export const Z_INDEX = {
   "books-3": 76,
   "books-4": 77,
   "books-table": 78,
+  // Place books-shelf slightly above books-table and below glass-pencils
+  "books-shelf": 78.2,
   "glass-pencils": 79,
   "pencils-on-tha-floor": 80,
   // Sports & play items on floor
@@ -429,3 +436,51 @@ export const layers = RAW.map((l) => {
 
 // Helper maps
 export const layerById = Object.fromEntries(layers.map((l) => [l.id, l]));
+
+// ---------------- Visibility Phases ----------------
+// Objects explicitly requested to stay hidden until the END phase (revealed together)
+export const END_GAME_GROUP = [
+  // Remaining final-only items after moving many to mid reveal group
+  "box-tennis",
+  "goblet",
+  "hockey",
+  "hockey-puck",
+  "hockey-stick",
+  "chess",
+  "medals",
+  "posters",
+  "tennis-bookcase",
+  "tennis-floor",
+  "tennis-racket",
+  "tennis-shelf",
+];
+
+// Individually revealable during MID phase (still hidden at start)
+export const MID_GAME_REVEALABLE = [
+  // original
+  "dino",
+  "robot",
+  "ship",
+  // newly added per request
+  "ufo",
+  "plane",
+  "rocket",
+  "chandelier", // user: chanelier
+  "car-blue",
+  "car-green",
+  "car-yellow",
+  "cubes",
+  "car",
+  "football",
+  "picture",
+  "books-1",
+  "books-3",
+  "books-4",
+  "skipping-rope",
+  "skates",
+]; // appear one-by-one mid game
+
+// Initial hidden set = all above
+export const INITIAL_HIDE = Array.from(
+  new Set([...END_GAME_GROUP, ...MID_GAME_REVEALABLE])
+);
