@@ -21,6 +21,7 @@ import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
 import { GameManager } from "./modules/GameManager.js";
 import { ScoreBoard } from "./modules/ScoreBoard.js";
+import { InteractionManager } from "./modules/interactions/InteractionManager.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -122,6 +123,32 @@ class AppController {
     this.modelLayer = new ModelLayer({
       mouse: this.mouse,
       events: bus,
+    });
+
+    // Interaction manager & items
+    this.interactionManager = new InteractionManager({
+      shaderLayer: this.shaderLayer,
+      bus,
+    });
+    this.interactionManager.register({
+      id: "picture",
+      layers: {
+        default: "picture-1",
+        active: "picture-2",
+        hover: "picture-hover",
+      },
+      activeSlide: "slide7",
+      hover: true,
+      hoverWhenInactive: false,
+      click: true,
+      clickWhenInactive: false,
+      bboxLayer: "default",
+      eventsPrefix: "picture",
+    });
+    this.interactionManager.attach();
+
+    bus.on("picture.click", () => {
+      flowActor.send({ type: "NEXT" });
     });
 
     this.initPane();

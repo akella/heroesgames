@@ -346,7 +346,7 @@ export const Z_INDEX = {
   wall: 0,
   "sh-walls": 1,
   window: 5,
-  "window-light": 6,
+  "window-light": 52.5,
   curtains: 7,
   // Large furniture & fixtures
   bookcase: 20,
@@ -359,7 +359,7 @@ export const Z_INDEX = {
   stickers: 31,
   medals: 32,
   // Floor & base layers
-  floor: 50,
+  floor: 3,
   rug: 52,
   "tennis-floor": 53,
   // Shadows

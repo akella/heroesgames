@@ -1,6 +1,7 @@
 import BaseLayer from "./BaseLayer.js";
 import * as THREE from "three";
 import vertex from "../shader/vertex.glsl";
+import layerFragment from "../shader/layerFragment.glsl";
 import {
   maskTextures as MASK_PATHS,
   layers as ROOM_LAYERS,
@@ -16,6 +17,8 @@ export default class ShaderLayer extends BaseLayer {
     this.time = 0;
     this.events = events;
     this.variantState = {}; // id -> variant index
+    // callbacks that fire once bounding boxes are computed
+    this._bboxReadyCallbacks = [];
     this._buildMultiPass();
     // Hook for future events
     // this.events.on('layer.setVariant', ({id,variant}) => this.setVariant(id, variant));
@@ -87,7 +90,7 @@ export default class ShaderLayer extends BaseLayer {
           depthAspect: { value: 1.0 },
         },
         vertexShader: vertex,
-        fragmentShader: this._singleLayerFragment(),
+        fragmentShader: layerFragment,
       });
       const mesh = new THREE.Mesh(this.geometry, material);
       mesh.renderOrder = 10 + idx; // ensure atop background
@@ -106,46 +109,7 @@ export default class ShaderLayer extends BaseLayer {
     });
   }
 
-  _singleLayerFragment() {
-    return `
-      uniform sampler2D depthTexture;
-      uniform sampler2D layerTex;
-      uniform sampler2D maskTex;
-      uniform vec2 resolution;
-      uniform vec2 mouse;
-      uniform float parallaxStrength;
-      uniform float enabled;
-      uniform float time;
-      uniform float opacity;
-      uniform int maskChannel; // 0=r 1=g 2=b 3=a
-      uniform vec2 bboxMin;
-      uniform vec2 bboxSize;
-      uniform float depthAspect;
-      varying vec2 vUv;
-      void main(){
-        float screenAspect = resolution.x / resolution.y;
-        vec2 newUV = vUv;
-        if(depthAspect > screenAspect){
-          newUV.x = (vUv.x - 0.5) * screenAspect / depthAspect + 0.5;
-        } else {
-          newUV.y = (vUv.y - 0.5) * depthAspect / screenAspect + 0.5;
-        }
-        float depth = texture2D(depthTexture, newUV).r;
-        vec2 offset = (mouse - 0.5) * 0.5;
-        vec2 parallaxUV = newUV - offset * depth * parallaxStrength;
-        // Local UV remap for layer texture based on mask bounding box
-        vec2 localUV = (parallaxUV - bboxMin) / bboxSize; // reverted: no additional aspect scaling
-        bool outside = localUV.x < 0.0 || localUV.x > 1.0 || localUV.y < 0.0 || localUV.y > 1.0;
-        vec4 col = outside ? vec4(0.0) : texture2D(layerTex, localUV);
-        vec4 mS = texture2D(maskTex, parallaxUV);
-        float m = (maskChannel==0)?mS.r: (maskChannel==1)?mS.g: (maskChannel==2)?mS.b: mS.a;
-        col.rgb *= col.a; // premult
-        col *= m * enabled;
-        col.a *= opacity;
-        gl_FragColor = col;
-      }
-    `;
-  }
+  // _singleLayerFragment removed: shader moved to ../shader/layerFragment.glsl
 
   _tryComputeBBoxes() {
     if (this._pendingMaskLoads > 0) return; // wait all loaded
@@ -231,6 +195,15 @@ export default class ShaderLayer extends BaseLayer {
         layer.material.uniforms.bboxSize.value.set(box.size[0], box.size[1]);
       }
     });
+    // fire callbacks
+    if (this._bboxReadyCallbacks.length) {
+      this._bboxReadyCallbacks.forEach((cb) => {
+        try {
+          cb();
+        } catch (e) {}
+      });
+      this._bboxReadyCallbacks.length = 0;
+    }
   }
 
   setVariant(id, variantIndex) {
@@ -248,12 +221,38 @@ export default class ShaderLayer extends BaseLayer {
   setLayerEnabled(id, flag) {
     const entry = this.layerMeshes.find((l) => l.entry.def.id === id);
     if (!entry) return;
-    if (id === "picture-hover") {
-      // keep hidden as requested
-      entry.material.uniforms.enabled.value = 0.0;
-      return;
-    }
     entry.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
+  }
+
+  // Public utility: request callback when mask bounding boxes ready.
+  onBBoxesReady(cb) {
+    if (this._bboxesComputed) cb();
+    else this._bboxReadyCallbacks.push(cb);
+  }
+
+  // Get bounding box (UV space) for a given layer id. Returns {min:[x,y], size:[w,h]} or null.
+  getLayerBBox(id) {
+    const def = layerById[id];
+    if (!def || !this._maskChannelBBoxes) return null;
+    const key = def.mask.i + "_" + def.mask.c;
+    return this._maskChannelBBoxes[key] || null;
+  }
+
+  // Convenience wrapper returning internal mesh/material entry
+  getLayerEntry(id) {
+    return this.layerMeshes.find((l) => l.entry.def.id === id) || null;
+  }
+
+  // Get global depth aspect (from first material) or 1
+  getDepthAspect() {
+    if (!this.layerMeshes || !this.layerMeshes.length) return 1;
+    return this.layerMeshes[0].material.uniforms.depthAspect?.value || 1;
+  }
+
+  // Set parallax strength for specific layer id (all its material instances)
+  setParallaxStrength(id, value) {
+    const entry = this.getLayerEntry(id);
+    if (entry) entry.material.uniforms.parallaxStrength.value = value;
   }
 
   update(time) {
