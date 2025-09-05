@@ -1,4 +1,5 @@
 // ScoreBoard component
+import starImg from "../../assets/star.png";
 // API via events on provided bus:
 //  score.init { total, value? }
 //  score.update { value }
@@ -22,7 +23,7 @@ export class ScoreBoard {
     wrap.style.display = "none";
     wrap.innerHTML = `
       <div class="scoreboard__bar"><div class="scoreboard__bar-fill" style="width:0%"></div></div>
-      <div class="scoreboard__star-wrap"><img class="scoreboard__star" src="assets/star.png" alt="" /></div>
+      <div class="scoreboard__star-wrap"><img class="scoreboard__star" src="${starImg}" alt="" /></div>
       <div class="scoreboard__value" aria-live="polite">0/0</div>
     `;
     parent.appendChild(wrap);
