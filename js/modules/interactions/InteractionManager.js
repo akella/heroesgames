@@ -8,7 +8,7 @@ export class InteractionManager {
     this._onFlow = this._onFlow.bind(this);
     this._onPointerMove = this._onPointerMove.bind(this);
     this._onClick = this._onClick.bind(this);
-  this._hoverActive = false;
+    this._hoverActive = false;
   }
 
   register(config) {
@@ -50,7 +50,7 @@ export class InteractionManager {
     const anyHover = this.items.some((it) => it._isHover);
     if (anyHover !== this._hoverActive) {
       this._hoverActive = anyHover;
-      document.body.style.cursor = anyHover ? 'pointer' : '';
+      document.body.style.cursor = anyHover ? "pointer" : "";
     }
   }
 
