@@ -9,11 +9,11 @@ const MASK_THRESHOLD = 200; // brightness threshold for mask
 const SAFE_MARGIN = 70; // left, right, top
 const SAFE_MARGIN_BOTTOM = 100; // bottom
 const QUAD_OFFSET = SAFE_MARGIN; // base for quadrant placement
-const HIGHLIGHT_SRC = "assets/games/finddiff/finded.png";
-const ROOM_SRC = "assets/games/finddiff/finddiff-room.png";
-const MASK_SRC = "assets/games/finddiff/finddiff-mask.png";
-const BRUSH_CURSOR_SRC = "assets/games/finddiff/brush.png";
-const HAND_IMG_SRC = "assets/games/finddiff/hand.png";
+const HIGHLIGHT_SRC = "../../assets/games/finddiff/finded.png";
+const ROOM_SRC = "../../assets/games/finddiff/finddiff-room.png";
+const MASK_SRC = "../../assets/games/finddiff/finddiff-mask.png";
+const BRUSH_CURSOR_SRC = "../../assets/games/finddiff/brush.png";
+const HAND_IMG_SRC = "../../assets/games/finddiff/hand.png";
 // Spring motion tuning (critically damped-ish subjective values)
 const SPRING_STIFFNESS = 0.04; // higher -> snappier
 const SPRING_DAMPING = 0.32; // higher -> less oscillation
