@@ -63,6 +63,22 @@ flowActor.subscribe((snap) => {
   layerManager.syncToState(snap);
   bus.emit("flow.progress", snap);
   const val = snap.value;
+  const AUTO_SLIDES = {
+    slide3: 1500,
+    slide5: 1500,
+    slide6: 2000,
+    slide8: 1500,
+  };
+  // clear previous timer if any
+  if (flowActor._autoTimer) {
+    clearTimeout(flowActor._autoTimer);
+    flowActor._autoTimer = null;
+  }
+  if (AUTO_SLIDES[val]) {
+    flowActor._autoTimer = setTimeout(() => {
+      flowActor.send({ type: "NEXT" });
+    }, AUTO_SLIDES[val]);
+  }
   if (!gameManager.active) return;
   if (val === "slide9") {
     gameManager.active.api.show();
