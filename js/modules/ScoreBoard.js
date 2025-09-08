@@ -13,7 +13,7 @@ export class ScoreBoard {
     this.total = 0;
     this.value = 0;
     this.visible = false;
-  this._rafShow = null;
+    this._rafShow = null;
     this._build(parent);
     this._bindBus();
   }
