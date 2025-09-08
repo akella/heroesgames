@@ -239,7 +239,7 @@ const RAW = [
 // 150+ floating / foreground highlights
 export const Z_INDEX = {
   // Background
-  wall: 0,
+  wall: 3,
   "sh-walls": 1,
   window: 5,
   "window-light": 52.5,
@@ -255,7 +255,7 @@ export const Z_INDEX = {
   stickers: 31,
   medals: 32,
   // Floor & base layers
-  floor: 3,
+  floor: 0,
   rug: 52,
   "tennis-floor": 53,
   // Shadows

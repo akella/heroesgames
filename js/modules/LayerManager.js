@@ -13,6 +13,7 @@ const LAYERS = {
   slide12: ["slide12Layer"],
   slide13: ["slide13Layer"],
   slide14: ["slide14Layer"],
+  slide15: ["slide15Layer"],
 };
 
 export class LayerManager {

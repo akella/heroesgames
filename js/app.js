@@ -38,6 +38,7 @@ const layers = {
   slide12Layer: makeSlideLayer("slide12"),
   slide13Layer: makeSlideLayer("slide13"),
   slide14Layer: makeSlideLayer("slide14"),
+  slide15Layer: makeSlideLayer("slide15"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -90,6 +91,15 @@ flowActor.subscribe((snap) => {
     if (gameRoot) gameRoot.style.zIndex = "20";
     bus.emit("score.show");
   } else if (val === "slide14") {
+    gameManager.active.api.setActive(false);
+    if (gameRoot) gameRoot.style.zIndex = "5";
+    bus.emit("score.hide");
+  } else if (val === "slide15") {
+    // Reset and start second round with different image
+    if (gameManager.active?.api.resetRound) {
+      gameManager.active.api.resetRound(2);
+    }
+    gameManager.active.api.show();
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
     bus.emit("score.hide");

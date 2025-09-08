@@ -3,6 +3,7 @@ import { gsap } from "gsap";
 // Asset imports (so Vite includes them in build)
 import highlightImg from "../../../assets/games/finddiff/finded.png";
 import roomImg from "../../../assets/games/finddiff/finddiff-room.png";
+import roomImg2 from "../../../assets/games/finddiff/finddiff-room-2.png";
 import maskImg from "../../../assets/games/finddiff/finddiff-mask.png";
 import brushImg from "../../../assets/games/finddiff/brush.png";
 import handImgSrc from "../../../assets/games/finddiff/hand.png";
@@ -16,7 +17,8 @@ const SAFE_MARGIN = 70; // left, right, top
 const SAFE_MARGIN_BOTTOM = 100; // bottom
 const QUAD_OFFSET = SAFE_MARGIN; // base for quadrant placement
 const HIGHLIGHT_SRC = highlightImg;
-const ROOM_SRC = roomImg;
+const ROOM_SRC_1 = roomImg;
+const ROOM_SRC_2 = roomImg2;
 const MASK_SRC = maskImg;
 const BRUSH_CURSOR_SRC = brushImg;
 const HAND_IMG_SRC = handImgSrc;
@@ -286,6 +288,10 @@ export function createGame({ bus }) {
     overlayLayer.appendChild(m);
   }
 
+  function clearMarkers() {
+    overlayLayer.innerHTML = "";
+  }
+
   // On click sample a small ring to validate a diff
   function handleClick(e) {
     if (!active || complete) return;
@@ -385,7 +391,7 @@ export function createGame({ bus }) {
       pointerEvents: "none",
       transform: "translate(-50%, -50%)",
     });
-    const [room, mask] = await Promise.all([load(ROOM_SRC), load(MASK_SRC)]);
+    const [room, mask] = await Promise.all([load(ROOM_SRC_1), load(MASK_SRC)]);
     canvas.width = room.naturalWidth;
     canvas.height = room.naturalHeight;
     ctx = canvas.getContext("2d");
@@ -459,6 +465,31 @@ export function createGame({ bus }) {
     bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
   }
 
+  // Reset for a new round (round 2 uses alternative room image)
+  async function resetRound(round = 2) {
+    // hide highlights and reset progress/state
+    found = [];
+    complete = false;
+    lastQuadrant = -1;
+    lastTarget = { x: null, y: null };
+    clearMarkers();
+    // reload background image (and mask stays same for now; replace if needed)
+    const imgSrc = round === 2 ? ROOM_SRC_2 : ROOM_SRC_1;
+    const room = await load(imgSrc);
+    canvas.width = room.naturalWidth;
+    canvas.height = room.naturalHeight;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(room, 0, 0);
+    // Reset score UI
+    bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
+    // Reposition for new round, but don't auto-activate interactions
+    rootSize = null;
+    computeQuadrants();
+    const q = quadCenters[3] || quadCenters[0];
+    if (q) centerRootAt(q.x, q.y, true);
+    runSpringLoop();
+  }
+
   return {
     init,
     show,
@@ -467,5 +498,6 @@ export function createGame({ bus }) {
       destroy();
     },
     setActive,
+    resetRound,
   };
 }
