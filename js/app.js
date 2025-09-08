@@ -23,6 +23,7 @@ import { GameManager } from "./modules/GameManager.js";
 import { ScoreBoard } from "./modules/ScoreBoard.js";
 import { InteractionManager } from "./modules/interactions/InteractionManager.js";
 import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
+import { RoomPicker } from "./modules/ui/RoomPicker.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -40,6 +41,10 @@ const layers = {
   slide13Layer: makeSlideLayer("slide13"),
   slide14Layer: makeSlideLayer("slide14"),
   slide15Layer: makeSlideLayer("slide15"),
+  slide16Layer: makeSlideLayer("slide16"),
+  slide17Layer: makeSlideLayer("slide17"),
+  slide18Layer: makeSlideLayer("slide18"),
+  slide19Layer: makeSlideLayer("slide19"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -70,6 +75,7 @@ flowActor.subscribe((snap) => {
     slide5: 1500,
     slide6: 2000,
     slide8: 1500,
+    slide16: 2000,
   };
   // clear previous timer if any
   if (flowActor._autoTimer) {
@@ -80,6 +86,41 @@ flowActor.subscribe((snap) => {
     flowActor._autoTimer = setTimeout(() => {
       flowActor.send({ type: "NEXT" });
     }, AUTO_SLIDES[val]);
+  }
+  // Show model on slide16
+  if (val === "slide16") {
+    try {
+      document.dispatchEvent(new CustomEvent("showCharacter"));
+    } catch {}
+  }
+  // RoomPicker visibility
+  const pickers = [
+    window.__pickerWall,
+    window.__pickerFloor,
+    window.__pickerTable,
+  ].filter(Boolean);
+  if (pickers.length) {
+    if (val === "slide16") {
+      pickers.forEach((p) => {
+        p.show();
+        p.setLocked(true);
+      });
+    } else if (
+      val === "slide17" ||
+      val === "slide18" ||
+      val === "slide19" ||
+      val === "slide20" ||
+      val === "slide21" ||
+      val === "slide22" ||
+      val === "slide23"
+    ) {
+      pickers.forEach((p) => {
+        p.show();
+        p.setLocked(false);
+      });
+    } else {
+      pickers.forEach((p) => p.hide());
+    }
   }
   if (!gameManager.active) return;
   if (val === "slide9") {
@@ -102,11 +143,16 @@ flowActor.subscribe((snap) => {
     gameManager.active.api.show();
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
+  } else if (val === "slide16") {
+    gameManager.active.api.hide();
     bus.emit("score.hide");
+    if (gameRoot) gameRoot.style.zIndex = "5";
+  } else if (val === "slide17") {
+    gameManager.active.api.hide();
+    if (gameRoot) gameRoot.style.zIndex = "5";
   } else if (val === "outro") {
     gameManager.active.api.hide();
     if (gameRoot) gameRoot.style.zIndex = "5";
-    bus.emit("score.hide");
   }
 });
 flowActor.start();
@@ -164,6 +210,107 @@ class AppController {
       events: bus,
       includeIds: UNFILTERED_IDS,
     });
+
+    // RoomPicker UI: separate pickers for wall, floor, table
+    const onOpenOnce = (() => {
+      let fired = false;
+      return () => {
+        if (fired) return;
+        fired = true;
+        try {
+          flowActor.send({ type: "NEXT" });
+        } catch {}
+      };
+    })();
+    const onSelectOnce = (() => {
+      let fired = false;
+      return () => {
+        if (fired) return;
+        fired = true;
+        try {
+          flowActor.send({ type: "NEXT" });
+        } catch {}
+      };
+    })();
+    const onLockedClickOnce = (() => {
+      let fired = false;
+      return () => {
+        if (fired) return;
+        fired = true;
+        try {
+          flowActor.send({ type: "NEXT" });
+        } catch {}
+      };
+    })();
+
+    let pickerWall, pickerFloor, pickerTable;
+    const closeOthers = (who) => {
+      [pickerWall, pickerFloor, pickerTable].forEach((p) => {
+        if (p && p !== who) p.close();
+      });
+    };
+
+    window.__pickerWall = pickerWall = new RoomPicker({
+      container: document.body,
+      shaderBG: this.shaderLayerBG,
+      shaderFG: this.shaderLayerFG,
+      category: "wall",
+      anchor: {
+        shader: this.shaderLayerBG,
+        layerId: "wall",
+        align: "center",
+        offset: { x: -250, y: -200 },
+      },
+      locked: true,
+      onOpen: () => {
+        closeOthers(pickerWall);
+        onOpenOnce();
+      },
+      onFirstSelect: onSelectOnce,
+      onLockedClick: onLockedClickOnce,
+    });
+    window.__pickerFloor = pickerFloor = new RoomPicker({
+      container: document.body,
+      shaderBG: this.shaderLayerBG,
+      shaderFG: this.shaderLayerFG,
+      category: "floor",
+      anchor: {
+        shader: this.shaderLayerBG,
+        layerId: "floor",
+        align: "center",
+        offset: { x: 280, y: 200 },
+      },
+      locked: true,
+      onOpen: () => {
+        closeOthers(pickerFloor);
+        onOpenOnce();
+      },
+      onFirstSelect: onSelectOnce,
+      onLockedClick: onLockedClickOnce,
+    });
+    window.__pickerTable = pickerTable = new RoomPicker({
+      container: document.body,
+      shaderBG: this.shaderLayerBG,
+      shaderFG: this.shaderLayerFG,
+      category: "table",
+      anchor: {
+        shader: this.shaderLayerBG,
+        layerId: "table",
+        align: "center",
+        offset: { x: 0, y: -150 },
+      },
+      locked: true,
+      onOpen: () => {
+        closeOthers(pickerTable);
+        onOpenOnce();
+      },
+      onFirstSelect: onSelectOnce,
+      onLockedClick: onLockedClickOnce,
+    });
+    pickerWall.hide();
+    pickerFloor.hide();
+    pickerTable.hide();
+
     this.modelLayer = new ModelLayer({
       mouse: this.mouse,
       events: bus,

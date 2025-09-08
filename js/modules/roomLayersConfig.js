@@ -240,10 +240,10 @@ const RAW = [
 export const Z_INDEX = {
   // Background
   wall: 3,
-  "sh-walls": 1,
+  "sh-walls": 4,
   window: 5,
   "window-light": 52.5,
-  curtains: 7,
+  curtains: 53,
   // Large furniture & fixtures
   bookcase: 20,
   "bookcase-2": 21,
@@ -345,6 +345,7 @@ export const END_GAME_GROUP = [
   "tennis-racket",
   "tennis-shelf",
   "tablecloth",
+  "rug",
 ];
 
 // Individually revealable during MID phase (still hidden at start)
@@ -365,6 +366,7 @@ export const MID_GAME_REVEALABLE = [
   "car",
   "football",
   "picture",
+  "picture-sh",
   "books-1",
   "books-3",
   "books-4",

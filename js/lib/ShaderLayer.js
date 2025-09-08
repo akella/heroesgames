@@ -278,6 +278,11 @@ export default class ShaderLayer extends BaseLayer {
     const entry = this.layerMeshes.find((l) => l.entry.def.id === id);
     if (!entry) return;
     entry.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
+    // If base picture is toggled, toggle its shadow as well
+    if (id === "picture") {
+      const sh = this.layerMeshes.find((l) => l.entry.def.id === "picture-sh");
+      if (sh) sh.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
+    }
   }
 
   onBBoxesReady(cb) {

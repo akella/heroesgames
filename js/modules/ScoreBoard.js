@@ -13,6 +13,7 @@ export class ScoreBoard {
     this.total = 0;
     this.value = 0;
     this.visible = false;
+  this._rafShow = null;
     this._build(parent);
     this._bindBus();
   }
@@ -79,17 +80,33 @@ export class ScoreBoard {
     if (this.visible) return;
     this.visible = true;
     this.el.style.display = "flex";
-    requestAnimationFrame(() => this.el.classList.add("scoreboard--visible"));
+    if (this._rafShow) cancelAnimationFrame(this._rafShow);
+    this._rafShow = requestAnimationFrame(() => {
+      this._rafShow = null;
+      // Add only if still visible (guard vs. hide called same frame)
+      if (this.visible) this.el.classList.add("scoreboard--visible");
+    });
   }
 
   hide() {
     if (!this.visible) return;
     this.visible = false;
+    if (this._rafShow) {
+      cancelAnimationFrame(this._rafShow);
+      this._rafShow = null;
+    }
     this.el.classList.remove("scoreboard--visible");
-    const onEnd = () => {
+    let done = false;
+    const onEnd = (e) => {
+      if (e && e.propertyName && e.propertyName !== "opacity") return;
+      done = true;
       if (!this.visible) this.el.style.display = "none";
       this.el.removeEventListener("transitionend", onEnd);
     };
     this.el.addEventListener("transitionend", onEnd);
+    // Fallback: if no transition fires (race conditions), hide after 400ms
+    setTimeout(() => {
+      if (!done && !this.visible) this.el.style.display = "none";
+    }, 450);
   }
 }

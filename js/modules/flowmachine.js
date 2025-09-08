@@ -92,6 +92,26 @@ export const flowMachine = createMachine(
       slide15: {
         entry: "showSlide15",
         exit: "hideSlide15",
+        on: { NEXT: "slide16" },
+      },
+      slide16: {
+        entry: "showSlide16",
+        exit: "hideSlide16",
+        on: { NEXT: "slide17" },
+      },
+      slide17: {
+        entry: "showSlide17",
+        exit: "hideSlide17",
+        on: { NEXT: "slide18" },
+      },
+      slide18: {
+        entry: "showSlide18",
+        exit: "hideSlide18",
+        on: { NEXT: "slide19" },
+      },
+      slide19: {
+        entry: "showSlide19",
+        exit: "hideSlide19",
         on: { NEXT: "outro" },
       },
       outro: {
