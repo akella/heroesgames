@@ -22,6 +22,7 @@ import { makeSlideLayer } from "./modules/makeSlideLayer.js";
 import { GameManager } from "./modules/GameManager.js";
 import { ScoreBoard } from "./modules/ScoreBoard.js";
 import { InteractionManager } from "./modules/interactions/InteractionManager.js";
+import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -93,7 +94,6 @@ flowActor.subscribe((snap) => {
   } else if (val === "slide14") {
     gameManager.active.api.setActive(false);
     if (gameRoot) gameRoot.style.zIndex = "5";
-    bus.emit("score.hide");
   } else if (val === "slide15") {
     // Reset and start second round with different image
     if (gameManager.active?.api.resetRound) {
@@ -123,23 +123,25 @@ class AppController {
     this.bus = options.bus;
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
-    this.renderer = new THREE.WebGLRenderer();
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.setSize(this.width, this.height);
-    // this.renderer.setClearColor(0xeeeeee, 1);
-    this.renderer.autoClear = false;
-    this.renderer.domElement.classList.add("gl-canvas");
-    this.container.appendChild(this.renderer.domElement);
+    // Create two renderers/canvases: background (filtered) and foreground (unfiltered)
+    this.bgRenderer = new THREE.WebGLRenderer({ antialias: true });
+    this.bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.bgRenderer.setSize(this.width, this.height);
+    this.bgRenderer.autoClear = true;
+    this.bgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--bg");
+    this.container.appendChild(this.bgRenderer.domElement);
 
     this.filterEl = document.createElement("div");
     this.filterEl.className = "scene-filter";
     this.filterEl.style.opacity = "0.5";
-    const firstSlide = document.querySelector(".slide");
-    if (firstSlide && firstSlide.parentNode === document.body) {
-      this.container.appendChild(this.filterEl);
-    } else {
-      this.container.appendChild(this.filterEl);
-    }
+    this.container.appendChild(this.filterEl);
+
+    this.fgRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.fgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.fgRenderer.setSize(this.width, this.height);
+    this.fgRenderer.autoClear = false;
+    this.fgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--fg");
+    this.container.appendChild(this.fgRenderer.domElement);
 
     this.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, -1, 1);
     this.perspCamera = new THREE.PerspectiveCamera(
@@ -152,9 +154,15 @@ class AppController {
     this.time = 0;
     this.mouse = new THREE.Vector2(0.5, 0.5);
 
-    this.shaderLayer = new ShaderLayer({
+    this.shaderLayerBG = new ShaderLayer({
       mouse: this.mouse,
       events: bus,
+      excludeIds: UNFILTERED_IDS,
+    });
+    this.shaderLayerFG = new ShaderLayer({
+      mouse: this.mouse,
+      events: bus,
+      includeIds: UNFILTERED_IDS,
     });
     this.modelLayer = new ModelLayer({
       mouse: this.mouse,
@@ -162,7 +170,7 @@ class AppController {
     });
 
     this.interactionManager = new InteractionManager({
-      shaderLayer: this.shaderLayer,
+      shaderLayer: this.shaderLayerFG,
       bus,
     });
     this.interactionManager.register({
@@ -217,6 +225,11 @@ class AppController {
     this._applyFilterOpacity();
   }
 
+  _applyFilterOpacity() {
+    const v = this.filterOpacity == null ? 0.5 : this.filterOpacity;
+    if (this.filterEl) this.filterEl.style.opacity = String(v);
+  }
+
   initPane() {
     this.PARAMS = { opacity: 1 };
     this.pane = new Pane();
@@ -246,8 +259,8 @@ class AppController {
     this.height = this.container.offsetHeight;
     this.perspCamera.aspect = this.width / this.height;
     this.perspCamera.updateProjectionMatrix();
-    this.renderer.setSize(this.width, this.height);
-    // Dispatch custom resize event with dimensions
+    this.bgRenderer.setSize(this.width, this.height);
+    this.fgRenderer.setSize(this.width, this.height);
     window.dispatchEvent(
       new CustomEvent("app-resize", {
         detail: {
@@ -264,12 +277,15 @@ class AppController {
     const delta = (now - this.lastTime) / 1000;
     this.lastTime = now;
     this.time += 0.05;
-    this.renderer.clear();
-    this.shaderLayer.update(this.time);
-    this.shaderLayer.render(this.renderer, this.camera);
+    this.bgRenderer.clear();
+    this.shaderLayerBG.update(this.time);
+    this.shaderLayerBG.render(this.bgRenderer, this.camera);
+    this.fgRenderer.clear();
+    this.shaderLayerFG.update(this.time);
+    this.shaderLayerFG.render(this.fgRenderer, this.camera);
     this.modelLayer.update(delta);
-    this.renderer.clearDepth();
-    this.modelLayer.render(this.renderer, this.perspCamera);
+    this.fgRenderer.clearDepth();
+    this.modelLayer.render(this.fgRenderer, this.perspCamera);
     if (this.overlayManager) this.overlayManager.update();
     gameManager.update(delta);
     requestAnimationFrame(this.render.bind(this));

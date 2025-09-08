@@ -14,7 +14,7 @@ import depthMapFull from "../../assets/room/room-depth-2.png";
 import depthMapEmpty from "../../assets/room/room-depth-1.png";
 
 export default class ShaderLayer extends BaseLayer {
-  constructor({ mouse, events }) {
+  constructor({ mouse, events, includeIds = null, excludeIds = null }) {
     super();
     this.mouse = mouse;
     this.targetMouse = new THREE.Vector2(0.5, 0.5);
@@ -22,6 +22,8 @@ export default class ShaderLayer extends BaseLayer {
     this.events = events;
     this.variantState = {};
     this._bboxReadyCallbacks = [];
+    this._includeIds = Array.isArray(includeIds) ? new Set(includeIds) : null;
+    this._excludeIds = Array.isArray(excludeIds) ? new Set(excludeIds) : null;
     this._buildMultiPass();
     this._applyInitialVisibility();
     this._wireRevealEvents();
@@ -49,7 +51,11 @@ export default class ShaderLayer extends BaseLayer {
         this._tryComputeBBoxes();
       });
     });
-    this.layerDefs = ROOM_LAYERS;
+    this.layerDefs = ROOM_LAYERS.filter((def) => {
+      if (this._includeIds && !this._includeIds.has(def.id)) return false;
+      if (this._excludeIds && this._excludeIds.has(def.id)) return false;
+      return true;
+    });
     this.layerEntries = this.layerDefs.map((def) => {
       let variants = null;
       let baseTex;

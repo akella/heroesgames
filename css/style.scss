@@ -10,10 +10,18 @@ html {
 
 .gl-canvas {
   display: block;
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
-  position: relative;
+  position: absolute;
+  inset: 0;
+}
+
+.gl-canvas--bg {
   z-index: 0;
+}
+
+.gl-canvas--fg {
+  z-index: 6; // above filter (5)
 }
 
 #container {

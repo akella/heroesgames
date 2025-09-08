@@ -38,7 +38,6 @@ export function createGame({ bus }) {
   let quadCenters = [];
   let handImg;
   let lastQuadrant = -1;
-  // Spring motion state
   let posX = 0,
     posY = 0,
     velX = 0,
@@ -62,7 +61,6 @@ export function createGame({ bus }) {
   function buildDOM(container) {
     root = document.createElement("div");
     root.className = "finddiff-root";
-    // Let CSS control positioning (absolute). We'll translate via gsap x/y.
     Object.assign(root.style, {
       position: "absolute",
       left: "0px",
@@ -404,7 +402,7 @@ export function createGame({ bus }) {
       const r = root.getBoundingClientRect();
       rootSize = { w: r.width, h: r.height };
       computeQuadrants();
-      const startQ = quadCenters[3] || quadCenters[0]; // deterministic start (bottom-right fallback)
+      const startQ = quadCenters[3] || quadCenters[0];
       if (startQ) {
         lastQuadrant = quadCenters.indexOf(startQ);
         lastTarget.x = startQ.x;
@@ -412,7 +410,6 @@ export function createGame({ bus }) {
         centerRootAt(startQ.x, startQ.y, true);
       }
       if (initial) {
-        // multi-pass stabilization: 2 RAFs + size observer to catch late style / max-width constraints
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
             const prev = { ...rootSize };
@@ -430,7 +427,6 @@ export function createGame({ bus }) {
             runSpringLoop();
           });
         });
-        // Observe subsequent intrinsic size changes (e.g. responsive canvas shrink) and re-center once stable
         resizeObserver = new ResizeObserver((entries) => {
           if (!entries.length || complete) return;
           const cr = entries[0].contentRect;
@@ -467,22 +463,17 @@ export function createGame({ bus }) {
 
   // Reset for a new round (round 2 uses alternative room image)
   async function resetRound(round = 2) {
-    // hide highlights and reset progress/state
     found = [];
     complete = false;
     lastQuadrant = -1;
     lastTarget = { x: null, y: null };
     clearMarkers();
-    // reload background image (and mask stays same for now; replace if needed)
     const imgSrc = round === 2 ? ROOM_SRC_2 : ROOM_SRC_1;
     const room = await load(imgSrc);
     canvas.width = room.naturalWidth;
     canvas.height = room.naturalHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(room, 0, 0);
-    // Reset score UI
-    bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
-    // Reposition for new round, but don't auto-activate interactions
     rootSize = null;
     computeQuadrants();
     const q = quadCenters[3] || quadCenters[0];

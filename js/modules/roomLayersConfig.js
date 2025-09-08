@@ -344,6 +344,7 @@ export const END_GAME_GROUP = [
   "tennis-floor",
   "tennis-racket",
   "tennis-shelf",
+  "tablecloth",
 ];
 
 // Individually revealable during MID phase (still hidden at start)
@@ -375,3 +376,5 @@ export const MID_GAME_REVEALABLE = [
 export const INITIAL_HIDE = Array.from(
   new Set([...END_GAME_GROUP, ...MID_GAME_REVEALABLE])
 );
+
+export const UNFILTERED_IDS = ["picture-1", "picture-2", "picture-hover"];
