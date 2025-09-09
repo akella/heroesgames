@@ -16,6 +16,7 @@ import ModelLayer from "./lib/ModelLayer.js";
 import { Pane } from "tweakpane";
 import { createMachine, createActor } from "xstate";
 import { flowMachine } from "./modules/flowmachine.js";
+import { setupFlowSubscription } from "./modules/flowHandlers.js";
 import mitt from "mitt";
 import { LayerManager } from "./modules/LayerManager.js";
 import { makeSlideLayer } from "./modules/makeSlideLayer.js";
@@ -63,103 +64,14 @@ const gameRoot = document.getElementById("game-root");
 if (gameRoot) gameManager.attachRoot(gameRoot);
 if (gameRoot) gameRoot.style.zIndex = "5";
 
-let prevSnap;
 const flowActor = createActor(flowMachine);
-flowActor.subscribe((snap) => {
-  if (snap === prevSnap) return;
-  prevSnap = snap;
-  layerManager.syncToState(snap);
-  bus.emit("flow.progress", snap);
-  const val = snap.value;
-  const AUTO_SLIDES = {
-    slide3: 1500,
-    slide5: 1500,
-    slide6: 2000,
-    slide8: 1500,
-    slide16: 2000,
-  };
-  // clear previous timer if any
-  if (flowActor._autoTimer) {
-    clearTimeout(flowActor._autoTimer);
-    flowActor._autoTimer = null;
-  }
-  if (AUTO_SLIDES[val]) {
-    flowActor._autoTimer = setTimeout(() => {
-      flowActor.send({ type: "NEXT" });
-    }, AUTO_SLIDES[val]);
-  }
-  // Show model on slide16
-  if (val === "slide16") {
-    try {
-      document.dispatchEvent(new CustomEvent("showCharacter"));
-    } catch {}
-  }
-  // RoomPicker visibility
-  const pickers = [
-    window.__pickerWall,
-    window.__pickerFloor,
-    window.__pickerTable,
-  ].filter(Boolean);
-  if (pickers.length) {
-    if (val === "slide16") {
-      pickers.forEach((p) => {
-        p.show();
-        p.setLocked(true);
-      });
-    } else if (
-      val === "slide17" ||
-      val === "slide18" ||
-      val === "slide19" ||
-      val === "slide20" ||
-      val === "slide21" ||
-      val === "slide22" ||
-      val === "slide23"
-    ) {
-      pickers.forEach((p) => {
-        p.show();
-        p.setLocked(false);
-      });
-      if (val === "slide20") {
-        pickers.forEach((p) => p.close());
-      }
-    } else {
-      pickers.forEach((p) => p.hide());
-    }
-  }
-  if (!gameManager.active) return;
-  if (val === "slide9") {
-    gameManager.active.api.show();
-    gameManager.active.api.setActive(false);
-    if (gameRoot) gameRoot.style.zIndex = "5";
-    bus.emit("score.hide");
-  } else if (val === "slide13") {
-    gameManager.active.api.setActive(true);
-    if (gameRoot) gameRoot.style.zIndex = "20";
-    bus.emit("score.show");
-  } else if (val === "slide14") {
-    gameManager.active.api.setActive(false);
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  } else if (val === "slide15") {
-    // Reset and start second round with different image
-    if (gameManager.active?.api.resetRound) {
-      gameManager.active.api.resetRound(2);
-    }
-    gameManager.active.api.show();
-    gameManager.active.api.setActive(false);
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  } else if (val === "slide16") {
-    gameManager.active.api.hide();
-    bus.emit("score.hide");
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  } else if (val === "slide17") {
-    gameManager.active.api.hide();
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  } else if (val === "outro") {
-    gameManager.active.api.hide();
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  }
+setupFlowSubscription({
+  flowActor,
+  layerManager,
+  bus,
+  gameManager,
+  gameRoot,
 });
-flowActor.start();
 let gonext = [...document.querySelectorAll(".js-next")];
 gonext.forEach((el) => {
   el.addEventListener("click", () => {
@@ -324,6 +236,7 @@ class AppController {
       shaderLayer: this.shaderLayerFG,
       bus,
     });
+    // Picture interaction
     this.interactionManager.register({
       id: "picture",
       layers: {
@@ -340,7 +253,7 @@ class AppController {
       bboxLayer: "default",
       eventsPrefix: "picture",
     });
-    // Book-floor interaction: hover highlight on slide20 (mask 25 r)
+    // Book on the floor interaction
     this.interactionManager.register({
       id: "book-floor",
       layers: {
