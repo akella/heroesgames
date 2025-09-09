@@ -47,6 +47,8 @@ const layers = {
   slide18Layer: makeSlideLayer("slide18"),
   slide19Layer: makeSlideLayer("slide19"),
   slide20Layer: makeSlideLayer("slide20"),
+  slide21Layer: makeSlideLayer("slide21"),
+  slide22Layer: makeSlideLayer("slide22"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -262,15 +264,16 @@ class AppController {
         default: "book-floor",
         hover: "book-floor-hover",
       },
+      visibleSlides: ["slide20", "slide21", "slide22"],
       hover: true,
       hoverWhenInactive: true, // allow hover even before activation
-      hoverOnlyOnSlides: ["slide20"],
-      click: false,
-      clickWhenInactive: false,
+      hoverOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      click: true,
+      clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "book-floor",
       // Highlight only when slide20 is current
-      highlightOnlyOnSlides: ["slide20"],
+      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
       highlightMode: "visible",
       highlightParallax: true,
       highlightOffset: { x: 0, y: 8 },
@@ -278,6 +281,9 @@ class AppController {
     this.interactionManager.attach();
 
     bus.on("picture.click", () => {
+      flowActor.send({ type: "NEXT" });
+    });
+    bus.on("book-floor.click", () => {
       flowActor.send({ type: "NEXT" });
     });
 

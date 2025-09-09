@@ -30,7 +30,7 @@ export class HighlightCircle {
     this._updateVisibility();
   }
   onHoverChange() {
-    if (this.mode === "hover") this._updateVisibility();
+    this._updateVisibility();
   }
 
   destroy() {
@@ -85,6 +85,11 @@ export class HighlightCircle {
         break;
     }
     if (!modeOk) {
+      this._setVisible(false);
+      return;
+    }
+    // Hide while hovered (global behavior)
+    if (this.item._isHover) {
       this._setVisible(false);
       return;
     }

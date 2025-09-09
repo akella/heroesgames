@@ -14,6 +14,7 @@ export function setupFlowSubscription({
     slide6: 2000,
     slide8: 1500,
     slide16: 2000,
+    slide20: 2000,
   };
 
   flowActor.subscribe((snap) => {

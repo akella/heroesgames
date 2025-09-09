@@ -19,6 +19,8 @@ const LAYERS = {
   slide18: ["slide18Layer"],
   slide19: ["slide19Layer"],
   slide20: ["slide20Layer"],
+  slide21: ["slide21Layer"],
+  slide22: ["slide22Layer"],
 };
 
 export class LayerManager {

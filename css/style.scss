@@ -148,7 +148,7 @@ html {
   .dog {
     position: absolute;
     left: 30%;
-    bottom: 0;
+    bottom: -7%;
     height: 50%;
     aspect-ratio: 12/10;
     z-index: 25;
@@ -223,6 +223,18 @@ html {
       height: 100%;
     }
   }
+}
+
+.dog_left .small-dog__bubble {
+  transform: translate(-350%, -100%);
+}
+
+.dog_bigger {
+  bottom: 0 !important;
+}
+
+.dog_bigger .bubble {
+  transform: translate(65%, -110%);
 }
 
 .tp-dfwv {
