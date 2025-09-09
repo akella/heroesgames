@@ -108,6 +108,8 @@ import bookcasePng from "../../assets/room/objects/bookcase.png";
 import shBookFloorPng from "../../assets/room/objects/sh-book-floor.png";
 import shFootballPng from "../../assets/room/objects/sh-football.png";
 import pictureHoverPng from "../../assets/room/objects/picture-hover.png";
+import bookFloorHoverPng from "../../assets/room/objects/book-floor-hover.png";
+import mask25 from "../../assets/room/masks/mask_room_25.png";
 
 export const maskTextures = [
   mask0,
@@ -135,6 +137,7 @@ export const maskTextures = [
   mask22,
   mask23,
   mask24,
+  mask25,
 ];
 
 // Layer definition schema:
@@ -228,6 +231,7 @@ const RAW = [
   { id: "sh-book-floor", mask: { i: 23, c: "r" }, tex: shBookFloorPng },
   { id: "sh-football", mask: { i: 23, c: "g" }, tex: shFootballPng },
   { id: "picture-hover", mask: { i: 24, c: "r" }, tex: pictureHoverPng },
+  { id: "book-floor-hover", mask: { i: 25, c: "r" }, tex: bookFloorHoverPng },
 ];
 
 // Explicit z-index map.
@@ -311,6 +315,7 @@ export const Z_INDEX = {
   "picture-1": 112,
   "picture-sh": 113,
   "picture-hover": 114,
+  "book-floor-hover": 115,
   // Remaining / fallback
   lamp: 120,
 };
@@ -379,4 +384,9 @@ export const INITIAL_HIDE = Array.from(
   new Set([...END_GAME_GROUP, ...MID_GAME_REVEALABLE])
 );
 
-export const UNFILTERED_IDS = ["picture-1", "picture-2", "picture-hover"];
+export const UNFILTERED_IDS = [
+  "picture-1",
+  "picture-2",
+  "picture-hover",
+  "book-floor-hover",
+];

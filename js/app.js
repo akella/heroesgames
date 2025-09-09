@@ -45,6 +45,7 @@ const layers = {
   slide17Layer: makeSlideLayer("slide17"),
   slide18Layer: makeSlideLayer("slide18"),
   slide19Layer: makeSlideLayer("slide19"),
+  slide20Layer: makeSlideLayer("slide20"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -118,6 +119,9 @@ flowActor.subscribe((snap) => {
         p.show();
         p.setLocked(false);
       });
+      if (val === "slide20") {
+        pickers.forEach((p) => p.close());
+      }
     } else {
       pickers.forEach((p) => p.hide());
     }
@@ -335,6 +339,21 @@ class AppController {
       clickWhenInactive: false,
       bboxLayer: "default",
       eventsPrefix: "picture",
+    });
+    // Book-floor interaction: hover highlight on slide20 (mask 25 r)
+    this.interactionManager.register({
+      id: "book-floor",
+      layers: {
+        default: "book-floor",
+        hover: "book-floor-hover",
+      },
+      hover: true,
+      hoverWhenInactive: true, // allow hover even before activation
+      hoverOnlyOnSlides: ["slide20"],
+      click: false,
+      clickWhenInactive: false,
+      bboxLayer: "hover",
+      eventsPrefix: "book-floor",
     });
     this.interactionManager.attach();
 

@@ -23,6 +23,7 @@ export class InteractiveItem {
     this._isActiveSlide = false;
     this._isHover = false;
     this._isVisible = true;
+    this._currentSlide = null;
   }
 
   init() {
@@ -47,6 +48,7 @@ export class InteractiveItem {
   }
 
   onFlowProgress(val) {
+    this._currentSlide = val;
     const { activeSlide, visibleSlides } = this.config;
     const visible =
       !Array.isArray(visibleSlides) || visibleSlides.includes(val);
@@ -94,6 +96,13 @@ export class InteractiveItem {
   pointerMove(x, y) {
     if (!this.config.hover) return;
     if (!this._isVisible) return;
+    // Optional: limit hover to specific slides without toggling base visibility
+    if (
+      Array.isArray(this.config.hoverOnlyOnSlides) &&
+      !this.config.hoverOnlyOnSlides.includes(this._currentSlide)
+    ) {
+      return;
+    }
     if (!(this._isActiveSlide || this.config.hoverWhenInactive)) return;
     if (!this._bbox) return;
     // Map screen UV to newUV (same aspect correction as shader)

@@ -105,7 +105,8 @@ export default class ShaderLayer extends BaseLayer {
       const mesh = new THREE.Mesh(this.geometry, material);
       mesh.renderOrder = 10 + idx;
       this.add(mesh);
-      if (entry.def.id === "picture-hover") {
+      // Disable all hover overlays by default; they'll be toggled by interactions
+      if (entry.def.id && entry.def.id.endsWith("-hover")) {
         material.uniforms.enabled.value = 0.0;
       }
       if (INITIAL_HIDE.includes(entry.def.id)) {
