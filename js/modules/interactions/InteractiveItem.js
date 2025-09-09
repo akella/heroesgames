@@ -1,18 +1,5 @@
 // Generic interactive item handling default / active / hover layer visibility
-// Config shape:
-// {
-//   id: 'picture',
-//   layers: { default: 'picture-2', active: 'picture-1', hover: 'picture-hover' },
-//   activeSlide: 'slide7',      // slide id when item becomes ACTIVE (click/hover per config)
-//   visibleSlides: ['slide4','slide5','slide6','slide7'], // slides where any visual (default/active) should be shown
-//   hover: true,                // enable hover
-//   hoverWhenInactive: false,   // allow hover before active slide
-//   bboxLayer: 'active',        // which layer to use for bbox: 'active' | 'default' | 'hover'
-//   useParallaxInHit: false,    // approximate parallax shift in hit test
-//   click: true,                // enable click detection
-//   clickWhenInactive: false,   // allow click even before active slide
-//   eventsPrefix: 'picture'     // events bus prefix
-// }
+import { HighlightCircle } from "./HighlightCircle.js";
 
 export class InteractiveItem {
   constructor(config, ctx) {
@@ -24,6 +11,10 @@ export class InteractiveItem {
     this._isHover = false;
     this._isVisible = true;
     this._currentSlide = null;
+
+    if (this.config.highlight !== false) {
+      this._highlight = new HighlightCircle(this, this.config);
+    }
   }
 
   init() {
@@ -35,6 +26,7 @@ export class InteractiveItem {
     this.shaderLayer.onBBoxesReady(() => {
       const targetLayerId = this._layerIdForBBox();
       this._bbox = this.shaderLayer.getLayerBBox(targetLayerId);
+      this._highlight?.onBBoxReady();
     });
   }
 
@@ -55,10 +47,20 @@ export class InteractiveItem {
     const active = visible && activeSlide && val === activeSlide;
     const changedVisibility = visible !== this._isVisible;
     const changedActive = active !== this._isActiveSlide;
-    if (!(changedVisibility || changedActive)) return;
-    this._isVisible = visible;
-    this._isActiveSlide = active;
-    this._applyState(changedVisibility);
+    if (changedVisibility || changedActive) {
+      this._isVisible = visible;
+      this._isActiveSlide = active;
+      this._applyState(changedVisibility);
+      if (this.config.highlightDebug) {
+        console.debug("InteractiveItem state", this.config.id, {
+          slide: val,
+          visible,
+          active,
+        });
+      }
+    }
+    // Re-evaluate highlight visibility every slide change (even if base state unchanged)
+    this._highlight?.onSlideChange();
   }
 
   _applyState(visibilityChanged) {
@@ -72,6 +74,7 @@ export class InteractiveItem {
       if (this._isHover) this._emit("hover.off");
       if (visibilityChanged) this._emit("hide");
       this._isHover = false;
+      this._highlight?.onStateChange();
       return;
     }
     // visible
@@ -91,6 +94,7 @@ export class InteractiveItem {
       this._emit("deactivate");
       if (visibilityChanged) this._emit("show");
     }
+    this._highlight?.onStateChange();
   }
 
   pointerMove(x, y) {
@@ -131,7 +135,20 @@ export class InteractiveItem {
       const { layers } = this.config;
       if (layers.hover) this.shaderLayer.setLayerEnabled(layers.hover, inside);
       this._emit(inside ? "hover.on" : "hover.off");
+      this._highlight?.onHoverChange();
     }
+  }
+
+  _pointInsideBBox(x, y, bbox) {
+    if (!bbox) return false;
+    const [minX, minY] = bbox.min;
+    const [sizeX, sizeY] = bbox.size;
+    return x >= minX && x <= minX + sizeX && y >= minY && y <= minY + sizeY;
+  }
+
+  _emit(suffix) {
+    const p = this.config.eventsPrefix || this.config.id;
+    this.bus.emit(`${p}.${suffix}`, { id: this.config.id });
   }
 
   click(x, y) {
@@ -154,17 +171,5 @@ export class InteractiveItem {
       return true;
     }
     return false;
-  }
-
-  _pointInsideBBox(x, y, bbox) {
-    if (!bbox) return false;
-    const [minX, minY] = bbox.min;
-    const [sizeX, sizeY] = bbox.size;
-    return x >= minX && x <= minX + sizeX && y >= minY && y <= minY + sizeY;
-  }
-
-  _emit(suffix) {
-    const p = this.config.eventsPrefix || this.config.id;
-    this.bus.emit(`${p}.${suffix}`, { id: this.config.id });
   }
 }

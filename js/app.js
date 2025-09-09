@@ -252,6 +252,8 @@ class AppController {
       clickWhenInactive: false,
       bboxLayer: "default",
       eventsPrefix: "picture",
+      highlightMode: "active",
+      highlightParallax: true,
     });
     // Book on the floor interaction
     this.interactionManager.register({
@@ -267,6 +269,11 @@ class AppController {
       clickWhenInactive: false,
       bboxLayer: "hover",
       eventsPrefix: "book-floor",
+      // Highlight only when slide20 is current
+      highlightOnlyOnSlides: ["slide20"],
+      highlightMode: "visible",
+      highlightParallax: true,
+      highlightOffset: { x: 0, y: 8 },
     });
     this.interactionManager.attach();
 
