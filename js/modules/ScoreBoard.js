@@ -13,6 +13,7 @@ export class ScoreBoard {
     this.total = 0;
     this.value = 0;
     this.visible = false;
+    this.locked = false; // when true, ignore hide requests
     this._rafShow = null;
     this._build(parent);
     this._bindBus();
@@ -46,6 +47,13 @@ export class ScoreBoard {
     this.bus.on("score.reset", () => this.reset());
     this.bus.on("score.show", () => this.show());
     this.bus.on("score.hide", () => this.hide());
+    this.bus.on("score.lock", () => {
+      this.locked = true;
+      if (this.visible === false) this.show();
+    });
+    this.bus.on("score.unlock", () => {
+      this.locked = false;
+    });
   }
 
   setTotal(total) {
@@ -90,6 +98,7 @@ export class ScoreBoard {
 
   hide() {
     if (!this.visible) return;
+    if (this.locked) return; // ignore hide while locked
     this.visible = false;
     if (this._rafShow) {
       cancelAnimationFrame(this._rafShow);

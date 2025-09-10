@@ -14,6 +14,17 @@ export class GameManager {
     this.registry.set(id, loader);
   }
 
+  async preload(id) {
+    const loader = this.registry.get(id);
+    if (!loader) return;
+    try {
+      const mod = await loader();
+      if (mod.preload) await mod.preload();
+    } catch (e) {
+      // swallow preload errors
+    }
+  }
+
   async activate(id, ctx) {
     if (this.active && this.active.id === id) return;
     await this.deactivate();

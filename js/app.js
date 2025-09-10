@@ -53,6 +53,10 @@ const layers = {
   slide22Layer: makeSlideLayer("slide22"),
   slide23Layer: makeSlideLayer("slide23"),
   slide24Layer: makeSlideLayer("slide24"),
+  slide25Layer: makeSlideLayer("slide25"),
+  slide26Layer: makeSlideLayer("slide26"),
+  slide27Layer: makeSlideLayer("slide27"),
+  slide28Layer: makeSlideLayer("slide28"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -68,7 +72,7 @@ bus.on("game.finddiff.complete", () => {
 });
 const gameRoot = document.getElementById("game-root");
 if (gameRoot) gameManager.attachRoot(gameRoot);
-if (gameRoot) gameRoot.style.zIndex = "5";
+if (gameRoot) gameRoot.style.zIndex = "40";
 
 const flowActor = createActor(flowMachine);
 setupFlowSubscription({
@@ -276,7 +280,6 @@ class AppController {
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "book-floor",
-      // Highlight only when slide20 is current
       highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
       highlightMode: "visible",
       highlightParallax: true,
@@ -301,6 +304,17 @@ class AppController {
         gameManager.active?.api.hide();
       } catch (e) {}
     })();
+
+    // Register puzzle game (activated later on slide24 lazily)
+    gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
+    // Kick off preload early (non-blocking)
+    gameManager.preload("puzzle");
+    bus.on("game.puzzle.complete", () => {
+      // Advance flow when puzzle is complete
+      try {
+        flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
 
     this.isPlaying = true;
     this.resize();

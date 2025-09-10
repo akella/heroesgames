@@ -246,6 +246,7 @@ html {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 40;
 }
 
 .finddiff-root {
@@ -533,7 +534,8 @@ body.cursor-brush {
     width: min(24vw, 420px);
     height: auto;
     object-fit: contain;
-    z-index: 12;
+    z-index: 50; /* above base album & scattered pieces */
+    pointer-events: none; /* do not block underlying interactions */
   }
   .puzzle-pieces-scatter {
     position: absolute;
@@ -597,6 +599,81 @@ body.cursor-brush {
     z-index: 11;
   }
   .puzzle-corners {
-    z-index: 13 !important;
+    /* Frame must sit above all puzzle pieces (dragged pieces capped < 100 in JS) */
+    z-index: 140 !important;
+    pointer-events: none; /* allow dragging pieces under frame */
+  }
+}
+
+/* ================= Puzzle Game (slide24) ================= */
+.puzzlegame-root {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 30;
+  font-family: Arial, sans-serif;
+}
+.puzzlegame-board {
+  position: absolute;
+  left: 6%;
+  top: 16%;
+  width: min(32vw, 620px);
+  aspect-ratio: 620 / 350;
+  pointer-events: auto;
+  z-index: 32;
+}
+.puzzlegame-tray {
+  position: absolute;
+  right: 4%;
+  top: 10%;
+  width: min(40vw, 920px);
+  height: 80%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 8px 10px;
+  pointer-events: auto;
+  z-index: 34;
+  padding: 8px 4px 12px 4px;
+  overflow-y: auto;
+}
+.puzzlegame-piece {
+  position: relative;
+  width: clamp(60px, 6vw, 110px);
+  height: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  image-rendering: auto;
+  transition: filter 0.25s ease;
+}
+.puzzlegame-piece.dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.35));
+  /* z-index controlled inline in JS (<=100) to remain below frame */
+}
+.puzzlegame-root:not(.active) .puzzlegame-piece {
+  cursor: default;
+}
+.puzzlegame-piece-placeholder {
+  /* Keep space, hide visuals */
+  visibility: hidden;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+/* Outro slide */
+.slide-outro {
+  .small-dog {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    transform: translateX(-50%);
+    z-index: 40;
+  }
+  .bubble__text {
+    max-width: 480px;
+    font-size: clamp(18px, 2.4vw, 32px);
+    line-height: 1.1;
   }
 }

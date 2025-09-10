@@ -15,6 +15,7 @@ export function setupFlowSubscription({
     slide8: 1500,
     slide16: 2000,
     slide20: 2000,
+    slide23: 1500, // new auto-advance duplicate intro
   };
 
   flowActor.subscribe((snap) => {
@@ -74,7 +75,69 @@ export function setupFlowSubscription({
       }
     }
 
-    // Game / scoreboard logic
+    // Puzzle preview (slide25)
+    if (val === "slide25") {
+      (async () => {
+        const activationSlide = val; // 'slide25'
+        try {
+          if (gameManager.active && gameManager.active.id !== "puzzle") {
+            await gameManager.deactivate();
+          }
+          if (gameManager.active?.id !== "puzzle") {
+            await gameManager.activate("puzzle", { bus });
+          }
+          // Race guard: still on slide25?
+          const currentVal =
+            (flowActor.getSnapshot
+              ? flowActor.getSnapshot().value
+              : flowActor.state?.value) || snap.value;
+          if (currentVal !== activationSlide) {
+            if (gameManager.active?.id === "puzzle") {
+              try {
+                gameManager.active.api.hide();
+                gameManager.active.api.setActive(false);
+              } catch {}
+            }
+            return;
+          }
+          gameManager.active?.api.show();
+          gameManager.active?.api.setActive(false); // preview: not interactive
+          bus.emit("score.show");
+          if (gameRoot) gameRoot.style.zIndex = "40";
+        } catch (e) {
+          console.warn("Failed to activate puzzle game", e);
+        }
+      })();
+      return;
+    }
+    // Enable interaction (slide26)
+    if (val === "slide26") {
+      if (gameManager.active?.id === "puzzle") {
+        try {
+          gameManager.active.api.show();
+          gameManager.active.api.setActive(true);
+          bus.emit("score.show");
+          if (gameRoot) gameRoot.style.zIndex = "40";
+        } catch (e) {
+          console.warn("Failed to enable puzzle on slide26", e);
+        }
+      }
+      return;
+    }
+    // Final stage (slide27) hide puzzle keep score visible
+    if (val === "slide27") {
+      if (gameManager.active?.id === "puzzle") {
+        try {
+          gameManager.active.api.setActive(false);
+          gameManager.active.api.hide();
+          bus.emit("score.show");
+          if (gameRoot) gameRoot.style.zIndex = "5";
+        } catch (e) {
+          console.warn("Failed to hide puzzle on slide27", e);
+        }
+      }
+      return;
+    }
     if (!gameManager.active) return;
     if (val === "slide9") {
       gameManager.active.api.show();
@@ -103,7 +166,21 @@ export function setupFlowSubscription({
       gameManager.active.api.hide();
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "outro") {
-      gameManager.active.api.hide();
+      // Final teardown after slide28: fully disable any active game and hide scoreboard
+      if (gameManager.active) {
+        try {
+          gameManager.active.api.hide && gameManager.active.api.hide();
+        } catch {}
+        // Fully deactivate (destroys & clears root)
+        try {
+          gameManager.deactivate();
+        } catch {}
+      }
+      // Ensure scoreboard can hide (may have been locked by a game)
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
       if (gameRoot) gameRoot.style.zIndex = "5";
     }
   });
