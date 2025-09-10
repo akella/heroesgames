@@ -60,15 +60,16 @@ export function setupFlowSubscription({
         val === "slide19" ||
         val === "slide20" ||
         val === "slide21" ||
-        val === "slide22" ||
-        val === "slide23"
+        val === "slide22"
       ) {
+        // show unlocked on these slides
         pickers.forEach((p) => {
           p.show();
           p.setLocked(false);
         });
         if (val === "slide20") pickers.forEach((p) => p.close());
       } else {
+        // hide for slide23, slide24, outro and any others
         pickers.forEach((p) => p.hide());
       }
     }

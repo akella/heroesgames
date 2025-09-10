@@ -7,6 +7,7 @@
 // create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
 
 import * as THREE from "three";
+import "../css/style.scss"; // ensure SCSS is processed by Vite
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
@@ -25,6 +26,7 @@ import { ScoreBoard } from "./modules/ScoreBoard.js";
 import { InteractionManager } from "./modules/interactions/InteractionManager.js";
 import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
 import { RoomPicker } from "./modules/ui/RoomPicker.js";
+import { initAnchorManager } from "./modules/anchorManager.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -49,6 +51,8 @@ const layers = {
   slide20Layer: makeSlideLayer("slide20"),
   slide21Layer: makeSlideLayer("slide21"),
   slide22Layer: makeSlideLayer("slide22"),
+  slide23Layer: makeSlideLayer("slide23"),
+  slide24Layer: makeSlideLayer("slide24"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -267,7 +271,7 @@ class AppController {
       visibleSlides: ["slide20", "slide21", "slide22"],
       hover: true,
       hoverWhenInactive: true, // allow hover even before activation
-      hoverOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      hoverOnlyOnSlides: ["slide21", "slide22"],
       click: true,
       clickWhenInactive: true,
       bboxLayer: "hover",
@@ -388,3 +392,6 @@ new AppController({
   dom: document.getElementById("container"),
   bus,
 });
+
+// Initialize anchor system for responsive positioned assets
+initAnchorManager();

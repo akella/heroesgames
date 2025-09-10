@@ -7,7 +7,7 @@ export const flowMachine = createMachine(
   {
     id: "kidApp",
     context: { score: 0 },
-    initial: "slide1",
+    initial: "slide24",
 
     states: {
       slide1: {
@@ -127,6 +127,16 @@ export const flowMachine = createMachine(
       slide22: {
         entry: "showSlide22",
         exit: "hideSlide22",
+        on: { NEXT: "slide23" },
+      },
+      slide23: {
+        entry: "showSlide23",
+        exit: "hideSlide23",
+        on: { NEXT: "slide24" },
+      },
+      slide24: {
+        entry: "showSlide24",
+        exit: "hideSlide24",
         on: { NEXT: "outro" },
       },
       outro: {
