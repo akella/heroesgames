@@ -146,7 +146,6 @@ class AppController {
     this.modelLayer = new ModelLayer({ mouse: this.mouse, events: bus });
 
     // RoomPicker UI: separate pickers for wall, floor, table
-    // Track current slide locally to gate auto-advance on specific slides
     let currentSlide = null;
     const onOpenOnce = (() => {
       let fired = false;
@@ -266,8 +265,6 @@ class AppController {
       shaderFG: this.shaderLayerFG,
       container: document.body,
       anchors: {
-        // Anchor to visible/base layers near desired positions for stability
-        // Dino wants top-left placement: anchor to wall top-left with margin
         dino: {
           shader: this.shaderLayerBG,
           layerId: "wall",
@@ -402,12 +399,11 @@ class AppController {
       } catch (e) {}
     })();
 
-    // Register puzzle game (activated later on slide24 lazily)
+    // Register puzzle game
     gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
     // Kick off preload early (non-blocking)
     gameManager.preload("puzzle");
     bus.on("game.puzzle.complete", () => {
-      // Advance flow when puzzle is complete
       try {
         flowActor.send({ type: "NEXT" });
       } catch {}

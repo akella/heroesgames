@@ -13,7 +13,6 @@ export class ToyPickerController {
     this.shaderFG = shaderFG;
     this.container = container;
     this.toyActionsEnabled = false;
-    // Default anchors target the actual toy layers so buttons sit over spawn spots
     this.anchors = anchors || {
       dino: {
         shader: this.shaderBG,
@@ -42,6 +41,8 @@ export class ToyPickerController {
       "assets/picker/robot.png",
       this.anchors.robot
     );
+    // Track if a toy was placed (clicked). Persist across slides.
+    this.placed = { dino: false, ship: false, robot: false };
 
     // Initial hide
     this.toyDino.setLocked(true);
@@ -78,11 +79,20 @@ export class ToyPickerController {
       });
       this.toyActionsEnabled = true;
     } else if (val === "slide31") {
-      [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => {
-        p.show();
-        p.setLocked(false);
-        if (p._thumbSrc) p.thumbImg.src = p._thumbSrc;
-        p.thumbImg.style.visibility = "visible";
+      const entries = [
+        [this.toyDino, this.placed.dino],
+        [this.toyShip, this.placed.ship],
+        [this.toyRobot, this.placed.robot],
+      ];
+      entries.forEach(([p, wasPlaced]) => {
+        if (wasPlaced) {
+          p.hide();
+        } else {
+          p.show();
+          p.setLocked(false);
+          if (p._thumbSrc) p.thumbImg.src = p._thumbSrc;
+          p.thumbImg.style.visibility = "visible";
+        }
       });
       this.toyActionsEnabled = true;
     } else {
@@ -106,10 +116,8 @@ export class ToyPickerController {
     picker._thumbSrc = thumbSrc;
     picker.thumbImg.src = thumbSrc;
 
-    // Click handlers for both locked/unlocked states
     const handler = () => this.#handleToyClick(picker);
     picker.onLockedClick = handler;
-    // Capture to prevent RoomPicker internal toggle when unlocked
     picker.button?.addEventListener(
       "click",
       (e) => {
@@ -132,9 +140,11 @@ export class ToyPickerController {
         this.shaderBG.setLayerEnabled("dino", true);
         this.shaderBG.setLayerEnabled("books-shelf", false);
         this.bus?.emit && this.bus.emit("room.reveal", { id: "dino" });
+        this.placed.dino = true;
       } else if (picker === this.toyShip) {
         this.shaderBG.setLayerEnabled("ship", true);
         this.bus?.emit && this.bus.emit("room.reveal", { id: "ship" });
+        this.placed.ship = true;
       } else if (picker === this.toyRobot) {
         this.shaderBG.setLayerEnabled("robot", true);
         this.shaderBG.setLayerEnabled("ufo", true);
@@ -144,6 +154,7 @@ export class ToyPickerController {
         this.bus?.emit && this.bus.emit("room.reveal", { id: "ufo" });
         this.bus?.emit && this.bus.emit("room.reveal", { id: "rocket" });
         this.bus?.emit && this.bus.emit("room.reveal", { id: "plane" });
+        this.placed.robot = true;
       }
       picker.hide();
     } catch {}

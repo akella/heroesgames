@@ -91,14 +91,13 @@ export class ScoreBoard {
     if (this._rafShow) cancelAnimationFrame(this._rafShow);
     this._rafShow = requestAnimationFrame(() => {
       this._rafShow = null;
-      // Add only if still visible (guard vs. hide called same frame)
       if (this.visible) this.el.classList.add("scoreboard--visible");
     });
   }
 
   hide() {
     if (!this.visible) return;
-    if (this.locked) return; // ignore hide while locked
+    if (this.locked) return;
     this.visible = false;
     if (this._rafShow) {
       cancelAnimationFrame(this._rafShow);
@@ -113,7 +112,6 @@ export class ScoreBoard {
       this.el.removeEventListener("transitionend", onEnd);
     };
     this.el.addEventListener("transitionend", onEnd);
-    // Fallback: if no transition fires (race conditions), hide after 400ms
     setTimeout(() => {
       if (!done && !this.visible) this.el.style.display = "none";
     }, 450);

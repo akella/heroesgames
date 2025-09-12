@@ -15,7 +15,7 @@ export function setupFlowSubscription({
     slide8: 1500,
     slide16: 2000,
     slide20: 2000,
-    slide23: 1500, // new auto-advance duplicate intro
+    slide23: 1500,
   };
 
   flowActor.subscribe((snap) => {
@@ -36,8 +36,11 @@ export function setupFlowSubscription({
       }, AUTO_SLIDES[val]);
     }
 
-    // Model appearance trigger
-    if (val === "slide16") {
+    if (val === "slide4") {
+      try {
+        document.dispatchEvent(new CustomEvent("hideCharacter"));
+      } catch {}
+    } else if (val === "slide16") {
       try {
         document.dispatchEvent(new CustomEvent("showCharacter"));
       } catch {}
@@ -70,32 +73,31 @@ export function setupFlowSubscription({
         });
         if (val === "slide20") pickers.forEach((p) => p.close());
       } else if (val === "slide29" || val === "slide30") {
-        // Slides 29–30: show unlocked, but ensure forms are closed
         pickers.forEach((p) => {
           p.show();
           p.setLocked(false);
           p.close();
         });
-      } else if (
-        val === "slide31" ||
-        val === "slide32" ||
-        val === "slide33"
-      ) {
-        // Slides 31–33: hide and close
+      } else if (val === "slide31") {
+        pickers.forEach((p) => {
+          p.show();
+          p.setLocked(false);
+          p.close();
+        });
+      } else if (val === "slide32" || val === "slide33") {
         pickers.forEach((p) => {
           p.hide();
           p.close();
         });
       } else {
-        // hide for slide23, slide24, outro and any others
         pickers.forEach((p) => p.hide());
       }
     }
 
-    // Puzzle preview (slide25)
+    // Puzzle preview
     if (val === "slide25") {
       (async () => {
-        const activationSlide = val; // 'slide25'
+        const activationSlide = val;
         try {
           if (gameManager.active && gameManager.active.id !== "puzzle") {
             await gameManager.deactivate();
@@ -103,7 +105,6 @@ export function setupFlowSubscription({
           if (gameManager.active?.id !== "puzzle") {
             await gameManager.activate("puzzle", { bus });
           }
-          // Race guard: still on slide25?
           const currentVal =
             (flowActor.getSnapshot
               ? flowActor.getSnapshot().value
@@ -118,7 +119,7 @@ export function setupFlowSubscription({
             return;
           }
           gameManager.active?.api.show();
-          gameManager.active?.api.setActive(false); // preview: not interactive
+          gameManager.active?.api.setActive(false);
           bus.emit("score.show");
           if (gameRoot) gameRoot.style.zIndex = "40";
         } catch (e) {
@@ -127,7 +128,6 @@ export function setupFlowSubscription({
       })();
       return;
     }
-    // Enable interaction (slide26)
     if (val === "slide26") {
       if (gameManager.active?.id === "puzzle") {
         try {
@@ -141,7 +141,6 @@ export function setupFlowSubscription({
       }
       return;
     }
-    // Final stage (slide27) hide puzzle keep score visible
     if (val === "slide27") {
       if (gameManager.active?.id === "puzzle") {
         try {
@@ -183,17 +182,14 @@ export function setupFlowSubscription({
       gameManager.active.api.hide();
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "outro") {
-      // Final teardown after slide28: fully disable any active game and hide scoreboard
       if (gameManager.active) {
         try {
           gameManager.active.api.hide && gameManager.active.api.hide();
         } catch {}
-        // Fully deactivate (destroys & clears root)
         try {
           gameManager.deactivate();
         } catch {}
       }
-      // Ensure scoreboard can hide (may have been locked by a game)
       try {
         bus.emit("score.unlock");
         bus.emit("score.hide");
