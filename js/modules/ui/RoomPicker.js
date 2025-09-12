@@ -1,5 +1,15 @@
 // Lightweight RoomPicker UI (no title): button + form with wallpaper thumbnails.
-// Uses assets/picker/room-picker(.png|-locked.png) and wall-1..5.png.
+// Picker images are imported as modules to let the bundler handle them (Vite).
+
+import pickerBase from "../../../assets/picker/room-picker.png";
+import pickerLocked from "../../../assets/picker/room-picker-locked.png";
+import wall1 from "../../../assets/picker/wall-1.png";
+import wall2 from "../../../assets/picker/wall-2.png";
+import wall3 from "../../../assets/picker/wall-3.png";
+import wall4 from "../../../assets/picker/wall-4.png";
+import wall5 from "../../../assets/picker/wall-5.png";
+
+const wallThumbs = [wall1, wall2, wall3, wall4, wall5];
 
 export class RoomPicker {
   constructor({
@@ -83,7 +93,7 @@ export class RoomPicker {
       item.dataset.index = String(i);
       const img = document.createElement("img");
       img.alt = `${this.category}-${i + 1}`;
-      img.src = `assets/picker/wall-${i + 1}.png`; // reuse wallpapers for now
+      img.src = wallThumbs[i] || wallThumbs[0]; // reuse wallpapers for now
       img.draggable = false;
       item.appendChild(img);
       if (i === this.selected) item.classList.add("selected");
@@ -127,17 +137,14 @@ export class RoomPicker {
 
   _updateButtonImage() {
     // Base frame image depends on lock state
-    this.baseImg.src = this.locked
-      ? "assets/picker/room-picker-locked.png"
-      : "assets/picker/room-picker.png";
+    this.baseImg.src = this.locked ? pickerLocked : pickerBase;
     // Overlay shows current selection for this picker category
-    const idx = Math.max(0, Number(this.selected) || 0) + 1;
-    this.thumbImg.src = `assets/picker/wall-${idx}.png`;
-    // When locked, keep enabled if allowLockedClick is true
-    this.button.disabled = this.locked && !this.allowLockedClick;
-    // When locked, hide overlay unless allowed to show
-    const showThumb = !this.locked || this.allowLockedClick;
-    this.thumbImg.style.visibility = showThumb ? "visible" : "hidden";
+    const idx = Math.max(0, Number(this.selected) || 0);
+    const clampedIdx = Math.min(idx, wallThumbs.length - 1);
+    this.thumbImg.src = wallThumbs[clampedIdx] || wallThumbs[0];
+    this.button.disabled = !!this.locked;
+    // When locked, hide overlay; when unlocked, show it
+    this.thumbImg.style.visibility = this.locked ? "hidden" : "visible";
   }
 
   _updateSelectionHighlight() {
