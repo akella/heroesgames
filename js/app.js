@@ -100,6 +100,7 @@ class AppController {
     this.bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.bgRenderer.setSize(this.width, this.height);
     this.bgRenderer.autoClear = true;
+    this.bgRenderer.toneMapping = THREE.NeutralToneMapping;
     this.bgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--bg");
     this.container.appendChild(this.bgRenderer.domElement);
 
@@ -112,6 +113,7 @@ class AppController {
     this.fgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.fgRenderer.setSize(this.width, this.height);
     this.fgRenderer.autoClear = false;
+    this.fgRenderer.toneMapping = THREE.NeutralToneMapping;
     this.fgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--fg");
     this.container.appendChild(this.fgRenderer.domElement);
 
