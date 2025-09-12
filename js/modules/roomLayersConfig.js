@@ -109,7 +109,11 @@ import shBookFloorPng from "../../assets/room/objects/sh-book-floor.png";
 import shFootballPng from "../../assets/room/objects/sh-football.png";
 import pictureHoverPng from "../../assets/room/objects/picture-hover.png";
 import bookFloorHoverPng from "../../assets/room/objects/book-floor-hover.png";
+import boxHoverPng from "../../assets/room/objects/box-hover.png";
+import footballHoverPng from "../../assets/room/objects/football-hover.png";
 import mask25 from "../../assets/room/masks/mask_room_25.png";
+import mask26 from "../../assets/room/masks/mask_room_26.png";
+import mask27 from "../../assets/room/masks/mask_room_27.png";
 
 export const maskTextures = [
   mask0,
@@ -138,6 +142,8 @@ export const maskTextures = [
   mask23,
   mask24,
   mask25,
+  mask26,
+  mask27,
 ];
 
 // Layer definition schema:
@@ -232,6 +238,8 @@ const RAW = [
   { id: "sh-football", mask: { i: 23, c: "g" }, tex: shFootballPng },
   { id: "picture-hover", mask: { i: 24, c: "r" }, tex: pictureHoverPng },
   { id: "book-floor-hover", mask: { i: 25, c: "r" }, tex: bookFloorHoverPng },
+  { id: "box-hover", mask: { i: 26, c: "r" }, tex: boxHoverPng },
+  { id: "football-hover", mask: { i: 27, c: "r" }, tex: footballHoverPng },
 ];
 
 // Explicit z-index map.
@@ -316,6 +324,8 @@ export const Z_INDEX = {
   "picture-sh": 113,
   "picture-hover": 114,
   "book-floor-hover": 115,
+  "box-hover": 116,
+  "football-hover": 117,
   // Remaining / fallback
   lamp: 120,
 };
@@ -389,4 +399,6 @@ export const UNFILTERED_IDS = [
   "picture-2",
   "picture-hover",
   "book-floor-hover",
+  "box-hover",
+  "football-hover",
 ];

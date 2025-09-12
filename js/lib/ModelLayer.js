@@ -4,13 +4,11 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import modelUrl from "../../model/clay_guy_material_fix.glb?url";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-import mitt from "mitt";
-
-const bus = mitt();
 export default class ModelLayer extends BaseLayer {
   constructor({ mouse, events }) {
     super();
     this.mouse = mouse;
+    this.events = events;
     this.targetMouse = new THREE.Vector2(0.5, 0.5);
     this.model = null;
     this.mixer = null;
@@ -18,10 +16,11 @@ export default class ModelLayer extends BaseLayer {
     this.initLoaders();
     this.loadModel();
     this.addLighting();
-    bus.on("flow.progress", (state) => {
-      console.log(state, "state");
-      alert("WORKS");
-    });
+    if (this.events) {
+      this.events.on("flow.progress", (state) => {
+        // Placeholder: hook animations to flow here if needed
+      });
+    }
     this.hideCharacter();
     document.addEventListener("showCharacter", () => {
       this.showCharacter();

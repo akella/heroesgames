@@ -8,6 +8,7 @@ export class RoomPicker {
     shaderFG,
     position = { left: 16, top: 16 },
     locked = false,
+    allowLockedClick = false,
     category = "wall", // single-category picker: 'wall' | 'floor' | 'table'
     onOpen = null,
     onFirstSelect = null,
@@ -19,6 +20,7 @@ export class RoomPicker {
     this.shaderFG = shaderFG;
     this.pos = position;
     this.locked = !!locked;
+    this.allowLockedClick = !!allowLockedClick;
     this.onOpen = typeof onOpen === "function" ? onOpen : null;
     this.onFirstSelect =
       typeof onFirstSelect === "function" ? onFirstSelect : null;
@@ -131,9 +133,11 @@ export class RoomPicker {
     // Overlay shows current selection for this picker category
     const idx = Math.max(0, Number(this.selected) || 0) + 1;
     this.thumbImg.src = `assets/picker/wall-${idx}.png`;
-    this.button.disabled = !!this.locked;
-    // When locked, hide overlay; when unlocked, show it
-    this.thumbImg.style.visibility = this.locked ? "hidden" : "visible";
+    // When locked, keep enabled if allowLockedClick is true
+    this.button.disabled = this.locked && !this.allowLockedClick;
+    // When locked, hide overlay unless allowed to show
+    const showThumb = !this.locked || this.allowLockedClick;
+    this.thumbImg.style.visibility = showThumb ? "visible" : "hidden";
   }
 
   _updateSelectionHighlight() {

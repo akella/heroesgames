@@ -69,6 +69,23 @@ export function setupFlowSubscription({
           p.setLocked(false);
         });
         if (val === "slide20") pickers.forEach((p) => p.close());
+      } else if (val === "slide29" || val === "slide30") {
+        // Slides 29–30: show unlocked, but ensure forms are closed
+        pickers.forEach((p) => {
+          p.show();
+          p.setLocked(false);
+          p.close();
+        });
+      } else if (
+        val === "slide31" ||
+        val === "slide32" ||
+        val === "slide33"
+      ) {
+        // Slides 31–33: hide and close
+        pickers.forEach((p) => {
+          p.hide();
+          p.close();
+        });
       } else {
         // hide for slide23, slide24, outro and any others
         pickers.forEach((p) => p.hide());

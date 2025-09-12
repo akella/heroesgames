@@ -26,6 +26,7 @@ import { ScoreBoard } from "./modules/ScoreBoard.js";
 import { InteractionManager } from "./modules/interactions/InteractionManager.js";
 import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
 import { RoomPicker } from "./modules/ui/RoomPicker.js";
+import { ToyPickerController } from "./modules/ui/ToyPickerController.js";
 import { initAnchorManager } from "./modules/anchorManager.js";
 
 const layers = {
@@ -57,6 +58,9 @@ const layers = {
   slide26Layer: makeSlideLayer("slide26"),
   slide27Layer: makeSlideLayer("slide27"),
   slide28Layer: makeSlideLayer("slide28"),
+  slide29Layer: makeSlideLayer("slide29"),
+  slide30Layer: makeSlideLayer("slide30"),
+  slide31Layer: makeSlideLayer("slide31"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -137,11 +141,21 @@ class AppController {
       includeIds: UNFILTERED_IDS,
     });
 
+    this.modelLayer = new ModelLayer({ mouse: this.mouse, events: bus });
+
     // RoomPicker UI: separate pickers for wall, floor, table
+    // Track current slide locally to gate auto-advance on specific slides
+    let currentSlide = null;
     const onOpenOnce = (() => {
       let fired = false;
       return () => {
         if (fired) return;
+        if (
+          currentSlide === "slide29" ||
+          currentSlide === "slide30" ||
+          currentSlide === "slide31"
+        )
+          return;
         fired = true;
         try {
           flowActor.send({ type: "NEXT" });
@@ -152,6 +166,12 @@ class AppController {
       let fired = false;
       return () => {
         if (fired) return;
+        if (
+          currentSlide === "slide29" ||
+          currentSlide === "slide30" ||
+          currentSlide === "slide31"
+        )
+          return;
         fired = true;
         try {
           flowActor.send({ type: "NEXT" });
@@ -237,9 +257,38 @@ class AppController {
     pickerFloor.hide();
     pickerTable.hide();
 
-    this.modelLayer = new ModelLayer({
-      mouse: this.mouse,
-      events: bus,
+    // Toy pickers controller
+    const toyController = new ToyPickerController({
+      bus: this.bus,
+      shaderBG: this.shaderLayerBG,
+      shaderFG: this.shaderLayerFG,
+      container: document.body,
+      anchors: {
+        // Anchor to visible/base layers near desired positions for stability
+        // Dino wants top-left placement: anchor to wall top-left with margin
+        dino: {
+          shader: this.shaderLayerBG,
+          layerId: "wall",
+          align: "top-left",
+          offset: { x: 260, y: 230 },
+        },
+        ship: {
+          shader: this.shaderLayerBG,
+          layerId: "wall",
+          align: "center",
+          offset: { x: 300, y: -80 },
+        },
+        robot: {
+          shader: this.shaderLayerBG,
+          layerId: "floor",
+          align: "center",
+          offset: { x: 500, y: -330 },
+        },
+      },
+    });
+
+    this.bus.on("flow.progress", (snap) => {
+      currentSlide = snap?.value || snap;
     });
 
     this.interactionManager = new InteractionManager({
@@ -272,7 +321,7 @@ class AppController {
         default: "book-floor",
         hover: "book-floor-hover",
       },
-      visibleSlides: ["slide20", "slide21", "slide22"],
+      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
       hover: true,
       hoverWhenInactive: true, // allow hover even before activation
       hoverOnlyOnSlides: ["slide21", "slide22"],
@@ -280,6 +329,46 @@ class AppController {
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "book-floor",
+      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      highlightMode: "visible",
+      highlightParallax: true,
+      highlightOffset: { x: 0, y: 8 },
+    });
+    // Box interaction
+    this.interactionManager.register({
+      id: "box",
+      layers: {
+        default: "box",
+        hover: "box-hover",
+      },
+      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
+      hover: true,
+      hoverWhenInactive: true,
+      hoverOnlyOnSlides: ["slide21", "slide22"],
+      click: true,
+      clickWhenInactive: true,
+      bboxLayer: "hover",
+      eventsPrefix: "box",
+      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      highlightMode: "visible",
+      highlightParallax: true,
+      highlightOffset: { x: 0, y: 8 },
+    });
+    // Football interaction
+    this.interactionManager.register({
+      id: "football-0",
+      layers: {
+        default: "football-0",
+        hover: "football-hover",
+      },
+      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
+      hover: true,
+      hoverWhenInactive: true,
+      hoverOnlyOnSlides: ["slide21", "slide22"],
+      click: true,
+      clickWhenInactive: true,
+      bboxLayer: "hover",
+      eventsPrefix: "football",
       highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
       highlightMode: "visible",
       highlightParallax: true,
@@ -293,6 +382,12 @@ class AppController {
     bus.on("book-floor.click", () => {
       flowActor.send({ type: "NEXT" });
     });
+    // bus.on("box.click", () => {
+    //   flowActor.send({ type: "NEXT" });
+    // });
+    // bus.on("football.click", () => {
+    //   flowActor.send({ type: "NEXT" });
+    // });
 
     this.initPane();
 
