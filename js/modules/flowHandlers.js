@@ -160,6 +160,16 @@ export function setupFlowSubscription({
       gameManager.active.api.setActive(false);
       if (gameRoot) gameRoot.style.zIndex = "5";
       bus.emit("score.hide");
+    } else if (val === "slide29") {
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
+      try {
+        gameManager.active?.api?.setActive?.(false);
+        gameManager.active?.api?.hide?.();
+      } catch {}
+      if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "slide13") {
       gameManager.active.api.setActive(true);
       if (gameRoot) gameRoot.style.zIndex = "20";
