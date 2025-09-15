@@ -61,6 +61,8 @@ const layers = {
   slide29Layer: makeSlideLayer("slide29"),
   slide30Layer: makeSlideLayer("slide30"),
   slide31Layer: makeSlideLayer("slide31"),
+  slide32Layer: makeSlideLayer("slide32"),
+  slide33Layer: makeSlideLayer("slide33"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -71,7 +73,13 @@ const scoreBoard = new ScoreBoard({ bus });
 
 const gameManager = new GameManager({ bus });
 bus.on("game.finddiff.complete", () => {
-  if (gameManager.active?.api) gameManager.active.api.setActive(false);
+  try {
+    gameManager.active?.api?.setActive?.(false);
+  } catch {}
+  // After finishing find-the-difference, remove the picture object and its shadow from the room
+  try {
+    bus.emit("room.remove", { id: "picture" });
+  } catch {}
   flowActor.send({ type: "NEXT" });
 });
 const gameRoot = document.getElementById("game-root");
@@ -264,6 +272,11 @@ class AppController {
       shaderBG: this.shaderLayerBG,
       shaderFG: this.shaderLayerFG,
       container: document.body,
+      slideBehavior: {
+        hidden: ["slide29", "slide32", "slide33"],
+        lockedVisible: ["slide30"],
+        unlockedVisible: ["slide31"],
+      },
       anchors: {
         dino: {
           shader: this.shaderLayerBG,
@@ -320,15 +333,41 @@ class AppController {
         default: "book-floor",
         hover: "book-floor-hover",
       },
-      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
+      visibleSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       hover: true,
-      hoverWhenInactive: true, // allow hover even before activation
-      hoverOnlyOnSlides: ["slide21", "slide22"],
+      hoverWhenInactive: true,
+      hoverOnlyOnSlides: [
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       click: true,
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "book-floor",
-      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      highlightOnlyOnSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       highlightMode: "visible",
       highlightParallax: true,
       highlightOffset: { x: 0, y: 8 },
@@ -340,15 +379,41 @@ class AppController {
         default: "box",
         hover: "box-hover",
       },
-      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
+      visibleSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       hover: true,
       hoverWhenInactive: true,
-      hoverOnlyOnSlides: ["slide21", "slide22"],
+      hoverOnlyOnSlides: [
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       click: true,
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "box",
-      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      highlightOnlyOnSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       highlightMode: "visible",
       highlightParallax: true,
       highlightOffset: { x: 0, y: 8 },
@@ -360,15 +425,41 @@ class AppController {
         default: "football-0",
         hover: "football-hover",
       },
-      visibleSlides: ["slide20", "slide21", "slide22", "slide29"],
+      visibleSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       hover: true,
       hoverWhenInactive: true,
-      hoverOnlyOnSlides: ["slide21", "slide22"],
+      hoverOnlyOnSlides: [
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       click: true,
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "football",
-      highlightOnlyOnSlides: ["slide20", "slide21", "slide22"],
+      highlightOnlyOnSlides: [
+        "slide20",
+        "slide21",
+        "slide22",
+        "slide29",
+        "slide30",
+        "slide31",
+        "slide32",
+        "slide33",
+      ],
       highlightMode: "visible",
       highlightParallax: true,
       highlightOffset: { x: 0, y: 8 },
@@ -381,12 +472,12 @@ class AppController {
     bus.on("book-floor.click", () => {
       flowActor.send({ type: "NEXT" });
     });
-    // bus.on("box.click", () => {
-    //   flowActor.send({ type: "NEXT" });
-    // });
-    // bus.on("football.click", () => {
-    //   flowActor.send({ type: "NEXT" });
-    // });
+    bus.on("box.click", () => {
+      flowActor.send({ type: "NEXT" });
+    });
+    bus.on("football.click", () => {
+      flowActor.send({ type: "NEXT" });
+    });
 
     this.initPane();
 
@@ -401,9 +492,12 @@ class AppController {
 
     // Register puzzle game
     gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
-    // Kick off preload early (non-blocking)
     gameManager.preload("puzzle");
     bus.on("game.puzzle.complete", () => {
+      try {
+        bus.emit("room.remove", { id: "book-floor" });
+        this.interactionManager?.remove?.("book-floor");
+      } catch {}
       try {
         flowActor.send({ type: "NEXT" });
       } catch {}

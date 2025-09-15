@@ -24,6 +24,7 @@ export default class ShaderLayer extends BaseLayer {
     this._bboxReadyCallbacks = [];
     this._includeIds = Array.isArray(includeIds) ? new Set(includeIds) : null;
     this._excludeIds = Array.isArray(excludeIds) ? new Set(excludeIds) : null;
+    this._removedIds = new Set();
     this._buildMultiPass();
     this._applyInitialVisibility();
     this._wireRevealEvents();
@@ -128,6 +129,7 @@ export default class ShaderLayer extends BaseLayer {
     if (!this.events) return;
     this.events.on("room.reveal", ({ id }) => {
       if (!id) return;
+      if (this._removedIds.has(id)) return;
       this.setLayerEnabled(id, true);
       if (
         MID_GAME_REVEALABLE.every((rid) => this._isLayerEnabled(rid)) &&
@@ -144,6 +146,12 @@ export default class ShaderLayer extends BaseLayer {
     });
     this.events.on("room.setDepth", ({ mode }) => {
       this._swapDepthMap(mode === "full" ? "full" : "empty");
+    });
+
+    // Remove object (and its shadow/hover overlays) from the scene permanently
+    this.events.on("room.remove", ({ id }) => {
+      if (!id) return;
+      this.removeLayer(id);
     });
   }
 
@@ -282,6 +290,36 @@ export default class ShaderLayer extends BaseLayer {
     if (id === "picture") {
       const sh = this.layerMeshes.find((l) => l.entry.def.id === "picture-sh");
       if (sh) sh.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
+    }
+  }
+
+  // Best-effort mapping from base ids to their shadow ids
+  _shadowIdFor(id) {
+    if (id === "picture") return "picture-sh";
+    if (id === "book-floor") return "sh-book-floor";
+    if (id === "football" || id === "football-0") return "sh-football";
+    if (id === "wheel-pump") return "sh-wheel-pump";
+    if (id === "bed") return "sh-bed";
+    return null;
+  }
+
+  // Permanently disable an object and its related overlays
+  removeLayer(id) {
+    this._removedIds.add(id);
+    // Disable the base layer
+    this.setLayerEnabled(id, false);
+    // Disable a paired shadow if present
+    const shadowId = this._shadowIdFor(id);
+    if (shadowId) this.setLayerEnabled(shadowId, false);
+    // Disable a hover overlay if such layer exists (naming convention: `${id}-hover`)
+    const hoverEntry = this.getLayerEntry(`${id}-hover`);
+    if (hoverEntry) hoverEntry.material.uniforms.enabled.value = 0.0;
+    // Special-case overlays for picture: also hide numbered variants if present
+    if (id === "picture") {
+      ["picture-1", "picture-2", "picture-hover"].forEach((lid) => {
+        const e = this.getLayerEntry(lid);
+        if (e) e.material.uniforms.enabled.value = 0.0;
+      });
     }
   }
 

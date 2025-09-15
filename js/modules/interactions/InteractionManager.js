@@ -23,6 +23,11 @@ export class InteractionManager {
 
   attach() {
     this.bus.on("flow.progress", this._onFlow);
+    this.bus.on("room.remove", ({ id }) => {
+      if (!id) return;
+      const it = this.getItem(id);
+      if (it) this.remove(id);
+    });
     window.addEventListener("mousemove", this._onPointerMove, {
       passive: true,
     });
@@ -44,9 +49,8 @@ export class InteractionManager {
     const w = window.innerWidth;
     const h = window.innerHeight;
     const x = e.clientX / w;
-    const y = 1 - e.clientY / h; // coordinate system like shaderLayer mouse
+    const y = 1 - e.clientY / h;
     this.items.forEach((it) => it.pointerMove(x, y));
-    // Detect any hover state by checking internal flag (_isHover) – acceptable since it's simple.
     const anyHover = this.items.some((it) => it._isHover);
     if (anyHover !== this._hoverActive) {
       this._hoverActive = anyHover;
@@ -65,5 +69,28 @@ export class InteractionManager {
         break;
       }
     }
+  }
+
+  getItem(id) {
+    return this.items.find((it) => it.config.id === id) || null;
+  }
+
+  remove(id) {
+    const idx = this.items.findIndex((it) => it.config.id === id);
+    if (idx === -1) return false;
+    try {
+      this.items[idx].destroy?.();
+    } catch {}
+    this.items.splice(idx, 1);
+    return true;
+  }
+
+  removeAll() {
+    this.items.forEach((it) => {
+      try {
+        it.destroy?.();
+      } catch {}
+    });
+    this.items.length = 0;
   }
 }

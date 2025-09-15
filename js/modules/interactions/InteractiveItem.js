@@ -30,6 +30,14 @@ export class InteractiveItem {
     });
   }
 
+  destroy() {
+    const { layers } = this.config;
+    if (layers.default) this.shaderLayer.setLayerEnabled(layers.default, false);
+    if (layers.active) this.shaderLayer.setLayerEnabled(layers.active, false);
+    if (layers.hover) this.shaderLayer.setLayerEnabled(layers.hover, false);
+    this._highlight?.destroy?.();
+  }
+
   _layerIdForBBox() {
     const { bboxLayer = "active", layers } = this.config;
     if (bboxLayer === "default")

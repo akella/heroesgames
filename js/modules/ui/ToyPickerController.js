@@ -7,31 +7,18 @@ export class ToyPickerController {
     shaderFG,
     container = document.body,
     anchors = null,
+    slideBehavior = null,
   } = {}) {
     this.bus = bus;
     this.shaderBG = shaderBG;
     this.shaderFG = shaderFG;
     this.container = container;
     this.toyActionsEnabled = false;
-    this.anchors = anchors || {
-      dino: {
-        shader: this.shaderBG,
-        layerId: "dino",
-        align: "center",
-        offset: { x: 0, y: 0 },
-      },
-      ship: {
-        shader: this.shaderBG,
-        layerId: "ship",
-        align: "center",
-        offset: { x: 0, y: 0 },
-      },
-      robot: {
-        shader: this.shaderBG,
-        layerId: "robot",
-        align: "center",
-        offset: { x: 0, y: 0 },
-      },
+    this.anchors = anchors || {};
+    this.slideBehavior = slideBehavior || {
+      hidden: [],
+      lockedVisible: [],
+      unlockedVisible: [],
     };
 
     // Create toy pickers
@@ -41,16 +28,15 @@ export class ToyPickerController {
       "assets/picker/robot.png",
       this.anchors.robot
     );
+
     // Track if a toy was placed (clicked). Persist across slides.
     this.placed = { dino: false, ship: false, robot: false };
 
     // Initial hide
-    this.toyDino.setLocked(true);
-    this.toyDino.hide();
-    this.toyShip.setLocked(true);
-    this.toyShip.hide();
-    this.toyRobot.setLocked(true);
-    this.toyRobot.hide();
+    [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => {
+      p.setLocked(true);
+      p.hide();
+    });
 
     // Hook flow to update state
     this.bus?.on?.("flow.progress", (snap) => {
@@ -60,25 +46,32 @@ export class ToyPickerController {
   }
 
   updateForSlide(val) {
-    if (val === "slide29") {
+    const {
+      hidden = [],
+      lockedVisible = [],
+      unlockedVisible = [],
+    } = this.slideBehavior || {};
+
+    if (hidden.includes(val)) {
+      [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => {
+        p.hide();
+        p.setLocked(true);
+      });
+      this.toyActionsEnabled = false;
+      return;
+    }
+
+    if (lockedVisible.includes(val)) {
       [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => {
         p.show();
         p.setLocked(true);
         if (p._thumbSrc) p.thumbImg.src = p._thumbSrc;
-        // Hide overlay images when locked
-        p.thumbImg.style.visibility = "hidden";
       });
       this.toyActionsEnabled = false;
-    } else if (val === "slide30") {
-      [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => {
-        p.show();
-        // Unlock toys visually and functionally
-        p.setLocked(false);
-        if (p._thumbSrc) p.thumbImg.src = p._thumbSrc;
-        p.thumbImg.style.visibility = "visible";
-      });
-      this.toyActionsEnabled = true;
-    } else if (val === "slide31") {
+      return;
+    }
+
+    if (unlockedVisible.includes(val)) {
       const entries = [
         [this.toyDino, this.placed.dino],
         [this.toyShip, this.placed.ship],
@@ -95,13 +88,14 @@ export class ToyPickerController {
         }
       });
       this.toyActionsEnabled = true;
-    } else {
-      [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => p.hide());
-      this.toyActionsEnabled = false;
+      return;
     }
+
+    // Fallback for other slides
+    [this.toyDino, this.toyShip, this.toyRobot].forEach((p) => p.hide());
+    this.toyActionsEnabled = false;
   }
 
-  // Internal helpers
   #makeToy(thumbSrc, anchor) {
     const picker = new RoomPicker({
       container: this.container,
@@ -114,18 +108,15 @@ export class ToyPickerController {
       anchor,
     });
     picker._thumbSrc = thumbSrc;
-    picker.thumbImg.src = thumbSrc;
 
     const handler = () => this.#handleToyClick(picker);
     picker.onLockedClick = handler;
     picker.button?.addEventListener(
       "click",
       (e) => {
-        if (!picker.locked) {
-          e.preventDefault();
-          e.stopImmediatePropagation();
-          handler();
-        }
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        handler();
       },
       true
     );

@@ -161,6 +161,12 @@ export function setupFlowSubscription({
       if (gameRoot) gameRoot.style.zIndex = "5";
       bus.emit("score.hide");
     } else if (val === "slide29") {
+      // Ensure interactive room objects are visible from slide 29 onward
+      try {
+        bus.emit("room.reveal", { id: "book-floor" });
+        bus.emit("room.reveal", { id: "box" });
+        bus.emit("room.reveal", { id: "football-0" });
+      } catch {}
       try {
         bus.emit("score.unlock");
         bus.emit("score.hide");
@@ -170,6 +176,17 @@ export function setupFlowSubscription({
         gameManager.active?.api?.hide?.();
       } catch {}
       if (gameRoot) gameRoot.style.zIndex = "5";
+    } else if (
+      val === "slide30" ||
+      val === "slide31" ||
+      val === "slide32" ||
+      val === "slide33"
+    ) {
+      try {
+        bus.emit("room.reveal", { id: "book-floor" });
+        bus.emit("room.reveal", { id: "box" });
+        bus.emit("room.reveal", { id: "football-0" });
+      } catch {}
     } else if (val === "slide13") {
       gameManager.active.api.setActive(true);
       if (gameRoot) gameRoot.style.zIndex = "20";
