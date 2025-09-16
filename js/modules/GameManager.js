@@ -52,6 +52,6 @@ export class GameManager {
   }
 
   update(dt) {
-    if (this.active && this.active.api.update) this.active.api.update(dt);
+    if (this.active?.api?.update) this.active.api.update(dt);
   }
 }

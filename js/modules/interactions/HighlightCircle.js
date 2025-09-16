@@ -14,6 +14,9 @@ export class HighlightCircle {
     this._visibleFlag = false;
     this._depth = null;
     this._showAt = 0;
+    this._occluded = false;
+    this._lastPx = 0;
+    this._lastPy = 0;
 
     this._create();
     HighlightCircle._register(this);
@@ -27,6 +30,7 @@ export class HighlightCircle {
     this._updateVisibility();
   }
   onSlideChange() {
+    this._appendToCurrentSlide();
     this._updateVisibility();
   }
   onHoverChange() {
@@ -40,7 +44,6 @@ export class HighlightCircle {
   }
 
   _create() {
-    const container = HighlightCircle._ensureContainer();
     const el = document.createElement("div");
     el.className = "interactive-highlight";
     Object.assign(el.style, {
@@ -56,9 +59,22 @@ export class HighlightCircle {
       transform: "translate3d(-1000px,-1000px,0)",
       transition: "opacity 0.15s",
       opacity: 0,
+      zIndex: 14,
     });
-    container.appendChild(el);
     this._el = el;
+    this._appendToCurrentSlide();
+  }
+
+  _appendToCurrentSlide() {
+    if (!this._el) return;
+    try {
+      const sid = this.item?._currentSlide;
+      const slideEl = sid ? document.getElementById(sid) : null;
+      const parent = slideEl || document.body;
+      if (this._el.parentNode !== parent) {
+        parent.appendChild(this._el);
+      }
+    } catch {}
   }
 
   _updateVisibility() {
@@ -66,6 +82,18 @@ export class HighlightCircle {
     const it = this.item;
     const hasBBox = !!it._bbox;
     if (!hasBBox || !it._isVisible) {
+      this._setVisible(false);
+      return;
+    }
+    // Suppress highlights on gameplay slides
+    const s = it._currentSlide;
+    if (
+      s === "slide33" ||
+      s === "slide34" ||
+      s === "slide35" ||
+      s === "slide36" ||
+      s === "slide37"
+    ) {
       this._setVisible(false);
       return;
     }
@@ -162,6 +190,17 @@ export class HighlightCircle {
     this._el.style.transform = `translate3d(${Math.round(
       px - 24 + ox
     )}px, ${Math.round(py - 24 + oy)}px,0)`;
+    this._lastPx = px;
+    this._lastPy = py;
+    try {
+      const elAt = document.elementFromPoint(Math.round(px), Math.round(py));
+      const overUI = elAt?.closest?.(
+        "#game-root, .slide-puzzle-intro, .slide-puzzle-table, .slide-wordbox, .gonext, .scoreboard, .room-picker-form"
+      );
+      this._occluded = !!overUI;
+    } catch (e) {
+      this._occluded = false;
+    }
     if (this.config.highlightDebug) {
       if (
         !this._debugLastLog ||
@@ -180,9 +219,8 @@ export class HighlightCircle {
   _tick() {
     if (!this._el) return;
     if (this._visibleFlag) {
-      if (this._el.style.opacity !== "1" && performance.now() >= this._showAt) {
-        this._el.style.opacity = "1";
-      }
+      const canShow = performance.now() >= this._showAt && !this._occluded;
+      this._el.style.opacity = canShow ? "1" : "0";
       this._updatePosition();
     }
   }
@@ -197,7 +235,7 @@ export class HighlightCircle {
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        zIndex: 999,
+        zIndex: 20,
       });
       c.id = "interactive-highlights";
       document.body.appendChild(c);

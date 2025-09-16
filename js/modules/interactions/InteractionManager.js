@@ -9,6 +9,7 @@ export class InteractionManager {
     this._onPointerMove = this._onPointerMove.bind(this);
     this._onClick = this._onClick.bind(this);
     this._hoverActive = false;
+    this._currentSlide = null;
   }
 
   register(config) {
@@ -42,10 +43,38 @@ export class InteractionManager {
 
   _onFlow(snap) {
     const val = snap?.value || snap;
+    this._currentSlide = val;
     this.items.forEach((it) => it.onFlowProgress(val));
   }
 
   _onPointerMove(e) {
+    // Block interaction hover if on gameplay slides
+    if (
+      this._currentSlide === "slide33" ||
+      this._currentSlide === "slide34" ||
+      this._currentSlide === "slide35" ||
+      this._currentSlide === "slide36" ||
+      this._currentSlide === "slide37"
+    ) {
+      if (this._hoverActive) {
+        this._hoverActive = false;
+        document.body.style.cursor = "";
+      }
+      return;
+    }
+    const topEl = document.elementFromPoint(e.clientX, e.clientY);
+    if (topEl) {
+      const isOverUI = topEl.closest?.(
+        "#game-root, .slide-puzzle-intro, .slide-puzzle-table, .slide-wordbox, .bubble, .small-dog__bubble, .gonext, .scoreboard, .room-picker-form"
+      );
+      if (isOverUI) {
+        if (this._hoverActive) {
+          this._hoverActive = false;
+          document.body.style.cursor = "";
+        }
+        return;
+      }
+    }
     const w = window.innerWidth;
     const h = window.innerHeight;
     const x = e.clientX / w;
@@ -59,6 +88,23 @@ export class InteractionManager {
   }
 
   _onClick(e) {
+    // Disable clicks during gameplay slides
+    if (
+      this._currentSlide === "slide33" ||
+      this._currentSlide === "slide34" ||
+      this._currentSlide === "slide35" ||
+      this._currentSlide === "slide36" ||
+      this._currentSlide === "slide37"
+    ) {
+      return;
+    }
+    const topEl = document.elementFromPoint(e.clientX, e.clientY);
+    if (topEl) {
+      const isOverUI = topEl.closest?.(
+        "#game-root, .slide-puzzle-intro, .slide-puzzle-table, .slide-wordbox, .bubble, .small-dog__bubble, .gonext, .scoreboard, .room-picker-form"
+      );
+      if (isOverUI) return;
+    }
     const w = window.innerWidth;
     const h = window.innerHeight;
     const x = e.clientX / w;

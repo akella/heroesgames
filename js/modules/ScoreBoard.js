@@ -1,11 +1,5 @@
 // ScoreBoard component
 import starImg from "../../assets/star.png";
-// API via events on provided bus:
-//  score.init { total, value? }
-//  score.update { value }
-//  score.increment { delta? }
-//  score.reset
-//  score.show / score.hide
 
 export class ScoreBoard {
   constructor({ bus, parent = document.body } = {}) {
@@ -13,7 +7,7 @@ export class ScoreBoard {
     this.total = 0;
     this.value = 0;
     this.visible = false;
-    this.locked = false; // when true, ignore hide requests
+    this.locked = false;
     this._rafShow = null;
     this._build(parent);
     this._bindBus();
@@ -37,6 +31,14 @@ export class ScoreBoard {
   _bindBus() {
     if (!this.bus) return;
     this.bus.on("score.init", ({ total, value = 0 } = {}) => {
+      if (
+        this.locked &&
+        this.total &&
+        typeof total === "number" &&
+        total !== this.total
+      ) {
+        return;
+      }
       this.setTotal(total);
       this.setValue(value);
     });

@@ -213,6 +213,7 @@ html {
   position: absolute;
   bottom: 0;
   right: 20%;
+  z-index: 25;
   &__bubble {
     position: absolute;
     top: 0;
@@ -246,7 +247,7 @@ html {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 40;
+  z-index: 24;
 }
 
 .finddiff-root {
@@ -676,4 +677,117 @@ body.cursor-brush {
     font-size: clamp(18px, 2.4vw, 32px);
     line-height: 1.1;
   }
+}
+
+/* ================= WordBox game styles ================= */
+.slide-wordbox {
+  .wb-box-left {
+    position: absolute;
+    left: 6%;
+    bottom: 8%;
+    width: min(42vw, 720px);
+    height: auto;
+    z-index: 11;
+  }
+  .wb-letter-right {
+    position: absolute;
+    right: 4%;
+    top: 8%;
+    width: min(38vw, 640px);
+    z-index: 12;
+    img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+  }
+  .wb-letter-text {
+    position: absolute;
+    inset: 14% 16% 20% 16%;
+    display: flex;
+    align-items: center; /* vertical middle */
+    font-family: "Factor A TRIAL", Arial, sans-serif;
+    font-weight: 900; /* Black */
+    font-style: normal;
+    font-size: clamp(1.6vw, 1.6vmin, 24px);
+    line-height: 1.15;
+    letter-spacing: -0.012em; /* ~ -1.2% */
+    text-transform: uppercase;
+    color: #402b28;
+  }
+  .wb-blocks {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+    height: auto;
+  }
+}
+
+/* WordBox blocks swap on slide34 */
+#slide34 .wb-blocks--white {
+  display: block;
+}
+#slide34 .wb-blocks--green {
+  display: none;
+}
+#slide34.is-complete .wb-blocks--white {
+  display: none;
+}
+#slide34.is-complete .wb-blocks--green {
+  display: block;
+}
+
+.wordbox-root {
+  position: absolute;
+  inset: 0;
+  z-index: 50; /* above slides */
+  pointer-events: none;
+}
+.wordbox-ui {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.wordbox-root .wb-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(44px, 3.8vw, 72px);
+  height: clamp(44px, 3.8vw, 72px);
+  margin-right: clamp(6px, 0.6vw, 10px);
+  margin-bottom: 5px;
+  line-height: 1;
+  color: #1f262a;
+  font-size: 4.2vw;
+  line-height: 4.2vw;
+  letter-spacing: -0.012em;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  user-select: none;
+}
+.wordbox-root.is-complete .wb-tile {
+  color: #ffffff;
+}
+.wordbox-typed {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #3a4a6b;
+  opacity: 0.75;
+}
+
+.wordbox-blocks {
+  width: 98%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.wb-bracelet {
+  height: auto !important;
 }

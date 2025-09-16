@@ -3,6 +3,18 @@ import gsap from "gsap";
 export function makeSlideLayer(id) {
   const el = document.getElementById(id);
 
+  if (!el) {
+    return {
+      intro() {
+        return Promise.resolve();
+      },
+      outro() {
+        return Promise.resolve();
+      },
+      update() {},
+    };
+  }
+
   // helper – tween opacity and resolve when finished
   function fadeTo(targetOpacity, duration = 0.4) {
     return new Promise((resolve) => {

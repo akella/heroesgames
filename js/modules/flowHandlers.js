@@ -46,7 +46,7 @@ export function setupFlowSubscription({
       } catch {}
     }
 
-    // RoomPicker visibility (resolved dynamically via globals)
+    // RoomPicker visibility
     const pickers = [
       window.__pickerWall,
       window.__pickerFloor,
@@ -66,7 +66,6 @@ export function setupFlowSubscription({
         val === "slide21" ||
         val === "slide22"
       ) {
-        // show unlocked on these slides
         pickers.forEach((p) => {
           p.show();
           p.setLocked(false);
@@ -112,14 +111,14 @@ export function setupFlowSubscription({
           if (currentVal !== activationSlide) {
             if (gameManager.active?.id === "puzzle") {
               try {
-                gameManager.active.api.hide();
-                gameManager.active.api.setActive(false);
+                gameManager.active?.api?.hide?.();
+                gameManager.active?.api?.setActive?.(false);
               } catch {}
             }
             return;
           }
-          gameManager.active?.api.show();
-          gameManager.active?.api.setActive(false);
+          gameManager.active?.api?.show?.();
+          gameManager.active?.api?.setActive?.(false);
           bus.emit("score.show");
           if (gameRoot) gameRoot.style.zIndex = "40";
         } catch (e) {
@@ -131,8 +130,8 @@ export function setupFlowSubscription({
     if (val === "slide26") {
       if (gameManager.active?.id === "puzzle") {
         try {
-          gameManager.active.api.show();
-          gameManager.active.api.setActive(true);
+          gameManager.active?.api?.show?.();
+          gameManager.active?.api?.setActive?.(true);
           bus.emit("score.show");
           if (gameRoot) gameRoot.style.zIndex = "40";
         } catch (e) {
@@ -144,8 +143,8 @@ export function setupFlowSubscription({
     if (val === "slide27") {
       if (gameManager.active?.id === "puzzle") {
         try {
-          gameManager.active.api.setActive(false);
-          gameManager.active.api.hide();
+          gameManager.active?.api?.setActive?.(false);
+          gameManager.active?.api?.hide?.();
           bus.emit("score.show");
           if (gameRoot) gameRoot.style.zIndex = "5";
         } catch (e) {
@@ -154,14 +153,53 @@ export function setupFlowSubscription({
       }
       return;
     }
-    if (!gameManager.active) return;
+    // WordBox activation on slide34 (independent of current active game)
+    if (val === "slide34") {
+      try {
+        bus.emit("score.init", { total: 7, value: 0 });
+        bus.emit("score.lock");
+        bus.emit("score.show");
+      } catch {}
+      (async () => {
+        const activationSlide = val;
+        try {
+          if (gameManager.active && gameManager.active.id !== "wordbox") {
+            await gameManager.deactivate();
+          }
+          if (gameManager.active?.id !== "wordbox") {
+            await gameManager.activate("wordbox", { bus });
+          }
+          const currentVal =
+            (flowActor.getSnapshot
+              ? flowActor.getSnapshot().value
+              : flowActor.state?.value) || snap.value;
+          if (currentVal !== activationSlide) {
+            if (gameManager.active?.id === "wordbox") {
+              try {
+                gameManager.active?.api?.hide?.();
+                gameManager.active?.api?.setActive?.(false);
+              } catch {}
+            }
+            return;
+          }
+          gameManager.active?.api?.show?.();
+          gameManager.active?.api?.setActive?.(true);
+          if (gameRoot) gameRoot.style.zIndex = "20";
+          bus.emit("score.init", { total: 7, value: 0 });
+          bus.emit("score.lock");
+          bus.emit("score.show");
+        } catch (e) {
+          console.warn("Failed to activate wordbox on slide34", e);
+        }
+      })();
+      return;
+    }
     if (val === "slide9") {
-      gameManager.active.api.show();
-      gameManager.active.api.setActive(false);
+      gameManager.active?.api?.show?.();
+      gameManager.active?.api?.setActive?.(false);
       if (gameRoot) gameRoot.style.zIndex = "5";
       bus.emit("score.hide");
     } else if (val === "slide29") {
-      // Ensure interactive room objects are visible from slide 29 onward
       try {
         bus.emit("room.reveal", { id: "book-floor" });
         bus.emit("room.reveal", { id: "box" });
@@ -187,31 +225,58 @@ export function setupFlowSubscription({
         bus.emit("room.reveal", { id: "box" });
         bus.emit("room.reveal", { id: "football-0" });
       } catch {}
+    } else if (val === "slide34") {
+      if (gameManager.active?.id === "wordbox") {
+        try {
+          gameManager.active?.api?.show?.();
+          gameManager.active?.api?.setActive?.(true);
+          if (gameRoot) gameRoot.style.zIndex = "20";
+          bus.emit("score.init", { total: 7, value: 0 });
+          bus.emit("score.lock");
+          bus.emit("score.show");
+        } catch (e) {
+          console.warn("Failed to enable wordbox on slide34", e);
+        }
+      }
+      return;
+    } else if (val === "slide36" || val === "slide37") {
+      if (gameManager.active?.id === "wordbox") {
+        try {
+          gameManager.active?.api?.setActive?.(false);
+          gameManager.active?.api?.hide?.();
+          if (gameRoot) gameRoot.style.zIndex = "5";
+        } catch (e) {
+          console.warn("Failed to hide wordbox after slide36+", e);
+        }
+      }
+      try {
+        bus.emit("score.show");
+      } catch {}
     } else if (val === "slide13") {
-      gameManager.active.api.setActive(true);
+      gameManager.active?.api?.setActive?.(true);
       if (gameRoot) gameRoot.style.zIndex = "20";
       bus.emit("score.show");
     } else if (val === "slide14") {
-      gameManager.active.api.setActive(false);
+      gameManager.active?.api?.setActive?.(false);
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "slide15") {
-      if (gameManager.active?.api.resetRound) {
-        gameManager.active.api.resetRound(2);
+      if (gameManager.active?.api?.resetRound) {
+        gameManager.active?.api?.resetRound?.(2);
       }
-      gameManager.active.api.show();
-      gameManager.active.api.setActive(false);
+      gameManager.active?.api?.show?.();
+      gameManager.active?.api?.setActive?.(false);
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "slide16") {
-      gameManager.active.api.hide();
+      gameManager.active?.api?.hide?.();
       bus.emit("score.hide");
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "slide17") {
-      gameManager.active.api.hide();
+      gameManager.active?.api?.hide?.();
       if (gameRoot) gameRoot.style.zIndex = "5";
     } else if (val === "outro") {
       if (gameManager.active) {
         try {
-          gameManager.active.api.hide && gameManager.active.api.hide();
+          gameManager.active?.api?.hide && gameManager.active?.api?.hide();
         } catch {}
         try {
           gameManager.deactivate();

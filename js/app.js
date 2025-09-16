@@ -63,6 +63,11 @@ const layers = {
   slide31Layer: makeSlideLayer("slide31"),
   slide32Layer: makeSlideLayer("slide32"),
   slide33Layer: makeSlideLayer("slide33"),
+  slide34Layer: makeSlideLayer("slide34"),
+  slide35Layer: makeSlideLayer("slide35"),
+  slide36Layer: makeSlideLayer("slide36"),
+  slide37Layer: makeSlideLayer("slide37"),
+  slide38Layer: makeSlideLayer("slide38"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -76,7 +81,6 @@ bus.on("game.finddiff.complete", () => {
   try {
     gameManager.active?.api?.setActive?.(false);
   } catch {}
-  // After finishing find-the-difference, remove the picture object and its shadow from the room
   try {
     bus.emit("room.remove", { id: "picture" });
   } catch {}
@@ -470,13 +474,13 @@ class AppController {
       flowActor.send({ type: "NEXT" });
     });
     bus.on("book-floor.click", () => {
-      flowActor.send({ type: "NEXT" });
+      flowActor.send({ type: "GOTO_22" });
     });
     bus.on("box.click", () => {
-      flowActor.send({ type: "NEXT" });
+      flowActor.send({ type: "GOTO_32" });
     });
     bus.on("football.click", () => {
-      flowActor.send({ type: "NEXT" });
+      flowActor.send({ type: "GOTO_37" });
     });
 
     this.initPane();
@@ -485,8 +489,8 @@ class AppController {
     (async () => {
       try {
         await gameManager.activate("finddiff", { bus });
-        gameManager.active?.api.setActive(false);
-        gameManager.active?.api.hide();
+        gameManager.active?.api?.setActive?.(false);
+        gameManager.active?.api?.hide?.();
       } catch (e) {}
     })();
 
@@ -497,6 +501,28 @@ class AppController {
       try {
         bus.emit("room.remove", { id: "book-floor" });
         this.interactionManager?.remove?.("book-floor");
+      } catch {}
+      try {
+        flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+
+    // Register WordBox game
+    gameManager.register("wordbox", () => import("./games/wordbox/index.js"));
+    gameManager.preload("wordbox");
+    let __wordboxCompleted = false;
+    bus.on("game.wordbox.complete", () => {
+      if (__wordboxCompleted) return;
+      __wordboxCompleted = true;
+      try {
+        gameManager.active?.api?.setActive?.(false);
+      } catch {}
+      try {
+        bus.emit("score.update", { value: 7 });
+        bus.emit("score.show");
+      } catch {}
+      try {
+        gameManager.active?.api?.hide?.();
       } catch {}
       try {
         flowActor.send({ type: "NEXT" });

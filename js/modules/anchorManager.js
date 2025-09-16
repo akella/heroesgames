@@ -16,12 +16,12 @@ function layoutAnchors() {
     const y = parseFloat(el.dataset.y || "0");
     const w = parseFloat(el.dataset.w || "0");
     const h = parseFloat(el.dataset.h || "0");
+    const pinY = (el.dataset.pinY || "").toLowerCase();
     el.style.position = "absolute";
     el.style.left = offsetX + x * scale + "px";
-    el.style.top = offsetY + y * scale + "px";
+    el.style.top = (pinY === "top" ? 0 : offsetY) + y * scale + "px";
     if (w) el.style.width = w * scale + "px";
     if (h) el.style.height = h * scale + "px";
-    // Ensure proper stacking if needed
     if (!el.style.zIndex) el.style.zIndex = "12";
   });
 }
@@ -29,7 +29,6 @@ function layoutAnchors() {
 export function initAnchorManager() {
   layoutAnchors();
   window.addEventListener("resize", layoutAnchors);
-  // Optional: mutation observer if slides dynamically injected later
   const obs = new MutationObserver((muts) => {
     let need = false;
     for (const m of muts) {
@@ -46,7 +45,6 @@ export function initAnchorManager() {
     if (need) layoutAnchors();
   });
   obs.observe(document.body, { childList: true, subtree: true });
-  // Return simple API (random layout removed / reverted)
   return {
     update: () => {
       layoutAnchors();
