@@ -7,6 +7,7 @@
 // create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
 
 import * as THREE from "three";
+import gsap from "gsap";
 import "../css/style.scss"; // ensure SCSS is processed by Vite
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -24,10 +25,12 @@ import { makeSlideLayer } from "./modules/makeSlideLayer.js";
 import { GameManager } from "./modules/GameManager.js";
 import { ScoreBoard } from "./modules/ScoreBoard.js";
 import { InteractionManager } from "./modules/interactions/InteractionManager.js";
+import { INTERACTION_CONFIGS } from "./modules/interactions/interactionConfigs.js";
 import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
 import { RoomPicker } from "./modules/ui/RoomPicker.js";
 import { ToyPickerController } from "./modules/ui/ToyPickerController.js";
 import { initAnchorManager } from "./modules/anchorManager.js";
+import { SceneController } from "./modules/SceneController.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -68,6 +71,13 @@ const layers = {
   slide36Layer: makeSlideLayer("slide36"),
   slide37Layer: makeSlideLayer("slide37"),
   slide38Layer: makeSlideLayer("slide38"),
+  slide39Layer: makeSlideLayer("slide39"),
+  slide40Layer: makeSlideLayer("slide40"),
+  slide41Layer: makeSlideLayer("slide41"),
+  slide42Layer: makeSlideLayer("slide42"),
+  slide43Layer: makeSlideLayer("slide43"),
+  slide44Layer: makeSlideLayer("slide44"),
+  slide45Layer: makeSlideLayer("slide45"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -311,164 +321,32 @@ class AppController {
       shaderLayer: this.shaderLayerFG,
       bus,
     });
-    // Picture interaction
-    this.interactionManager.register({
-      id: "picture",
-      layers: {
-        default: "picture-1",
-        active: "picture-2",
-        hover: "picture-hover",
-      },
-      activeSlide: "slide7",
-      visibleSlides: ["slide4", "slide5", "slide6", "slide7"],
-      hover: true,
-      hoverWhenInactive: false,
-      click: true,
-      clickWhenInactive: false,
-      bboxLayer: "default",
-      eventsPrefix: "picture",
-      highlightMode: "active",
-      highlightParallax: true,
+    this.interactionManagerBG = new InteractionManager({
+      shaderLayer: this.shaderLayerBG,
+      bus,
     });
-    // Book on the floor interaction
-    this.interactionManager.register({
-      id: "book-floor",
-      layers: {
-        default: "book-floor",
-        hover: "book-floor-hover",
-      },
-      visibleSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      hover: true,
-      hoverWhenInactive: true,
-      hoverOnlyOnSlides: [
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      click: true,
-      clickWhenInactive: true,
-      bboxLayer: "hover",
-      eventsPrefix: "book-floor",
-      highlightOnlyOnSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      highlightMode: "visible",
-      highlightParallax: true,
-      highlightOffset: { x: 0, y: 8 },
+
+    // Register all interactions via centralized configs
+    INTERACTION_CONFIGS.forEach((entry) => {
+      const manager =
+        entry.manager === "bg"
+          ? this.interactionManagerBG
+          : this.interactionManager;
+      manager.register(entry.config);
     });
-    // Box interaction
-    this.interactionManager.register({
-      id: "box",
-      layers: {
-        default: "box",
-        hover: "box-hover",
-      },
-      visibleSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      hover: true,
-      hoverWhenInactive: true,
-      hoverOnlyOnSlides: [
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      click: true,
-      clickWhenInactive: true,
-      bboxLayer: "hover",
-      eventsPrefix: "box",
-      highlightOnlyOnSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      highlightMode: "visible",
-      highlightParallax: true,
-      highlightOffset: { x: 0, y: 8 },
-    });
-    // Football interaction
-    this.interactionManager.register({
-      id: "football-0",
-      layers: {
-        default: "football-0",
-        hover: "football-hover",
-      },
-      visibleSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      hover: true,
-      hoverWhenInactive: true,
-      hoverOnlyOnSlides: [
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      click: true,
-      clickWhenInactive: true,
-      bboxLayer: "hover",
-      eventsPrefix: "football",
-      highlightOnlyOnSlides: [
-        "slide20",
-        "slide21",
-        "slide22",
-        "slide29",
-        "slide30",
-        "slide31",
-        "slide32",
-        "slide33",
-      ],
-      highlightMode: "visible",
-      highlightParallax: true,
-      highlightOffset: { x: 0, y: 8 },
-    });
+
     this.interactionManager.attach();
+    this.interactionManagerBG.attach();
+
+    // Scene controller (parallax + zoom/pan) via bus API
+    this.sceneController = new SceneController({
+      bus,
+      shaderLayerBG: this.shaderLayerBG,
+      shaderLayerFG: this.shaderLayerFG,
+      bgRenderer: this.bgRenderer,
+      fgRenderer: this.fgRenderer,
+      filterEl: this.filterEl,
+    });
 
     bus.on("picture.click", () => {
       flowActor.send({ type: "NEXT" });
@@ -480,7 +358,11 @@ class AppController {
       flowActor.send({ type: "GOTO_32" });
     });
     bus.on("football.click", () => {
-      flowActor.send({ type: "GOTO_37" });
+      flowActor.send({ type: "GOTO_39" });
+    });
+
+    bus.on("wheel-pump.click", () => {
+      flowActor.send({ type: "NEXT" });
     });
 
     this.initPane();
@@ -517,9 +399,40 @@ class AppController {
       try {
         gameManager.active?.api?.setActive?.(false);
       } catch {}
+      // Hide scoreboard right after WordBox completes
       try {
-        bus.emit("score.update", { value: 7 });
-        bus.emit("score.show");
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
+      // Remove the box from the room once the WordBox game is completed
+      try {
+        bus.emit("room.remove", { id: "box" });
+      } catch {}
+      try {
+        this.interactionManager?.remove?.("box");
+        this.interactionManagerBG?.remove?.("box");
+      } catch {}
+      try {
+        gameManager.active?.api?.hide?.();
+      } catch {}
+      try {
+        flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+
+    // Register football pump game
+    gameManager.register("football", () => import("./games/football/index.js"));
+    gameManager.preload("football");
+    let __footballCompleted = false;
+    bus.on("game.football.complete", () => {
+      if (__footballCompleted) return;
+      __footballCompleted = true;
+      try {
+        gameManager.active?.api?.setActive?.(false);
+      } catch {}
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
       } catch {}
       try {
         gameManager.active?.api?.hide?.();

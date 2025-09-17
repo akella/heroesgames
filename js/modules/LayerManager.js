@@ -37,6 +37,13 @@ const LAYERS = {
   slide36: ["slide36Layer"],
   slide37: ["slide37Layer"],
   slide38: ["slide38Layer"],
+  slide39: ["slide39Layer"],
+  slide40: ["slide40Layer"],
+  slide41: ["slide41Layer"],
+  slide42: ["slide42Layer"],
+  slide43: ["slide43Layer"],
+  slide44: ["slide44Layer"],
+  slide45: ["slide45Layer"],
 };
 
 export class LayerManager {

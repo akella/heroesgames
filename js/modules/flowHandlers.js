@@ -44,6 +44,14 @@ export function setupFlowSubscription({
       try {
         document.dispatchEvent(new CustomEvent("showCharacter"));
       } catch {}
+    } else if (val === "slide39") {
+      try {
+        document.dispatchEvent(new CustomEvent("showCharacter"));
+      } catch {}
+    } else if (val === "slide40" || val === "slide41" || val === "slide42") {
+      try {
+        document.dispatchEvent(new CustomEvent("hideCharacter"));
+      } catch {}
     }
 
     // RoomPicker visibility
@@ -225,6 +233,112 @@ export function setupFlowSubscription({
         bus.emit("room.reveal", { id: "box" });
         bus.emit("room.reveal", { id: "football-0" });
       } catch {}
+    } else if (val === "slide35") {
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
+    } else if (val === "slide38") {
+      try {
+        bus.emit("room.reveal", { id: "book-floor" });
+        bus.emit("room.reveal", { id: "box" });
+        bus.emit("room.reveal", { id: "football-0" });
+      } catch {}
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
+      if (gameRoot) gameRoot.style.zIndex = "5";
+    } else if (val === "slide41") {
+      // Hide in-room pump and its shadow so only centered pump is visible
+      try {
+        bus.emit("room.remove", { id: "wheel-pump" });
+      } catch {}
+      try {
+        bus.emit("room.remove", { id: "sh-wheel-pump" });
+      } catch {}
+      return;
+    } else if (val === "slide42") {
+      // Hide in-room football so only DOM-game ball is visible
+      try {
+        bus.emit("room.remove", { id: "football-0" });
+        bus.emit("room.remove", { id: "sh-football" });
+      } catch {}
+      (async () => {
+        const activationSlide = val;
+        try {
+          if (gameManager.active && gameManager.active.id !== "football") {
+            await gameManager.deactivate();
+          }
+          if (gameManager.active?.id !== "football") {
+            await gameManager.activate("football", { bus });
+          }
+          const currentVal =
+            (flowActor.getSnapshot
+              ? flowActor.getSnapshot().value
+              : flowActor.state?.value) || snap.value;
+          if (currentVal !== activationSlide) {
+            if (gameManager.active?.id === "football") {
+              try {
+                gameManager.active?.api?.hide?.();
+                gameManager.active?.api?.setActive?.(false);
+              } catch {}
+            }
+            return;
+          }
+          try {
+            bus.emit("score.init", { total: 10, value: 0 });
+            bus.emit("score.lock");
+            bus.emit("score.show");
+          } catch {}
+          gameManager.active?.api?.show?.();
+          gameManager.active?.api?.setActive?.(true);
+          if (gameRoot) gameRoot.style.zIndex = "40";
+          // Scene adjustments for the game
+          try {
+            bus.emit("scene.parallax", { enabled: false });
+            bus.emit("scene.view", {
+              zoom: 1.5,
+              offsetY: -Math.round(window.innerHeight * 0.25),
+            });
+          } catch {}
+        } catch (e) {
+          console.warn("Failed to activate football on slide42", e);
+        }
+      })();
+      return;
+    } else if (val === "slide43") {
+      try {
+        bus.emit("scene.view.reset");
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+        document.dispatchEvent(new CustomEvent("showCharacter"));
+      } catch {}
+      if (gameRoot) gameRoot.style.zIndex = "5";
+      return;
+    } else if (val === "slide44") {
+      // Keep scene as-is; final reset happens on slide45
+      return;
+    } else if (val === "slide45") {
+      // Final post-game slide: normal room view and pickers visible again
+      try {
+        bus.emit("scene.parallax", { enabled: true });
+        bus.emit("scene.view.reset");
+      } catch {}
+      const pickers = [
+        window.__pickerWall,
+        window.__pickerFloor,
+        window.__pickerTable,
+      ].filter(Boolean);
+      if (pickers.length) {
+        pickers.forEach((p) => {
+          p.show();
+          p.setLocked(false);
+          p.close();
+        });
+      }
+      if (gameRoot) gameRoot.style.zIndex = "5";
+      return;
     } else if (val === "slide34") {
       if (gameManager.active?.id === "wordbox") {
         try {
@@ -250,7 +364,8 @@ export function setupFlowSubscription({
         }
       }
       try {
-        bus.emit("score.show");
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
       } catch {}
     } else if (val === "slide13") {
       gameManager.active?.api?.setActive?.(true);
@@ -285,6 +400,8 @@ export function setupFlowSubscription({
       try {
         bus.emit("score.unlock");
         bus.emit("score.hide");
+        // Reset scene view/parallax on exit to outro
+        bus.emit("scene.view.reset");
       } catch {}
       if (gameRoot) gameRoot.style.zIndex = "5";
     }

@@ -7,11 +7,11 @@ export const flowMachine = createMachine(
   {
     id: "kidApp",
     context: { score: 0 },
-    initial: "slide1",
+    initial: "slide15",
     on: {
       GOTO_22: { target: ".slide22" },
       GOTO_32: { target: ".slide32" },
-      GOTO_37: { target: ".slide37" },
+      GOTO_39: { target: ".slide39" },
     },
 
     states: {
@@ -207,6 +207,46 @@ export const flowMachine = createMachine(
       slide37: {
         entry: "showSlide37",
         exit: "hideSlide37",
+        on: { NEXT: "slide38" },
+      },
+      slide38: {
+        entry: "showSlide38",
+        exit: "hideSlide38",
+        on: { NEXT: "slide39" },
+      },
+      slide39: {
+        entry: "showSlide39",
+        exit: "hideSlide39",
+        on: { NEXT: "slide40" },
+      },
+      slide40: {
+        entry: "showSlide40",
+        exit: "hideSlide40",
+        on: { NEXT: "slide41" },
+      },
+      slide41: {
+        entry: "showSlide41",
+        exit: "hideSlide41",
+        on: { NEXT: "slide42" },
+      },
+      slide42: {
+        entry: "showSlide42",
+        exit: "hideSlide42",
+        on: { NEXT: "slide43" },
+      },
+      slide43: {
+        entry: "showSlide43",
+        exit: "hideSlide43",
+        on: { NEXT: "slide44" },
+      },
+      slide44: {
+        entry: "showSlide44",
+        exit: "hideSlide44",
+        on: { NEXT: "slide45" },
+      },
+      slide45: {
+        entry: "showSlide45",
+        exit: "hideSlide45",
         on: { NEXT: "outro" },
       },
       outro: {

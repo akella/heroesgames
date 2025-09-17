@@ -109,9 +109,10 @@ export class InteractionManager {
     const h = window.innerHeight;
     const x = e.clientX / w;
     const y = 1 - e.clientY / h;
-    for (let i = 0; i < this.items.length; i++) {
-      if (this.items[i].click(x, y)) {
-        this.bus.emit("interaction.click", { id: this.items[i].config.id });
+    const snapshot = this.items.slice();
+    for (const item of snapshot) {
+      if (item && item.click(x, y)) {
+        this.bus.emit("interaction.click", { id: item.config.id });
         break;
       }
     }

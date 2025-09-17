@@ -209,6 +209,16 @@ html {
   }
 }
 
+#slide41 .center-pump {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  transform: translate(-50%, 0);
+  width: min(45vw, 520px);
+  height: auto;
+  z-index: 24;
+}
+
 .small-dog {
   position: absolute;
   bottom: 0;
@@ -790,4 +800,69 @@ body.cursor-brush {
 
 .wb-bracelet {
   height: auto !important;
+}
+
+/* ================= Football pump game ================= */
+.football-root {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.football-ui {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
+.football-stage {
+  position: absolute;
+  left: 50%;
+  bottom: 165px;
+  transform: translateX(-50%);
+  display: inline-block;
+  pointer-events: auto;
+}
+.football-shadow,
+.football-base,
+.football-handle-wrap,
+.football-handle,
+.football-ball {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  user-select: none;
+}
+.football-handle-wrap {
+  bottom: 380px;
+}
+.football-ball {
+  bottom: -110px;
+  width: auto;
+  height: auto;
+  z-index: 4;
+  transform: translateX(84%);
+}
+.football-shadow {
+  bottom: -85px; /* slightly below the ball */
+  width: auto;
+  height: auto;
+  z-index: 2; /* under ball but above base if needed */
+  opacity: 0.7;
+  transform: translate(-40%, 20%);
+}
+.football-base {
+  bottom: 0;
+  width: auto;
+  height: auto;
+  z-index: 2;
+}
+.football-handle {
+  bottom: 0;
+  width: auto;
+  height: auto;
+  z-index: 3;
+  will-change: transform;
+  transform: translateX(-181%);
 }

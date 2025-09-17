@@ -67,6 +67,7 @@ import windowLightsPng from "../../assets/room/objects/window-lights.png";
 import chandelierPng from "../../assets/room/objects/chandelier.png";
 import medalsPng from "../../assets/room/objects/medals.png";
 import wheelPumpPng from "../../assets/room/objects/wheel-pump.png";
+import wheelPumpHoverPng from "../../assets/room/objects/wheel-pump-hover.png";
 import shWheelPumpPng from "../../assets/room/objects/sh-wheel-pump.png";
 import boxPng from "../../assets/room/objects/box.png";
 import books1Png from "../../assets/room/objects/books-1.png";
@@ -114,6 +115,7 @@ import footballHoverPng from "../../assets/room/objects/football-hover.png";
 import mask25 from "../../assets/room/masks/mask_room_25.png";
 import mask26 from "../../assets/room/masks/mask_room_26.png";
 import mask27 from "../../assets/room/masks/mask_room_27.png";
+import mask28 from "../../assets/room/masks/mask_room_28.png";
 
 export const maskTextures = [
   mask0,
@@ -144,6 +146,7 @@ export const maskTextures = [
   mask25,
   mask26,
   mask27,
+  mask28,
 ];
 
 // Layer definition schema:
@@ -196,6 +199,7 @@ const RAW = [
   { id: "chandelier", mask: { i: 8, c: "r" }, tex: chandelierPng },
   { id: "medals", mask: { i: 8, c: "g" }, tex: medalsPng },
   { id: "wheel-pump", mask: { i: 8, c: "b" }, tex: wheelPumpPng },
+  { id: "wheel-pump-hover", mask: { i: 28, c: "r" }, tex: wheelPumpHoverPng },
   { id: "sh-wheel-pump", mask: { i: 9, c: "r" }, tex: shWheelPumpPng },
   { id: "box", mask: { i: 9, c: "g" }, tex: boxPng },
   { id: "books-1", mask: { i: 9, c: "b" }, tex: books1Png },
@@ -326,6 +330,7 @@ export const Z_INDEX = {
   "book-floor-hover": 115,
   "box-hover": 116,
   "football-hover": 117,
+  "wheel-pump-hover": 118,
   // Remaining / fallback
   lamp: 120,
 };
@@ -394,6 +399,9 @@ export const INITIAL_HIDE = Array.from(
   new Set([...END_GAME_GROUP, ...MID_GAME_REVEALABLE])
 );
 
+// Ensure helper/spot layers stay hidden by default
+INITIAL_HIDE.push("wheel-pump-spot");
+
 export const UNFILTERED_IDS = [
   "picture-1",
   "picture-2",
@@ -401,4 +409,6 @@ export const UNFILTERED_IDS = [
   "book-floor-hover",
   "box-hover",
   "football-hover",
+  "wheel-pump-hover",
+  "wheel-pump-spot",
 ];
