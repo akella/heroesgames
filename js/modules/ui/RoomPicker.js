@@ -59,6 +59,7 @@ export class RoomPicker {
     this.root.style.left = `${this.pos.left}px`;
     this.root.style.top = `${this.pos.top}px`;
     this.root.style.zIndex = "140";
+    this.root.style.pointerEvents = "auto";
 
     // Button
     this.button = document.createElement("button");

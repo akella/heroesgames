@@ -180,14 +180,15 @@ html {
     font-weight: 700;
     color: #4071fd;
     text-transform: uppercase;
-    z-index: 26;
+    // Raised above in-game layers (football uses game-root z 40)
+    z-index: 60;
 
     &__text {
       padding: 50px;
       position: absolute;
       inset: 0px;
       display: flex;
-      z-index: 1;
+      z-index: 2; // above bubble image
       align-items: center;
       justify-content: center;
       text-align: center;

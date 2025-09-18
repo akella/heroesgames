@@ -7,7 +7,7 @@ export const flowMachine = createMachine(
   {
     id: "kidApp",
     context: { score: 0 },
-    initial: "slide15",
+    initial: "slide1",
     on: {
       GOTO_22: { target: ".slide22" },
       GOTO_32: { target: ".slide32" },

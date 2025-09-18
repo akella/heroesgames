@@ -53,6 +53,7 @@ export function createGame({ bus }) {
   let progress = 0; // 0..10
   let pumping = false;
   let onFlowProgress;
+  let completed = false;
 
   function layout() {
     if (!uiEl) return;
@@ -126,6 +127,7 @@ export function createGame({ bus }) {
         bus.emit("score.update", { value: progress });
       } catch {}
       if (progress === 10) {
+        completed = true;
         try {
           bus.emit("game.football.complete");
         } catch {}
@@ -186,8 +188,19 @@ export function createGame({ bus }) {
 
       onFlowProgress = (snap) => {
         const val = snap?.value || snap;
-        if (val !== "slide42") {
-          if (wrap) wrap.style.display = "none";
+        if (val === "slide42") return;
+        if (completed && (val === "slide43" || val === "slide44")) {
+          if (wrap) wrap.style.display = "block";
+          return;
+        }
+        if (wrap) wrap.style.display = "none";
+        if (completed) {
+          if (val === "slide45" || val === "outro") {
+            progress = 0;
+            completed = false;
+            renderBall();
+          }
+        } else {
           progress = 0;
           renderBall();
         }

@@ -30,7 +30,7 @@ export class HighlightCircle {
     this._updateVisibility();
   }
   onSlideChange() {
-    this._appendToCurrentSlide();
+    // No longer reparent per slide; container is fixed.
     this._updateVisibility();
   }
   onHoverChange() {
@@ -62,19 +62,8 @@ export class HighlightCircle {
       zIndex: 14,
     });
     this._el = el;
-    this._appendToCurrentSlide();
-  }
-
-  _appendToCurrentSlide() {
-    if (!this._el) return;
-    try {
-      const sid = this.item?._currentSlide;
-      const slideEl = sid ? document.getElementById(sid) : null;
-      const parent = slideEl || document.body;
-      if (this._el.parentNode !== parent) {
-        parent.appendChild(this._el);
-      }
-    } catch {}
+    const container = HighlightCircle._ensureContainer();
+    container.appendChild(el);
   }
 
   _updateVisibility() {
@@ -235,7 +224,7 @@ export class HighlightCircle {
         width: "100%",
         height: "100%",
         pointerEvents: "none",
-        zIndex: 20,
+        zIndex: 7,
       });
       c.id = "interactive-highlights";
       document.body.appendChild(c);

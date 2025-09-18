@@ -29,6 +29,7 @@ import { INTERACTION_CONFIGS } from "./modules/interactions/interactionConfigs.j
 import { UNFILTERED_IDS } from "./modules/roomLayersConfig.js";
 import { RoomPicker } from "./modules/ui/RoomPicker.js";
 import { ToyPickerController } from "./modules/ui/ToyPickerController.js";
+import { ensurePickersContainer } from "./modules/ui/pickersContainer.js";
 import { initAnchorManager } from "./modules/anchorManager.js";
 import { SceneController } from "./modules/SceneController.js";
 
@@ -88,12 +89,32 @@ const scoreBoard = new ScoreBoard({ bus });
 
 const gameManager = new GameManager({ bus });
 bus.on("game.finddiff.complete", () => {
+  let curSlide;
+  try {
+    curSlide = flowActor.getSnapshot().value;
+  } catch {}
+  const m = /slide(\d+)/.exec(curSlide || "");
+  let hideAt = null;
+  if (m) {
+    const base = parseInt(m[1], 10);
+    // Show for next two slides (base+1, base+2); hide on base+3
+    hideAt = "slide" + (base + 3);
+  }
+  try {
+    window.__finddiffHideAt = hideAt;
+  } catch {}
+  // Deactivate interactions but keep visible
   try {
     gameManager.active?.api?.setActive?.(false);
+  } catch {}
+  // Optionally hide scoreboard now
+  try {
+    bus.emit("score.hide");
   } catch {}
   try {
     bus.emit("room.remove", { id: "picture" });
   } catch {}
+  // Advance to first post-game slide
   flowActor.send({ type: "NEXT" });
 });
 const gameRoot = document.getElementById("game-root");
@@ -213,6 +234,7 @@ class AppController {
     })();
 
     let pickerWall, pickerFloor, pickerTable;
+    const roomPickersContainer = ensurePickersContainer();
     const closeOthers = (who) => {
       [pickerWall, pickerFloor, pickerTable].forEach((p) => {
         if (p && p !== who) p.close();
@@ -220,7 +242,7 @@ class AppController {
     };
 
     window.__pickerWall = pickerWall = new RoomPicker({
-      container: document.body,
+      container: roomPickersContainer,
       shaderBG: this.shaderLayerBG,
       shaderFG: this.shaderLayerFG,
       category: "wall",
@@ -239,7 +261,7 @@ class AppController {
       onLockedClick: onLockedClickOnce,
     });
     window.__pickerFloor = pickerFloor = new RoomPicker({
-      container: document.body,
+      container: roomPickersContainer,
       shaderBG: this.shaderLayerBG,
       shaderFG: this.shaderLayerFG,
       category: "floor",
@@ -258,7 +280,7 @@ class AppController {
       onLockedClick: onLockedClickOnce,
     });
     window.__pickerTable = pickerTable = new RoomPicker({
-      container: document.body,
+      container: roomPickersContainer,
       shaderBG: this.shaderLayerBG,
       shaderFG: this.shaderLayerFG,
       category: "table",
@@ -285,7 +307,7 @@ class AppController {
       bus: this.bus,
       shaderBG: this.shaderLayerBG,
       shaderFG: this.shaderLayerFG,
-      container: document.body,
+      container: roomPickersContainer,
       slideBehavior: {
         hidden: ["slide29", "slide32", "slide33"],
         lockedVisible: ["slide30"],
@@ -434,9 +456,7 @@ class AppController {
         bus.emit("score.unlock");
         bus.emit("score.hide");
       } catch {}
-      try {
-        gameManager.active?.api?.hide?.();
-      } catch {}
+      // Do NOT hide football game immediately; keep it visible for next 2 slides (43,44)
       try {
         flowActor.send({ type: "NEXT" });
       } catch {}

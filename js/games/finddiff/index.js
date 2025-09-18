@@ -48,6 +48,7 @@ export function createGame({ bus }) {
   let rootSize = null;
   let setX, setY;
   let lastTarget = { x: null, y: null };
+  let preloadedRoom2 = null;
 
   const load = (src) =>
     new Promise((res, rej) => {
@@ -397,6 +398,12 @@ export function createGame({ bus }) {
     buildMask(mask);
     canvas.addEventListener("click", handleClick);
 
+    load(ROOM_SRC_2)
+      .then((img) => {
+        preloadedRoom2 = img;
+      })
+      .catch(() => {});
+
     let resizeObserver;
     function measureAndPosition(initial = false) {
       const r = root.getBoundingClientRect();
@@ -468,8 +475,17 @@ export function createGame({ bus }) {
     lastQuadrant = -1;
     lastTarget = { x: null, y: null };
     clearMarkers();
-    const imgSrc = round === 2 ? ROOM_SRC_2 : ROOM_SRC_1;
-    const room = await load(imgSrc);
+    let room;
+    if (round === 2) {
+      if (preloadedRoom2) {
+        room = preloadedRoom2;
+      } else {
+        room = await load(ROOM_SRC_2);
+        preloadedRoom2 = room;
+      }
+    } else {
+      room = await load(ROOM_SRC_1);
+    }
     canvas.width = room.naturalWidth;
     canvas.height = room.naturalHeight;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
