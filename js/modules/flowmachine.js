@@ -247,6 +247,21 @@ export const flowMachine = createMachine(
       slide45: {
         entry: "showSlide45",
         exit: "hideSlide45",
+        on: { NEXT: "slide46" },
+      },
+      slide46: {
+        entry: "showSlide46",
+        exit: "hideSlide46",
+        on: { NEXT: "slide47" },
+      },
+      slide47: {
+        entry: "showSlide47",
+        exit: "hideSlide47",
+        on: { NEXT: "slide48" },
+      },
+      slide48: {
+        entry: "showSlide48",
+        exit: "hideSlide48",
         on: { NEXT: "outro" },
       },
       outro: {
@@ -268,6 +283,10 @@ export const flowMachine = createMachine(
       showSlide9: () => {
         document.dispatchEvent(new CustomEvent("hideCharacter"));
       },
+      showSlide47: () => {},
+      hideSlide47: () => {},
+      showSlide48: () => {},
+      hideSlide48: () => {},
     },
   }
 );

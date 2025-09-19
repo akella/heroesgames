@@ -44,6 +44,9 @@ const LAYERS = {
   slide43: ["slide43Layer"],
   slide44: ["slide44Layer"],
   slide45: ["slide45Layer"],
+  slide46: ["slide46Layer"],
+  slide47: ["slide47Layer"],
+  slide48: ["slide48Layer"],
 };
 
 export class LayerManager {

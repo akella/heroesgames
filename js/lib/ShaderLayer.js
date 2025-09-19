@@ -140,7 +140,10 @@ export default class ShaderLayer extends BaseLayer {
       }
     });
     this.events.on("room.revealAll", () => {
-      END_GAME_GROUP.forEach((id) => this.setLayerEnabled(id, true));
+      // Reveal everything that was initially hidden (MID + END groups)
+      INITIAL_HIDE.forEach((id) => {
+        if (!this._removedIds.has(id)) this.setLayerEnabled(id, true);
+      });
       this._swapDepthMap("full");
       this.events.emit("room.fullVisible");
     });

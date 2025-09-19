@@ -2,7 +2,7 @@ import BaseLayer from "./BaseLayer.js";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import modelUrl from "../../model/clay_guy_material_fix_2.glb?url";
+import modelUrl from "../../model/clay_guy_material.glb?url";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 export default class ModelLayer extends BaseLayer {
   constructor({ mouse, events }) {

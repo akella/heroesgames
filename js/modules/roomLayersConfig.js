@@ -266,7 +266,7 @@ export const Z_INDEX = {
   "tennis-bookcase": 22,
   shelf: 25,
   "tennis-shelf": 26,
-  chandelier: 28,
+  chandelier: 53.5,
   posters: 30,
   stickers: 31,
   medals: 32,
@@ -295,7 +295,8 @@ export const Z_INDEX = {
   // Place books-shelf slightly above books-table and below glass-pencils
   "books-shelf": 78.2,
   "glass-pencils": 79,
-  "pencils-on-tha-floor": 80,
+  // Render pencils beneath the tablecloth (73)
+  "pencils-on-tha-floor": 72.8,
   // Sports & play items on floor
   football: 82,
   "football-0": 83,
@@ -392,15 +393,13 @@ export const MID_GAME_REVEALABLE = [
   "books-4",
   "skipping-rope",
   "skates",
+  "wheel-pump-spot",
 ]; // appear one-by-one mid game
 
 // Initial hidden set = all above
 export const INITIAL_HIDE = Array.from(
   new Set([...END_GAME_GROUP, ...MID_GAME_REVEALABLE])
 );
-
-// Ensure helper/spot layers stay hidden by default
-INITIAL_HIDE.push("wheel-pump-spot");
 
 export const UNFILTERED_IDS = [
   "picture-1",

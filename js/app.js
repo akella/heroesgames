@@ -79,6 +79,9 @@ const layers = {
   slide43Layer: makeSlideLayer("slide43"),
   slide44Layer: makeSlideLayer("slide44"),
   slide45Layer: makeSlideLayer("slide45"),
+  slide46Layer: makeSlideLayer("slide46"),
+  slide47Layer: makeSlideLayer("slide47"),
+  slide48Layer: makeSlideLayer("slide48"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -132,6 +135,9 @@ setupFlowSubscription({
 let gonext = [...document.querySelectorAll(".js-next")];
 gonext.forEach((el) => {
   el.addEventListener("click", () => {
+    try {
+      bus.emit("ui.closePickers");
+    } catch {}
     flowActor.send({ type: "NEXT" });
   });
 });
@@ -197,7 +203,9 @@ class AppController {
         if (
           currentSlide === "slide29" ||
           currentSlide === "slide30" ||
-          currentSlide === "slide31"
+          currentSlide === "slide31" ||
+          currentSlide === "slide47" ||
+          currentSlide === "slide48"
         )
           return;
         fired = true;
@@ -213,7 +221,9 @@ class AppController {
         if (
           currentSlide === "slide29" ||
           currentSlide === "slide30" ||
-          currentSlide === "slide31"
+          currentSlide === "slide31" ||
+          currentSlide === "slide47" ||
+          currentSlide === "slide48"
         )
           return;
         fired = true;
@@ -226,6 +236,16 @@ class AppController {
       let fired = false;
       return () => {
         if (fired) return;
+        // Do not auto-advance when on slides with pickers disabled for auto-next
+        if (
+          currentSlide === "slide47" ||
+          currentSlide === "slide48" ||
+          currentSlide === "slide29" ||
+          currentSlide === "slide30" ||
+          currentSlide === "slide31"
+        ) {
+          return;
+        }
         fired = true;
         try {
           flowActor.send({ type: "NEXT" });
@@ -241,6 +261,7 @@ class AppController {
       });
     };
 
+    // expose pickers on window for quick manual QA
     window.__pickerWall = pickerWall = new RoomPicker({
       container: roomPickersContainer,
       shaderBG: this.shaderLayerBG,
@@ -335,8 +356,29 @@ class AppController {
       },
     });
 
+    // Keep track of current slide and always collapse any open picker forms
     this.bus.on("flow.progress", (snap) => {
       currentSlide = snap?.value || snap;
+      try {
+        pickerWall?.close?.();
+        pickerFloor?.close?.();
+        pickerTable?.close?.();
+        toyController?.toyDino?.close?.();
+        toyController?.toyShip?.close?.();
+        toyController?.toyRobot?.close?.();
+      } catch {}
+    });
+
+    // Close pickers proactively when user hits Next
+    this.bus.on("ui.closePickers", () => {
+      try {
+        pickerWall?.close?.();
+        pickerFloor?.close?.();
+        pickerTable?.close?.();
+        toyController?.toyDino?.close?.();
+        toyController?.toyShip?.close?.();
+        toyController?.toyRobot?.close?.();
+      } catch {}
     });
 
     this.interactionManager = new InteractionManager({

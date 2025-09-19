@@ -17,6 +17,8 @@ export function setupFlowSubscription({
     slide16: 2000,
     slide20: 2000,
     slide23: 1500,
+    slide45: 2000,
+    slide46: 3000,
   };
 
   const pickers = () =>
@@ -102,7 +104,7 @@ export function setupFlowSubscription({
       pickers: { show: true, locked: false, close: true },
     },
     { when: ["slide32", "slide33"], pickers: { hide: true } },
-    { when: "slide39", character: "show" },
+    { when: "slide38", character: "show" },
     { when: ["slide40", "slide41", "slide42"], character: "hide" },
     // Generic mini-game early slides (existing behavior retained)
     {
@@ -177,6 +179,42 @@ export function setupFlowSubscription({
     { when: "slide45", afterFootballEnd: true },
     { when: "slide45", character: "show" },
     { when: ["slide43", "slide44"], character: "hide" },
+    // Slide 45: show specific set of objects, then auto-next in 2s
+    {
+      when: "slide45",
+      roomReveal: [
+        "chandelier",
+        "picture",
+        "books-1",
+        "books-3",
+        "skipping-rope",
+        "car-green",
+        "car-yellow",
+        "car-blue",
+        "car",
+        // box is shown but kept non-interactive — interaction manager already hides hover
+        "box",
+        "football",
+        "cubes",
+        "books-4",
+        "tablecloth",
+        // additionally requested
+        "skates",
+        "dino",
+        "ship",
+        "ufo",
+        "robot",
+      ],
+      roomRemove: ["books-shelf"],
+    },
+    // Slide 46: disable filter, reveal all remaining, use full depth map
+    // Additionally: explicitly show picture-1 and hide the rug
+    {
+      when: "slide46",
+      onEnter: "slide46_setup",
+      roomReveal: ["picture-1"],
+      roomRemove: ["books-shelf", "rug"],
+    },
     // Outro
     { when: "outro", outro: true },
   ];
@@ -424,6 +462,20 @@ export function setupFlowSubscription({
       }
       if (rule.afterFootballEnd) handlePostFootball(slide);
       if (rule.outro) handleOutro(slide);
+      if (rule.onEnter === "slide46_setup") {
+        try {
+          bus.emit("scene.parallax", { enabled: true });
+          // Turn off filter overlay
+          try {
+            const el = document.querySelector(".scene-filter");
+            if (el) el.style.opacity = "0";
+          } catch {}
+          // Reveal all remaining room layers grouped as END
+          bus.emit("room.revealAll");
+          // Switch to full depth map
+          bus.emit("room.setDepth", { mode: "full" });
+        } catch {}
+      }
       if (
         (slide === "slide43" || slide === "slide44" || slide === "slide45") &&
         flowActor._wheelPumpCleanup
