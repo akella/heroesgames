@@ -1,4 +1,7 @@
 import { RoomPicker } from "./RoomPicker.js";
+import dinoThumb from "../../../assets/picker/dino.png";
+import shipThumb from "../../../assets/picker/ship.png";
+import robotThumb from "../../../assets/picker/robot.png";
 
 export class ToyPickerController {
   constructor({
@@ -22,12 +25,9 @@ export class ToyPickerController {
     };
 
     // Create toy pickers
-    this.toyDino = this.#makeToy("assets/picker/dino.png", this.anchors.dino);
-    this.toyShip = this.#makeToy("assets/picker/ship.png", this.anchors.ship);
-    this.toyRobot = this.#makeToy(
-      "assets/picker/robot.png",
-      this.anchors.robot
-    );
+    this.toyDino = this.#makeToy(dinoThumb, this.anchors.dino);
+    this.toyShip = this.#makeToy(shipThumb, this.anchors.ship);
+    this.toyRobot = this.#makeToy(robotThumb, this.anchors.robot);
 
     // Track if a toy was placed (clicked). Persist across slides.
     this.placed = { dino: false, ship: false, robot: false };
