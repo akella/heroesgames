@@ -7,8 +7,7 @@
 // create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
 
 import * as THREE from "three";
-// gsap is used inside MenuOverlay module now
-import "../css/style.scss"; // ensure SCSS is processed by Vite
+import "../css/style.scss";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 
@@ -535,18 +534,18 @@ class AppController {
     if (this.filterEl) this.filterEl.style.opacity = String(v);
   }
 
-  // initPane() {
-  //   this.PARAMS = { opacity: 1 };
-  //   this.pane = new Pane();
-  //   // this.pane
-  //   //   .addBinding(this.PARAMS, "opacity", { min: 0, max: 1 })
-  //   //   .on("change", (ev) => {
-  //   //     this.shaderLayer.setOpacity(ev.value);
-  //   //   });
-  //   this.pane.addButton({ title: "Next" }).on("click", () => {
-  //     flowActor.send({ type: "NEXT" });
-  //   });
-  // }
+  initPane() {
+    this.PARAMS = { opacity: 1 };
+    this.pane = new Pane();
+    // this.pane
+    //   .addBinding(this.PARAMS, "opacity", { min: 0, max: 1 })
+    //   .on("change", (ev) => {
+    //     this.shaderLayer.setOpacity(ev.value);
+    //   });
+    this.pane.addButton({ title: "Next" }).on("click", () => {
+      flowActor.send({ type: "NEXT" });
+    });
+  }
 
   setupMouseMove() {
     window.addEventListener("mousemove", (e) => {

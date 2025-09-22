@@ -54,6 +54,8 @@ export function initMenuOverlay({
     menuOverlay.hidden = false;
     menuOverlay.setAttribute("aria-hidden", "false");
     menuOverlay.classList.add("is-open");
+    menuOverlay.style.pointerEvents = "auto";
+    menuOverlay.style.display = "flex";
     try {
       if (menuTl) menuTl.kill();
       menuTl = gsap.timeline();
@@ -93,46 +95,18 @@ export function initMenuOverlay({
   function close() {
     menuButton.setAttribute("aria-expanded", "false");
     hideTooltip();
+    menuOverlay.style.pointerEvents = "none";
+    menuOverlay.classList.remove("is-open");
+    menuOverlay.setAttribute("aria-hidden", "true");
+    menuOverlay.hidden = true;
+    menuOverlay.style.display = "none";
     try {
       if (menuTl) menuTl.kill();
-      menuTl = gsap.timeline({
-        onComplete: () => {
-          menuOverlay.classList.remove("is-open");
-          menuOverlay.setAttribute("aria-hidden", "true");
-          menuOverlay.hidden = true;
-        },
-      });
+      menuTl = gsap.timeline();
       const left = menuOverlay.querySelector(".menu-preview--left");
       const center = menuOverlay.querySelector(".menu-preview--center");
       const right = menuOverlay.querySelector(".menu-preview--right");
-      if (left && center && right) {
-        menuTl
-          .to(
-            [right],
-            { x: 40, opacity: 0, duration: 0.22, ease: "power2.in" },
-            "<"
-          )
-          .to(
-            [center],
-            { y: 20, opacity: 0, duration: 0.22, ease: "power2.in" },
-            "<+0.02"
-          )
-          .to(
-            [left],
-            { x: -40, opacity: 0, duration: 0.22, ease: "power2.in" },
-            "<+0.02"
-          );
-      }
-      menuTl.to(
-        menuOverlay,
-        { opacity: 0, duration: 0.25, ease: "power2.in" },
-        "<+0.02"
-      );
-    } catch {
-      menuOverlay.classList.remove("is-open");
-      menuOverlay.setAttribute("aria-hidden", "true");
-      menuOverlay.hidden = true;
-    }
+    } catch {}
   }
 
   function toggle() {
