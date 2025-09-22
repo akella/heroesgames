@@ -6,6 +6,92 @@
     <link rel="stylesheet" href="css/style.scss" />
   </head>
   <body>
+    <header class="app-header" role="banner">
+      <button
+        class="btn-burger"
+        type="button"
+        aria-label="Меню"
+        aria-expanded="false"
+        aria-controls="app-menu"
+      >
+        <span class="btn-burger__inner">
+          <span class="burger">
+            <span class="burger__line"></span>
+            <span class="burger__line"></span>
+            <span class="burger__line"></span>
+          </span>
+        </span>
+      </button>
+      <a href="#" class="btn-pill btn-help" role="button">Отримати допомогу</a>
+    </header>
+
+    <div id="app-menu" class="menu-overlay" hidden aria-hidden="true">
+      <div
+        class="menu-overlay__content"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Головне меню"
+      >
+        <div class="menu-logo" aria-hidden="true">
+          <img src="assets/hol-logo.svg" alt="" />
+        </div>
+        <div class="menu-previews">
+          <div class="menu-item menu-preview--left">
+            <img
+              class="menu-preview__img"
+              src="assets/game-preview-1.png"
+              alt="Прею зліва"
+              loading="eager"
+            />
+            <div class="menu-caption">Грюм</div>
+          </div>
+
+          <div class="menu-item menu-preview--center">
+            <img
+              class="menu-preview__img"
+              src="assets/game-preview-2.png"
+              alt="Прею по центру"
+              loading="eager"
+            />
+            <div class="menu-caption is-strong">Довгоручик</div>
+            <button
+              class="btn-circle menu-restart-btn"
+              type="button"
+              aria-label="Перезапустити гру"
+            >
+              <img src="assets/restart.svg" alt="restart" />
+            </button>
+          </div>
+
+          <div class="menu-item menu-preview--right">
+            <img
+              class="menu-preview__img"
+              src="assets/game-preview-3.png"
+              alt="Прею справа"
+              loading="eager"
+            />
+            <div class="menu-caption">Кікі</div>
+          </div>
+        </div>
+        <footer class="site-footer" role="contentinfo">
+          <div class="site-footer__inner">
+            <div class="site-footer__left">
+              <span class="footer-copy"
+                >© 2025 Heroes of Light - All Rights Reserved</span
+              >
+              <a class="footer-link" href="#" rel="noopener">Privacy Policy</a>
+              <a class="footer-link" href="#" rel="noopener"
+                >Terms &amp; Conditions</a
+              >
+            </div>
+            <div class="site-footer__right">
+              <span class="made-by">Made by</span>
+              <img class="tftl-logo" src="assets/tftl-logo.png" alt="TFTL" />
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
     <div id="container"></div>
     <div id="slide1" class="slide">
       <img src="assets/enter.jpg" alt="" />

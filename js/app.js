@@ -7,7 +7,7 @@
 // create divs with numbers, and assign show-hide animations to them to run it from flowmachine!
 
 import * as THREE from "three";
-import gsap from "gsap";
+// gsap is used inside MenuOverlay module now
 import "../css/style.scss"; // ensure SCSS is processed by Vite
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
@@ -32,6 +32,7 @@ import { ToyPickerController } from "./modules/ui/ToyPickerController.js";
 import { ensurePickersContainer } from "./modules/ui/pickersContainer.js";
 import { initAnchorManager } from "./modules/anchorManager.js";
 import { SceneController } from "./modules/SceneController.js";
+import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
 
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
@@ -91,6 +92,9 @@ const bus = mitt();
 const scoreBoard = new ScoreBoard({ bus });
 
 const gameManager = new GameManager({ bus });
+try {
+  window.gameManagerRef = gameManager;
+} catch {}
 bus.on("game.finddiff.complete", () => {
   let curSlide;
   try {
@@ -141,6 +145,9 @@ gonext.forEach((el) => {
     flowActor.send({ type: "NEXT" });
   });
 });
+
+// Initialize header/menu overlay interactions
+const menuOverlayApi = initMenuOverlay();
 
 class AppController {
   constructor(options) {
@@ -528,18 +535,18 @@ class AppController {
     if (this.filterEl) this.filterEl.style.opacity = String(v);
   }
 
-  initPane() {
-    this.PARAMS = { opacity: 1 };
-    this.pane = new Pane();
-    // this.pane
-    //   .addBinding(this.PARAMS, "opacity", { min: 0, max: 1 })
-    //   .on("change", (ev) => {
-    //     this.shaderLayer.setOpacity(ev.value);
-    //   });
-    this.pane.addButton({ title: "Next" }).on("click", () => {
-      flowActor.send({ type: "NEXT" });
-    });
-  }
+  // initPane() {
+  //   this.PARAMS = { opacity: 1 };
+  //   this.pane = new Pane();
+  //   // this.pane
+  //   //   .addBinding(this.PARAMS, "opacity", { min: 0, max: 1 })
+  //   //   .on("change", (ev) => {
+  //   //     this.shaderLayer.setOpacity(ev.value);
+  //   //   });
+  //   this.pane.addButton({ title: "Next" }).on("click", () => {
+  //     flowActor.send({ type: "NEXT" });
+  //   });
+  // }
 
   setupMouseMove() {
     window.addEventListener("mousemove", (e) => {

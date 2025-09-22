@@ -1,0 +1,69 @@
+// Footer styles
+// Footer is rendered inside .menu-overlay__content, so position absolute
+.site-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2; // above previews inside overlay content
+  pointer-events: none; // links enabled via child containers
+}
+.site-footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+.site-footer__left,
+.site-footer__right {
+  pointer-events: auto; // enable interactions on links
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.footer-copy {
+  color: #ffffff;
+  font-family: Inter, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1;
+}
+.footer-link {
+  color: #ffffff;
+  opacity: 1;
+  font-family: Inter, Arial, sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 1;
+  text-decoration: underline;
+}
+.footer-link:hover {
+  text-decoration: underline;
+  filter: brightness(1.05);
+}
+.footer-link:active {
+  filter: brightness(0.95);
+}
+
+.site-footer__right .made-by {
+  color: #ffffff;
+  font-family: Inter, Arial, sans-serif;
+  font-weight: 300; // light
+  font-size: 12px;
+  line-height: 1;
+}
+.tftl-logo {
+  width: auto;
+  height: auto;
+  display: inline-block;
+}
+@media (max-width: 640px) {
+  .site-footer__inner {
+    padding: 8px 10px;
+  }
+  .site-footer__left,
+  .site-footer__right {
+    gap: 10px;
+  }
+}
