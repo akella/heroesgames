@@ -158,7 +158,7 @@
   inset: 0;
   background: #4071fd;
   z-index: 170;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
   opacity: 0;
@@ -170,8 +170,13 @@
   position: relative;
 }
 .menu-overlay.is-open {
+  display: flex;
   opacity: 1;
   pointer-events: auto;
+}
+
+.menu-overlay[hidden] {
+  display: none !important;
 }
 
 .menu-previews {
