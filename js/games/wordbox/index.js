@@ -9,6 +9,7 @@ export function createGame({ bus }) {
   let value = "";
   let blocksEl, uiEl, typedEl;
   let syncObserver = null;
+  let ro = null;
   let completed = false;
   let onFlowProgress;
   let completeTimer = null;
@@ -114,6 +115,16 @@ export function createGame({ bus }) {
         bus.emit("score.init", { total: TARGET.length, value: 0 });
       } catch {}
       syncPosition();
+      try {
+        const targetImg = document.querySelector("#slide34 .wb-blocks");
+        if (targetImg) {
+          if (!targetImg.complete) {
+            targetImg.addEventListener("load", syncPosition, { once: true });
+          }
+          ro = new ResizeObserver(() => syncPosition());
+          ro.observe(targetImg);
+        }
+      } catch {}
       window.addEventListener("resize", syncPosition);
       window.addEventListener("scroll", syncPosition, true);
       window.addEventListener("app-resize", syncPosition);
@@ -141,6 +152,8 @@ export function createGame({ bus }) {
       if (!wrap) return;
       wrap.style.display = "block";
       syncPosition();
+      // One more tick after layout settles fixes initial drift
+      requestAnimationFrame(() => syncPosition());
     },
     hide() {
       if (!wrap) return;
@@ -165,6 +178,9 @@ export function createGame({ bus }) {
       window.removeEventListener("resize", syncPosition);
       window.removeEventListener("scroll", syncPosition, true);
       window.removeEventListener("app-resize", syncPosition);
+      try {
+        ro && ro.disconnect && ro.disconnect();
+      } catch {}
       try {
         bus.off && onFlowProgress && bus.off("flow.progress", onFlowProgress);
       } catch {}

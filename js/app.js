@@ -33,6 +33,18 @@ import { initAnchorManager } from "./modules/anchorManager.js";
 import { SceneController } from "./modules/SceneController.js";
 import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
 
+const WEBP_URLS = (() => {
+  try {
+    return import.meta.glob("/assets/**/*.webp", {
+      query: "?url",
+      import: "default",
+      eager: true,
+    });
+  } catch {
+    return {};
+  }
+})();
+
 const layers = {
   slide1Layer: makeSlideLayer("slide1"),
   slide2Layer: makeSlideLayer("slide2"),
@@ -130,6 +142,12 @@ bus.on("game.finddiff.complete", () => {
 const gameRoot = document.getElementById("game-root");
 if (gameRoot) gameManager.attachRoot(gameRoot);
 if (gameRoot) gameRoot.style.zIndex = "40";
+
+// Register games early so flow rules can preload them by slide
+gameManager.register("finddiff", () => import("./games/finddiff/index.js"));
+gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
+gameManager.register("wordbox", () => import("./games/wordbox/index.js"));
+gameManager.register("football", () => import("./games/football/index.js"));
 
 const flowActor = createActor(flowMachine);
 setupFlowSubscription({
@@ -378,7 +396,65 @@ class AppController {
       },
     });
 
-    // Keep track of current slide and always collapse any open picker forms
+    const PUZZLE_SLIDES = [
+      "slide23",
+      "slide24",
+      "slide25",
+      "slide26",
+      "slide27",
+      "slide28",
+    ];
+    const WORDBOX_SLIDES = [
+      "slide33",
+      "slide34",
+      "slide35",
+      "slide36",
+      "slide37",
+    ];
+    const FOOTBALL_SLIDES = ["slide41"];
+    const DEFER_SLIDES = [
+      ...PUZZLE_SLIDES,
+      ...WORDBOX_SLIDES,
+      ...FOOTBALL_SLIDES,
+    ];
+    const deferImagesForSlides = (ids) => {
+      ids.forEach((sid) => {
+        const slideEl = document.getElementById(sid);
+        if (!slideEl) return;
+        const imgs = slideEl.querySelectorAll("img[src]");
+        imgs.forEach((img) => {
+          // Skip if already deferred
+          if (img.dataset && img.dataset.src) return;
+          try {
+            img.dataset.src = img.getAttribute("src");
+            img.removeAttribute("src");
+            img.setAttribute("loading", "lazy");
+            img.setAttribute("decoding", "async");
+          } catch {}
+        });
+      });
+    };
+    const resolveBuiltUrl = (p) => {
+      const abs = p.startsWith("/") ? p : "/" + p;
+      return WEBP_URLS[abs] || abs;
+    };
+
+    const hydrateImagesForSlides = (ids) => {
+      ids.forEach((sid) => {
+        const slideEl = document.getElementById(sid);
+        if (!slideEl) return;
+        const imgs = slideEl.querySelectorAll("img[data-src]:not([src])");
+        imgs.forEach((img) => {
+          try {
+            const original = img.dataset.src;
+            if (!original) return;
+            img.setAttribute("src", resolveBuiltUrl(original));
+          } catch {}
+        });
+      });
+    };
+    deferImagesForSlides(DEFER_SLIDES);
+
     this.bus.on("flow.progress", (snap) => {
       currentSlide = snap?.value || snap;
       try {
@@ -386,6 +462,16 @@ class AppController {
         toyController?.toyShip?.close?.();
         toyController?.toyRobot?.close?.();
       } catch {}
+      if (currentSlide === "slide22" && !this._puzzleImagesPrefetched) {
+        this._puzzleImagesPrefetched = true;
+        hydrateImagesForSlides(PUZZLE_SLIDES);
+      }
+      if (
+        typeof currentSlide === "string" &&
+        currentSlide.startsWith("slide")
+      ) {
+        hydrateImagesForSlides([currentSlide]);
+      }
     });
 
     // Close pickers proactively when user hits Next
@@ -450,18 +536,7 @@ class AppController {
 
     this.initPane();
 
-    gameManager.register("finddiff", () => import("./games/finddiff/index.js"));
-    (async () => {
-      try {
-        await gameManager.activate("finddiff", { bus });
-        gameManager.active?.api?.setActive?.(false);
-        gameManager.active?.api?.hide?.();
-      } catch (e) {}
-    })();
-
     // Register puzzle game
-    gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
-    gameManager.preload("puzzle");
     bus.on("game.puzzle.complete", () => {
       if (window.__puzzleCompleted || window.__puzzleCompletedPending) return;
       window.__puzzleCompletedPending = true;
@@ -498,8 +573,6 @@ class AppController {
     });
 
     // Register WordBox game
-    gameManager.register("wordbox", () => import("./games/wordbox/index.js"));
-    gameManager.preload("wordbox");
     bus.on("game.wordbox.complete", () => {
       if (window.__wordboxCompleted || window.__wordboxCompletedPending) return;
       window.__wordboxCompletedPending = true;
@@ -534,8 +607,6 @@ class AppController {
     });
 
     // Register football pump game
-    gameManager.register("football", () => import("./games/football/index.js"));
-    gameManager.preload("football");
     bus.on("game.football.complete", () => {
       if (window.__footballCompleted) return;
       window.__footballCompleted = true;

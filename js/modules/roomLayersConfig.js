@@ -1,121 +1,116 @@
 // Room layers config.
-
-import mask0 from "../../assets/room/masks/mask_room_0.png";
-import mask1 from "../../assets/room/masks/mask_room_1.png";
-import mask2 from "../../assets/room/masks/mask_room_2.png";
-import mask3 from "../../assets/room/masks/mask_room_3.png";
-import mask4 from "../../assets/room/masks/mask_room_4.png";
-import mask5 from "../../assets/room/masks/mask_room_5.png";
-import mask6 from "../../assets/room/masks/mask_room_6.png";
-import mask7 from "../../assets/room/masks/mask_room_7.png";
-import mask8 from "../../assets/room/masks/mask_room_8.png";
-import mask9 from "../../assets/room/masks/mask_room_9.png";
-import mask10 from "../../assets/room/masks/mask_room_10.png";
-import mask11 from "../../assets/room/masks/mask_room_11.png";
-import mask12 from "../../assets/room/masks/mask_room_12.png";
-import mask13 from "../../assets/room/masks/mask_room_13.png";
-import mask14 from "../../assets/room/masks/mask_room_14.png";
-import mask15 from "../../assets/room/masks/mask_room_15.png";
-import mask16 from "../../assets/room/masks/mask_room_16.png";
-import mask17 from "../../assets/room/masks/mask_room_17.png";
-import mask18 from "../../assets/room/masks/mask_room_18.png";
-import mask19 from "../../assets/room/masks/mask_room_19.png";
-import mask20 from "../../assets/room/masks/mask_room_20.png";
-import mask21 from "../../assets/room/masks/mask_room_21.png";
-import mask22 from "../../assets/room/masks/mask_room_22.png";
-import mask23 from "../../assets/room/masks/mask_room_23.png";
-import mask24 from "../../assets/room/masks/mask_room_24.png";
+// rugs removed
+import mask0 from "../../assets/room/masks/mask_room_0.webp";
+import mask1 from "../../assets/room/masks/mask_room_1.webp";
+import mask2 from "../../assets/room/masks/mask_room_2.webp";
+import mask3 from "../../assets/room/masks/mask_room_3.webp";
+import mask4 from "../../assets/room/masks/mask_room_4.webp";
+import mask5 from "../../assets/room/masks/mask_room_5.webp";
+import mask6 from "../../assets/room/masks/mask_room_6.webp";
+import mask7 from "../../assets/room/masks/mask_room_7.webp";
+import mask8 from "../../assets/room/masks/mask_room_8.webp";
+import mask9 from "../../assets/room/masks/mask_room_9.webp";
+import mask10 from "../../assets/room/masks/mask_room_10.webp";
+import mask11 from "../../assets/room/masks/mask_room_11.webp";
+import mask12 from "../../assets/room/masks/mask_room_12.webp";
+import mask13 from "../../assets/room/masks/mask_room_13.webp";
+import mask14 from "../../assets/room/masks/mask_room_14.webp";
+import mask15 from "../../assets/room/masks/mask_room_15.webp";
+import mask16 from "../../assets/room/masks/mask_room_16.webp";
+import mask17 from "../../assets/room/masks/mask_room_17.webp";
+import mask18 from "../../assets/room/masks/mask_room_18.webp";
+import mask19 from "../../assets/room/masks/mask_room_19.webp";
+import mask20 from "../../assets/room/masks/mask_room_20.webp";
+import mask21 from "../../assets/room/masks/mask_room_21.webp";
+import mask22 from "../../assets/room/masks/mask_room_22.webp";
+import mask23 from "../../assets/room/masks/mask_room_23.webp";
+import mask24 from "../../assets/room/masks/mask_room_24.webp";
 
 // --- Variant imports ---
-import floor1 from "../../assets/room/floors/floor-1.png";
-import floor2 from "../../assets/room/floors/floor-2.png";
-import floor3 from "../../assets/room/floors/floor-3.png";
-import floor4 from "../../assets/room/floors/floor-4.png";
+import floor1 from "../../assets/room/floors/floor-1.webp";
+import floor2 from "../../assets/room/floors/floor-2.webp";
+import floor3 from "../../assets/room/floors/floor-3.webp";
+import floor4 from "../../assets/room/floors/floor-4.webp";
 
-import wall1 from "../../assets/room/walls/wall-1.png";
-import wall2 from "../../assets/room/walls/wall-2.png";
-import wall3 from "../../assets/room/walls/wall-3.png";
-import wall4 from "../../assets/room/walls/wall-4.png";
-import wall5 from "../../assets/room/walls/wall-5.png";
+import wall1 from "../../assets/room/walls/wall-1.webp";
+import wall2 from "../../assets/room/walls/wall-2.webp";
+import wall3 from "../../assets/room/walls/wall-3.webp";
+import wall4 from "../../assets/room/walls/wall-4.webp";
+import wall5 from "../../assets/room/walls/wall-5.webp";
 
-import rug1 from "../../assets/room/rugs/rug-1.png";
-import rug2 from "../../assets/room/rugs/rug-2.png";
-import rug3 from "../../assets/room/rugs/rug-3.png";
-import rug4 from "../../assets/room/rugs/rug-4.png";
-
-import table1 from "../../assets/room/tables/table-1.png";
-import table2 from "../../assets/room/tables/table-2.png";
-import table3 from "../../assets/room/tables/table-3.png";
+import table1 from "../../assets/room/tables/table-1.webp";
+import table2 from "../../assets/room/tables/table-2.webp";
+import table3 from "../../assets/room/tables/table-3.webp";
 
 // --- Object imports ---
-import ufoPng from "../../assets/room/objects/ufo.png";
-import planePng from "../../assets/room/objects/plane.png";
-import dinoPng from "../../assets/room/objects/dino.png";
-import rocketPng from "../../assets/room/objects/rocket.png";
-import robotPng from "../../assets/room/objects/robot.png";
-import lampPng from "../../assets/room/objects/lamp.png";
-import chessPng from "../../assets/room/objects/chess.png";
-import carYellowPng from "../../assets/room/objects/car-yellow.png";
-import carGreenPng from "../../assets/room/objects/car-green.png";
-import bedPng from "../../assets/room/objects/bed.png";
-import windowPng from "../../assets/room/objects/window.png";
-import bookcase2Png from "../../assets/room/objects/bookcase-2.png";
-import carBluePng from "../../assets/room/objects/car-blue.png";
-import glassPencilsPng from "../../assets/room/objects/glass-pencils.png";
-import shelfPng from "../../assets/room/objects/shelf.png";
-import windowLightsPng from "../../assets/room/objects/window-lights.png";
-import chandelierPng from "../../assets/room/objects/chandelier.png";
-import medalsPng from "../../assets/room/objects/medals.png";
-import wheelPumpPng from "../../assets/room/objects/wheel-pump.png";
-import wheelPumpHoverPng from "../../assets/room/objects/wheel-pump-hover.png";
-import shWheelPumpPng from "../../assets/room/objects/sh-wheel-pump.png";
-import boxPng from "../../assets/room/objects/box.png";
-import books1Png from "../../assets/room/objects/books-1.png";
-import books3Png from "../../assets/room/objects/books-3.png";
-import books4Png from "../../assets/room/objects/books-4.png";
-import booksTablePng from "../../assets/room/objects/books-table.png";
-import booksShelfPng from "../../assets/room/objects/books-shelf.png";
-import bookFloorPng from "../../assets/room/objects/book-floor.png";
-import gobletPng from "../../assets/room/objects/goblet.png";
-import skatesPng from "../../assets/room/objects/skates.png";
-import hockeyPng from "../../assets/room/objects/hockey.png";
-import picturePng from "../../assets/room/objects/picture.png";
-import skippingRopePng from "../../assets/room/objects/skipping-rope.png";
-import hockeyPuckPng from "../../assets/room/objects/hockey-puck.png";
-import shipPng from "../../assets/room/objects/ship.png";
-import tennisBookcasePng from "../../assets/room/objects/tennis-bookcase.png";
-import boxTennisPng from "../../assets/room/objects/box-tennis.png";
-import tennisShelfPng from "../../assets/room/objects/tennis-shelf.png";
-import plantsPng from "../../assets/room/objects/plants.png";
-import footballPng from "../../assets/room/objects/football.png";
-import tableclothPng from "../../assets/room/tables/tablecloth.png";
-import hockeyStickPng from "../../assets/room/objects/hockey-stick.png";
-import football0Png from "../../assets/room/objects/football-0.png";
-import pencilsFloorPng from "../../assets/room/objects/pencils-on-tha-floor.png";
-import cubesPng from "../../assets/room/objects/cubes.png";
-import curtainsPng from "../../assets/room/objects/curtains.png";
-import tennisFloorPng from "../../assets/room/objects/tennis-floor.png";
-import picture1Png from "../../assets/room/objects/picture-1.png";
-import picture2Png from "../../assets/room/objects/picture-2.png";
-import carPng from "../../assets/room/objects/car.png";
-import postersPng from "../../assets/room/objects/posters.png";
-import pictureShPng from "../../assets/room/objects/picture-sh.png";
-import stickersPng from "../../assets/room/objects/stickers.png";
-import tennisRacketPng from "../../assets/room/objects/tennis-racket.png";
-import shWallsPng from "../../assets/room/objects/sh-walls.png";
-import shBedPng from "../../assets/room/objects/sh-bed.png";
-import shBed2Png from "../../assets/room/objects/sh-bed-2.png";
-import bookcasePng from "../../assets/room/objects/bookcase.png";
-import shBookFloorPng from "../../assets/room/objects/sh-book-floor.png";
-import shFootballPng from "../../assets/room/objects/sh-football.png";
-import pictureHoverPng from "../../assets/room/objects/picture-hover.png";
-import bookFloorHoverPng from "../../assets/room/objects/book-floor-hover.png";
-import boxHoverPng from "../../assets/room/objects/box-hover.png";
-import footballHoverPng from "../../assets/room/objects/football-hover.png";
-import mask25 from "../../assets/room/masks/mask_room_25.png";
-import mask26 from "../../assets/room/masks/mask_room_26.png";
-import mask27 from "../../assets/room/masks/mask_room_27.png";
-import mask28 from "../../assets/room/masks/mask_room_28.png";
+import ufoPng from "../../assets/room/objects/ufo.webp";
+import planePng from "../../assets/room/objects/plane.webp";
+import dinoPng from "../../assets/room/objects/dino.webp";
+import rocketPng from "../../assets/room/objects/rocket.webp";
+import robotPng from "../../assets/room/objects/robot.webp";
+import lampPng from "../../assets/room/objects/lamp.webp";
+import chessPng from "../../assets/room/objects/chess.webp";
+import carYellowPng from "../../assets/room/objects/car-yellow.webp";
+import carGreenPng from "../../assets/room/objects/car-green.webp";
+import bedPng from "../../assets/room/objects/bed.webp";
+import windowPng from "../../assets/room/objects/window.webp";
+import bookcase2Png from "../../assets/room/objects/bookcase-2.webp";
+import carBluePng from "../../assets/room/objects/car-blue.webp";
+import glassPencilsPng from "../../assets/room/objects/glass-pencils.webp";
+import shelfPng from "../../assets/room/objects/shelf.webp";
+import windowLightsPng from "../../assets/room/objects/window-lights.webp";
+import chandelierPng from "../../assets/room/objects/chandelier.webp";
+import medalsPng from "../../assets/room/objects/medals.webp";
+import wheelPumpPng from "../../assets/room/objects/wheel-pump.webp";
+import wheelPumpHoverPng from "../../assets/room/objects/wheel-pump-hover.webp";
+import shWheelPumpPng from "../../assets/room/objects/sh-wheel-pump.webp";
+import boxPng from "../../assets/room/objects/box.webp";
+import books1Png from "../../assets/room/objects/books-1.webp";
+import books3Png from "../../assets/room/objects/books-3.webp";
+import books4Png from "../../assets/room/objects/books-4.webp";
+import booksTablePng from "../../assets/room/objects/books-table.webp";
+import booksShelfPng from "../../assets/room/objects/books-shelf.webp";
+import bookFloorPng from "../../assets/room/objects/book-floor.webp";
+import gobletPng from "../../assets/room/objects/goblet.webp";
+import skatesPng from "../../assets/room/objects/skates.webp";
+import hockeyPng from "../../assets/room/objects/hockey.webp";
+import picturePng from "../../assets/room/objects/picture.webp";
+import skippingRopePng from "../../assets/room/objects/skipping-rope.webp";
+import hockeyPuckPng from "../../assets/room/objects/hockey-puck.webp";
+import shipPng from "../../assets/room/objects/ship.webp";
+import tennisBookcasePng from "../../assets/room/objects/tennis-bookcase.webp";
+import boxTennisPng from "../../assets/room/objects/box-tennis.webp";
+import tennisShelfPng from "../../assets/room/objects/tennis-shelf.webp";
+import plantsPng from "../../assets/room/objects/plants.webp";
+import footballPng from "../../assets/room/objects/football.webp";
+import tableclothPng from "../../assets/room/tables/tablecloth.webp";
+import hockeyStickPng from "../../assets/room/objects/hockey-stick.webp";
+import football0Png from "../../assets/room/objects/football-0.webp";
+import pencilsFloorPng from "../../assets/room/objects/pencils-on-tha-floor.webp";
+import cubesPng from "../../assets/room/objects/cubes.webp";
+import curtainsPng from "../../assets/room/objects/curtains.webp";
+import tennisFloorPng from "../../assets/room/objects/tennis-floor.webp";
+import picture1Png from "../../assets/room/objects/picture-1.webp";
+import picture2Png from "../../assets/room/objects/picture-2.webp";
+import carPng from "../../assets/room/objects/car.webp";
+import postersPng from "../../assets/room/objects/posters.webp";
+import pictureShPng from "../../assets/room/objects/picture-sh.webp";
+import stickersPng from "../../assets/room/objects/stickers.webp";
+import tennisRacketPng from "../../assets/room/objects/tennis-racket.webp";
+import shWallsPng from "../../assets/room/objects/sh-walls.webp";
+import shBedPng from "../../assets/room/objects/sh-bed.webp";
+import shBed2Png from "../../assets/room/objects/sh-bed-2.webp";
+import bookcasePng from "../../assets/room/objects/bookcase.webp";
+import shBookFloorPng from "../../assets/room/objects/sh-book-floor.webp";
+import shFootballPng from "../../assets/room/objects/sh-football.webp";
+import pictureHoverPng from "../../assets/room/objects/picture-hover.webp";
+import bookFloorHoverPng from "../../assets/room/objects/book-floor-hover.webp";
+import boxHoverPng from "../../assets/room/objects/box-hover.webp";
+import footballHoverPng from "../../assets/room/objects/football-hover.webp";
+import mask25 from "../../assets/room/masks/mask_room_25.webp";
+import mask26 from "../../assets/room/masks/mask_room_26.webp";
+import mask27 from "../../assets/room/masks/mask_room_27.webp";
+import mask28 from "../../assets/room/masks/mask_room_28.webp";
 
 export const maskTextures = [
   mask0,
@@ -177,13 +172,6 @@ const RAW = [
     mask: { i: 5, c: "r" },
     fit: "fill",
     variants: [wall1, wall2, wall3, wall4, wall5],
-    variant: true,
-  },
-  {
-    id: "rug",
-    mask: { i: 6, c: "r" },
-    fit: "fill",
-    variants: [rug1, rug2, rug3, rug4],
     variant: true,
   },
   { id: "car-blue", mask: { i: 6, c: "g" }, tex: carBluePng },
@@ -272,7 +260,6 @@ export const Z_INDEX = {
   medals: 32,
   // Floor & base layers
   floor: 0,
-  rug: 52,
   "tennis-floor": 53,
   // Shadows
   "sh-bed": 54,
@@ -370,7 +357,6 @@ export const END_GAME_GROUP = [
   "tennis-racket",
   "tennis-shelf",
   "tablecloth",
-  "rug",
 ];
 
 // Individually revealable during MID phase (still hidden at start)

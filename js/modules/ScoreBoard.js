@@ -1,5 +1,5 @@
 // ScoreBoard component
-import starImg from "../../assets/star.png";
+import starImg from "../../assets/star.webp";
 
 export class ScoreBoard {
   constructor({ bus, parent = document.body } = {}) {

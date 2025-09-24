@@ -1,12 +1,12 @@
 // Spot-the-difference mini game logic
 import { gsap } from "gsap";
 // Asset imports (so Vite includes them in build)
-import highlightImg from "../../../assets/games/finddiff/finded.png";
-import roomImg from "../../../assets/games/finddiff/finddiff-room.png";
-import roomImg2 from "../../../assets/games/finddiff/finddiff-room-2.png";
-import maskImg from "../../../assets/games/finddiff/finddiff-mask.png";
-import brushImg from "../../../assets/games/finddiff/brush.png";
-import handImgSrc from "../../../assets/games/finddiff/hand.png";
+import highlightImg from "../../../assets/games/finddiff/finded.webp";
+import roomImg from "../../../assets/games/finddiff/finddiff-room.webp";
+import roomImg2 from "../../../assets/games/finddiff/finddiff-room-2.webp";
+import maskImg from "../../../assets/games/finddiff/finddiff-mask.webp";
+import brushImg from "../../../assets/games/finddiff/brush.webp";
+import handImgSrc from "../../../assets/games/finddiff/hand.webp";
 
 // Game tuning values / assets
 const DIFF_RADIUS = 32; // marker radius

@@ -1,18 +1,18 @@
 import gsap from "gsap";
 // Asset imports (so Vite includes them in build)
-import BALL_10 from "../../../assets/games/football/ball-10.png";
-import BALL_20 from "../../../assets/games/football/ball-20.png";
-import BALL_30 from "../../../assets/games/football/ball-30.png";
-import BALL_40 from "../../../assets/games/football/ball-40.png";
-import BALL_50 from "../../../assets/games/football/ball-50.png";
-import BALL_60 from "../../../assets/games/football/ball-60.png";
-import BALL_70 from "../../../assets/games/football/ball-70.png";
-import BALL_80 from "../../../assets/games/football/ball-80.png";
-import BALL_90 from "../../../assets/games/football/ball-90.png";
-import BALL_100 from "../../../assets/games/football/ball-100.png";
-import BASE_SRC from "../../../assets/games/football/tube-1.png";
-import HANDLE_SRC from "../../../assets/games/football/tube-2.png";
-import SHADOW_SRC from "../../../assets/games/football/sh.png";
+import BALL_10 from "../../../assets/games/football/ball-10.webp";
+import BALL_20 from "../../../assets/games/football/ball-20.webp";
+import BALL_30 from "../../../assets/games/football/ball-30.webp";
+import BALL_40 from "../../../assets/games/football/ball-40.webp";
+import BALL_50 from "../../../assets/games/football/ball-50.webp";
+import BALL_60 from "../../../assets/games/football/ball-60.webp";
+import BALL_70 from "../../../assets/games/football/ball-70.webp";
+import BALL_80 from "../../../assets/games/football/ball-80.webp";
+import BALL_90 from "../../../assets/games/football/ball-90.webp";
+import BALL_100 from "../../../assets/games/football/ball-100.webp";
+import BASE_SRC from "../../../assets/games/football/tube-1.webp";
+import HANDLE_SRC from "../../../assets/games/football/tube-2.webp";
+import SHADOW_SRC from "../../../assets/games/football/sh.webp";
 
 // Football pump mini-game
 // Click/tap the pump handle to animate and inflate the ball.

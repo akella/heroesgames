@@ -10,8 +10,8 @@ import {
   MID_GAME_REVEALABLE,
   END_GAME_GROUP,
 } from "../modules/roomLayersConfig.js";
-import depthMapFull from "../../assets/room/room-depth-2.png";
-import depthMapEmpty from "../../assets/room/room-depth-1.png";
+import depthMapFull from "../../assets/room/room-depth-2.webp";
+import depthMapEmpty from "../../assets/room/room-depth-1.webp";
 
 export default class ShaderLayer extends BaseLayer {
   constructor({ mouse, events, includeIds = null, excludeIds = null }) {
@@ -25,6 +25,15 @@ export default class ShaderLayer extends BaseLayer {
     this._includeIds = Array.isArray(includeIds) ? new Set(includeIds) : null;
     this._excludeIds = Array.isArray(excludeIds) ? new Set(excludeIds) : null;
     this._removedIds = new Set();
+    this._textureLoader = new THREE.TextureLoader();
+    this._textureCache = new Map();
+    this._placeholderTex = new THREE.DataTexture(
+      new Uint8Array([0, 0, 0, 0]),
+      1,
+      1,
+      THREE.RGBAFormat
+    );
+    this._placeholderTex.needsUpdate = true;
     this._buildMultiPass();
     this._applyInitialVisibility();
     this._wireRevealEvents();
@@ -32,7 +41,7 @@ export default class ShaderLayer extends BaseLayer {
   }
 
   _buildMultiPass() {
-    const loader = new THREE.TextureLoader();
+    const loader = this._textureLoader;
     this._currentDepthMap = "empty";
     this.depthTexture = loader.load(depthMapEmpty, (tex) => {
       const img = tex.image;
@@ -61,11 +70,11 @@ export default class ShaderLayer extends BaseLayer {
       let variants = null;
       let baseTex;
       if (def.variant) {
-        variants = def.variants.map((p) => loader.load(p));
+        variants = def.variants.map(() => this._placeholderTex);
         this.variantState[def.id] = 0;
         baseTex = variants[0];
       } else {
-        baseTex = loader.load(def.tex);
+        baseTex = this._placeholderTex;
       }
       return { def, baseTex, variants };
     });
@@ -124,6 +133,13 @@ export default class ShaderLayer extends BaseLayer {
   }
 
   _applyInitialVisibility() {}
+  _applyInitialVisibility() {
+    if (!this.layerMeshes) return;
+    this.layerMeshes.forEach(({ entry, material }) => {
+      const enabled = material.uniforms.enabled.value > 0.5;
+      if (enabled) this._ensureLayerTexture(entry.def.id);
+    });
+  }
 
   _wireRevealEvents() {
     if (!this.events) return;
@@ -131,6 +147,7 @@ export default class ShaderLayer extends BaseLayer {
       if (!id) return;
       if (this._removedIds.has(id)) return;
       this.setLayerEnabled(id, true);
+      this._ensureLayerTexture(id);
       if (
         MID_GAME_REVEALABLE.every((rid) => this._isLayerEnabled(rid)) &&
         !this._midCompleted
@@ -294,13 +311,22 @@ export default class ShaderLayer extends BaseLayer {
     const clamped = Math.max(0, Math.min(list.length - 1, variantIndex));
     if (this.variantState[id] === clamped) return;
     this.variantState[id] = clamped;
-    entry.material.uniforms.layerTex.value = list[clamped];
+    if (list[clamped] === this._placeholderTex) {
+      const texPath = entry.entry.def.variants[clamped];
+      this._loadTexture(texPath, (tex) => {
+        entry.entry.variants[clamped] = tex;
+        entry.material.uniforms.layerTex.value = tex;
+      });
+    } else {
+      entry.material.uniforms.layerTex.value = list[clamped];
+    }
   }
 
   setLayerEnabled(id, flag) {
     const entry = this.layerMeshes.find((l) => l.entry.def.id === id);
     if (!entry) return;
     entry.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
+    if (flag) this._ensureLayerTexture(id);
     if (id === "picture") {
       const sh = this.layerMeshes.find((l) => l.entry.def.id === "picture-sh");
       if (sh) sh.material.uniforms.enabled.value = flag ? 1.0 : 0.0;
@@ -377,5 +403,53 @@ export default class ShaderLayer extends BaseLayer {
 
   setOpacity(value) {
     this.material.uniforms.opacity.value = value;
+  }
+
+  // Internal helpers for lazy texture loading
+  _loadTexture(path, onLoad) {
+    if (!path) return;
+    const cached = this._textureCache.get(path);
+    if (cached) {
+      try {
+        onLoad && onLoad(cached);
+      } catch {}
+      return;
+    }
+    this._textureLoader.load(
+      path,
+      (tex) => {
+        this._textureCache.set(path, tex);
+        try {
+          onLoad && onLoad(tex);
+        } catch {}
+      },
+      undefined,
+      () => {
+        // ignore texture load errors for now
+      }
+    );
+  }
+
+  _ensureLayerTexture(id) {
+    const entry = this.layerMeshes.find((l) => l.entry.def.id === id);
+    if (!entry) return;
+    const def = entry.entry.def;
+    if (def.variant) {
+      const idx = this.variantState[id] || 0;
+      const tex = entry.entry.variants[idx];
+      if (tex !== this._placeholderTex) return; // already loaded
+      const path = def.variants[idx];
+      this._loadTexture(path, (loaded) => {
+        entry.entry.variants[idx] = loaded;
+        entry.material.uniforms.layerTex.value = loaded;
+      });
+    } else {
+      if (entry.entry.baseTex !== this._placeholderTex) return; // already loaded
+      const path = def.tex;
+      this._loadTexture(path, (loaded) => {
+        entry.entry.baseTex = loaded;
+        entry.material.uniforms.layerTex.value = loaded;
+      });
+    }
   }
 }

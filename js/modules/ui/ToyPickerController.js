@@ -1,7 +1,7 @@
 import { RoomPicker } from "./RoomPicker.js";
-import dinoThumb from "../../../assets/picker/dino.png";
-import shipThumb from "../../../assets/picker/ship.png";
-import robotThumb from "../../../assets/picker/robot.png";
+import dinoThumb from "../../../assets/picker/dino.webp";
+import shipThumb from "../../../assets/picker/ship.webp";
+import robotThumb from "../../../assets/picker/robot.webp";
 
 export class ToyPickerController {
   constructor({

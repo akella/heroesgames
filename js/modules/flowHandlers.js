@@ -84,6 +84,10 @@ export function setupFlowSubscription({
   }
 
   const RULES = [
+    { when: "slide7", gamePreload: ["finddiff"] },
+    { when: "slide24", gamePreload: ["puzzle"] },
+    { when: "slide33", gamePreload: ["wordbox"] },
+    { when: "slide41", gamePreload: ["football"] },
     {
       when: "slide99",
       pickers: { show: true, locked: false, close: true },
@@ -117,6 +121,8 @@ export function setupFlowSubscription({
     },
     { when: "slide38", character: "show" },
     { when: ["slide40", "slide41", "slide42"], character: "hide" },
+    // Activate finddiff for early mini-game slides
+    { when: "slide9", game: { id: "finddiff", active: false, z: 5 } },
     // Generic mini-game early slides (existing behavior retained)
     {
       when: "slide9",
@@ -224,13 +230,12 @@ export function setupFlowSubscription({
       roomRemove: ["books-shelf", "picture-1"],
     },
     // Slide 46: disable filter, reveal all remaining, use full depth map
-    // Additionally: explicitly show picture-1 and hide the rug
     {
       when: "slide46",
       onEnter: "slide46_setup",
       roomRestore: ["box", "book-floor", "picture-1"],
       roomReveal: ["picture-1", "box", "book-floor"],
-      roomRemove: ["books-shelf", "rug", "picture-2"],
+      roomRemove: ["books-shelf", "picture-2"],
     },
     // Outro
     { when: "outro", outro: true },
@@ -550,6 +555,15 @@ export function setupFlowSubscription({
           score: rule.game.score,
           roomHideIds: rule.game.roomHideIds,
         });
+      }
+      if (rule.gamePreload) {
+        try {
+          rule.gamePreload.forEach((id) => {
+            try {
+              gameManager.preload(id);
+            } catch {}
+          });
+        } catch {}
       }
       if (rule.gameEnsure && gameManager.active?.id === rule.gameEnsure.id) {
         applyGameMisc(rule.gameEnsure);
