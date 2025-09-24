@@ -58,12 +58,14 @@
     top: 0;
     right: 0;
     transform: translate(50%, -100%);
-    font-family: "Comic Sans MS", cursive, sans-serif;
+    font-family: "Factor A TRIAL", Arial, sans-serif;
+    font-weight: 900;
     font-size: 20px;
     line-height: 24px;
-    font-weight: 700;
+    letter-spacing: -0.012em;
     color: #4071fd;
     text-transform: uppercase;
+    text-align: center;
     z-index: 60;
     &__text {
       padding: 50px;
@@ -73,15 +75,14 @@
       z-index: 2;
       align-items: center;
       justify-content: center;
-      text-align: center;
     }
     &__textbig {
       font-size: 40px;
-      line-height: normal;
+      line-height: 40px;
     }
     &__textmid {
       font-size: 32px;
-      line-height: normal;
+      line-height: 36px;
     }
     &__flip {
       transform: translate(-50%, -100%);
@@ -119,7 +120,9 @@
   }
 }
 .dog_left .small-dog__bubble {
-  transform: translate(-350%, -100%);
+  transform: translate(150%, -100%);
+  left: 0;
+  right: auto;
 }
 .dog_bigger {
   bottom: 0 !important;

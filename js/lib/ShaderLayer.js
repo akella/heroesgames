@@ -139,6 +139,17 @@ export default class ShaderLayer extends BaseLayer {
         this.events.emit("room.midCompleted");
       }
     });
+    // Restore a previously removed layer (and its shadow) so it can be revealed again
+    this.events.on("room.restore", ({ id }) => {
+      if (!id) return;
+      if (this._removedIds.has(id)) this._removedIds.delete(id);
+      this.setLayerEnabled(id, true);
+      const shadowId = this._shadowIdFor(id);
+      if (shadowId) {
+        this._removedIds.delete(shadowId);
+        this.setLayerEnabled(shadowId, true);
+      }
+    });
     this.events.on("room.revealAll", () => {
       // Reveal everything that was initially hidden (MID + END groups)
       INITIAL_HIDE.forEach((id) => {

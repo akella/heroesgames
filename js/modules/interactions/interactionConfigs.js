@@ -11,6 +11,7 @@ const SLIDES_VISIBLE_COMMON = [
   "slide32",
   "slide33",
   "slide38",
+  "slide99",
 ];
 const SLIDES_HOVER_ONLY_COMMON = [
   "slide21",
@@ -21,6 +22,7 @@ const SLIDES_HOVER_ONLY_COMMON = [
   "slide32",
   "slide33",
   "slide38",
+  "slide99",
 ];
 const SLIDES_HIGHLIGHT_ONLY_COMMON = SLIDES_VISIBLE_COMMON;
 export const INTERACTION_CONFIGS = [

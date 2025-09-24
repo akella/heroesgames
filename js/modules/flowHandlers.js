@@ -84,6 +84,12 @@ export function setupFlowSubscription({
   }
 
   const RULES = [
+    {
+      when: "slide99",
+      pickers: { show: true, locked: false, close: true },
+      roomReveal: ["book-floor", "box", "football-0"],
+      score: { unlock: true, hide: true },
+    },
     // Force-hide pickers across puzzle pre-intro (now starting one slide earlier) and gameplay slides
     {
       when: ["slide23", "slide24", "slide25", "slide26", "slide27"],
@@ -103,7 +109,12 @@ export function setupFlowSubscription({
       when: ["slide29", "slide30", "slide31"],
       pickers: { show: true, locked: false, close: true },
     },
-    { when: ["slide32", "slide33"], pickers: { hide: true } },
+    { when: ["slide33"], pickers: { hide: true } },
+    { when: "slide39", pickers: { hide: true } },
+    {
+      when: ["slide34", "slide35", "slide36", "slide37"],
+      pickers: { hide: true },
+    },
     { when: "slide38", character: "show" },
     { when: ["slide40", "slide41", "slide42"], character: "hide" },
     // Generic mini-game early slides (existing behavior retained)
@@ -168,6 +179,7 @@ export function setupFlowSubscription({
     },
     { when: "slide41", roomRemove: ["wheel-pump", "sh-wheel-pump"] },
     { when: "slide42", football: true },
+    { when: ["slide42", "slide43", "slide44"], pickers: { hide: true } },
     {
       when: "slide43",
       postFootballPersist: { keepGame: true, z: 5 },
@@ -184,9 +196,10 @@ export function setupFlowSubscription({
       when: "slide45",
       roomReveal: [
         "chandelier",
-        "picture",
+        "picture-2",
         "books-1",
         "books-3",
+        "book-floor",
         "skipping-rope",
         "car-green",
         "car-yellow",
@@ -194,6 +207,8 @@ export function setupFlowSubscription({
         "car",
         // box is shown but kept non-interactive — interaction manager already hides hover
         "box",
+        "plane",
+        "rocket",
         "football",
         "cubes",
         "books-4",
@@ -205,15 +220,17 @@ export function setupFlowSubscription({
         "ufo",
         "robot",
       ],
-      roomRemove: ["books-shelf"],
+      score: { unlock: true, hide: true },
+      roomRemove: ["books-shelf", "picture-1"],
     },
     // Slide 46: disable filter, reveal all remaining, use full depth map
     // Additionally: explicitly show picture-1 and hide the rug
     {
       when: "slide46",
       onEnter: "slide46_setup",
-      roomReveal: ["picture-1"],
-      roomRemove: ["books-shelf", "rug"],
+      roomRestore: ["box", "book-floor", "picture-1"],
+      roomReveal: ["picture-1", "box", "book-floor"],
+      roomRemove: ["books-shelf", "rug", "picture-2"],
     },
     // Outro
     { when: "outro", outro: true },
@@ -223,6 +240,45 @@ export function setupFlowSubscription({
     return Array.isArray(rule.when)
       ? rule.when.includes(slide)
       : rule.when === slide;
+  }
+
+  function allGamesDone() {
+    const wordDone =
+      !!window.__wordboxCompleted || !!window.__wordboxCompletedPending;
+    const puzzDone =
+      !!window.__puzzleCompleted || !!window.__puzzleCompletedPending;
+    return puzzDone && wordDone && !!window.__footballCompleted;
+  }
+
+  function isGameSlide(slide, ranges) {
+    return ranges.some(([from, to]) => {
+      const n = parseInt((slide || "").replace("slide", ""), 10);
+      return n >= from && n <= to;
+    });
+  }
+
+  function redirectToHub() {
+    try {
+      emit("scene.parallax", { enabled: true });
+      emit("scene.view.reset");
+      dispatchChar("show");
+    } catch {}
+    try {
+      if (gameManager.active) {
+        gameManager.active.api?.setActive?.(false);
+        gameManager.active.api?.hide?.();
+        if (typeof gameManager.deactivate === "function") {
+        }
+      }
+      if (gameRoot) gameRoot.style.zIndex = "5";
+    } catch {}
+    try {
+      emit("score.unlock");
+      emit("score.hide");
+    } catch {}
+    try {
+      flowActor.send({ type: "GOTO_99" });
+    } catch {}
   }
 
   function applyPickers(cfg, slide) {
@@ -396,9 +452,23 @@ export function setupFlowSubscription({
     if (gameRoot) gameRoot.style.zIndex = "5";
   }
 
-  function handleRoomOps(rule) {
+  function handleRoomOps(rule, slide) {
     if (rule.roomReveal) {
-      rule.roomReveal.forEach((id) => emit("room.reveal", { id }));
+      const ids = rule.roomReveal.filter((id) => {
+        if (
+          id === "box" &&
+          (window.__wordboxCompleted || window.__wordboxCompletedPending) &&
+          slide !== "slide45" &&
+          slide !== "slide46"
+        ) {
+          return false;
+        }
+        return true;
+      });
+      ids.forEach((id) => emit("room.reveal", { id }));
+    }
+    if (rule.roomRestore) {
+      rule.roomRestore.forEach((id) => emit("room.restore", { id }));
     }
     if (rule.roomRemove) {
       rule.roomRemove.forEach((id) => emit("room.remove", { id }));
@@ -412,7 +482,38 @@ export function setupFlowSubscription({
     emit("flow.progress", snap);
     const slide = snap.value;
 
-    // Auto advance
+    if (slide === "slide22" || slide === "slide32" || slide === "slide39") {
+      if (!allGamesDone()) {
+      }
+    }
+
+    if (
+      window.__puzzleCompleted &&
+      !window.__puzzleCompletedPending &&
+      isGameSlide(slide, [[25, 27]])
+    ) {
+      try {
+        if (gameManager.active?.id === "puzzle") {
+          gameManager.active.api?.setActive?.(false);
+          gameManager.active.api?.hide?.();
+          if (gameRoot) gameRoot.style.zIndex = "5";
+        }
+      } catch {}
+      flowActor.send({ type: "NEXT" });
+      return;
+    }
+    if (
+      window.__wordboxCompleted &&
+      !window.__wordboxCompletedPending &&
+      isGameSlide(slide, [[34, 37]])
+    ) {
+      flowActor.send({ type: "NEXT" });
+      return;
+    }
+    if (window.__footballCompleted && isGameSlide(slide, [[42, 44]])) {
+      flowActor.send({ type: "NEXT" });
+      return;
+    }
     if (flowActor._autoTimer) {
       clearTimeout(flowActor._autoTimer);
       flowActor._autoTimer = null;
@@ -423,9 +524,11 @@ export function setupFlowSubscription({
         AUTO_SLIDES[slide]
       );
     }
-
-    // Puzzle special cases (kept outside generic rules due to async preview pattern)
     if (handlePuzzleRules(slide)) return;
+    if (slide === "slide45" && !allGamesDone()) {
+      redirectToHub();
+      return;
+    }
 
     // Apply declarative rules
     RULES.forEach((rule) => {
@@ -451,7 +554,7 @@ export function setupFlowSubscription({
       if (rule.gameEnsure && gameManager.active?.id === rule.gameEnsure.id) {
         applyGameMisc(rule.gameEnsure);
       }
-      handleRoomOps(rule);
+      handleRoomOps(rule, slide);
       if (rule.wordbox) handleWordBoxRule(rule, slide);
       if (rule.football) handleFootballRule(slide);
       if (rule.postFootball) handlePostFootball(slide); // legacy (unused now)
@@ -462,6 +565,11 @@ export function setupFlowSubscription({
       }
       if (rule.afterFootballEnd) handlePostFootball(slide);
       if (rule.outro) handleOutro(slide);
+      const n = parseInt((slide || "").replace("slide", ""), 10);
+      if (n >= 46 && n <= 48 && !allGamesDone()) {
+        redirectToHub();
+        return;
+      }
       if (rule.onEnter === "slide46_setup") {
         try {
           bus.emit("scene.parallax", { enabled: true });
@@ -486,7 +594,20 @@ export function setupFlowSubscription({
       }
     });
 
-    // Post-finddiff persistence hide logic
+    if (slide === "slide38" && window.__wordboxCompletedPending) {
+      try {
+        window.__wordboxCompleted = true;
+        window.__wordboxCompletedPending = false;
+      } catch {}
+    }
+
+    if (slide === "slide28" && window.__puzzleCompletedPending) {
+      try {
+        window.__puzzleCompleted = true;
+        window.__puzzleCompletedPending = false;
+      } catch {}
+    }
+
     try {
       if (window.__finddiffHideAt && slide === window.__finddiffHideAt) {
         if (gameManager.active?.id === "finddiff") {

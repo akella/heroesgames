@@ -4,6 +4,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import modelUrl from "../../model/clay_guy_material.glb?url";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { PMREMGenerator } from "three";
 export default class ModelLayer extends BaseLayer {
   constructor({ mouse, events }) {
     super();
@@ -21,12 +22,33 @@ export default class ModelLayer extends BaseLayer {
     this.initLoaders();
     this.loadModel();
     this.addLighting();
+    this._setupEnvironment();
     document.addEventListener("showCharacter", () => {
       this.showCharacter();
     });
     document.addEventListener("hideCharacter", () => {
       this.hideCharacter();
     });
+  }
+
+  _setupEnvironment() {
+    try {
+      // Try to find a renderer from the foreground canvas to build PMREM
+      const c = document.querySelector("canvas.gl-canvas--fg");
+      if (!c || !c.getContext) return;
+      // Reuse the WebGL context to avoid extra memory; PMREM needs a renderer instance
+      const gl = c.getContext("webgl2") || c.getContext("webgl");
+      if (!gl) return;
+      // Create a temporary renderer bound to the same canvas/context
+      const renderer = new THREE.WebGLRenderer({ canvas: c, context: gl });
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      pmrem.compileEquirectangularShader();
+      const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+      this.environment = env;
+      this.background = null; // keep transparent; only use env for IBL
+    } catch (e) {
+      // Non-fatal if environment setup fails
+    }
   }
 
   showCharacter() {
@@ -39,11 +61,16 @@ export default class ModelLayer extends BaseLayer {
   }
 
   addLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     this.add(ambientLight);
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(1, 1, 1);
-    this.add(directionalLight);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.8);
+    hemi.position.set(0, 1, 0);
+    this.add(hemi);
+    const key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(2.5, 3.0, 2.0);
+    key.target.position.set(0, 0.5, 0);
+    this.add(key);
+    this.add(key.target);
   }
 
   initLoaders() {
@@ -62,16 +89,34 @@ export default class ModelLayer extends BaseLayer {
       (gltf) => {
         this.model = gltf.scene;
         this.model.visible = !!this._shouldBeVisible;
-        let scale = 0.4;
+        let scale = 0.33;
         this.model.scale.set(scale, scale, scale);
         const boundingBox = new THREE.Box3().setFromObject(this.model);
         const center = boundingBox.getCenter(new THREE.Vector3());
         console.log(center);
         this.model.position.x = -center.x;
         this.model.position.y = -center.y - 0.7;
-        this.model.position.z = -center.z;
+        const zOffset = 0.18;
+        this.model.position.z = -center.z + zOffset;
         this.modelY = this.model.position.y;
         this.add(this.model);
+        this.model.traverse((obj) => {
+          if (obj.isMesh && obj.material) {
+            const m = obj.material;
+            if (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial) {
+              if (m.envMapIntensity != null) m.envMapIntensity = 0.8;
+              if (m.roughness != null)
+                m.roughness = Math.min(0.9, Math.max(0.65, m.roughness * 1.05));
+              if (m.metalness != null)
+                m.metalness = Math.max(0, Math.min(0.12, m.metalness * 0.6));
+              if (m.clearcoat != null) m.clearcoat = Math.min(0.1, m.clearcoat);
+              if (m.sheen != null) m.sheen = 0;
+            }
+            if (m.color) {
+              m.color.multiplyScalar(1.08);
+            }
+          }
+        });
         if (gltf.animations && gltf.animations.length > 0) {
           this.mixer = new THREE.AnimationMixer(this.model);
           this.actions = gltf.animations.map((clip) =>

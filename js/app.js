@@ -82,6 +82,7 @@ const layers = {
   slide46Layer: makeSlideLayer("slide46"),
   slide47Layer: makeSlideLayer("slide47"),
   slide48Layer: makeSlideLayer("slide48"),
+  slide99Layer: makeSlideLayer("slide99"),
 };
 
 const layerManager = new LayerManager(layers);
@@ -94,6 +95,9 @@ const gameManager = new GameManager({ bus });
 try {
   window.gameManagerRef = gameManager;
 } catch {}
+window.__wordboxCompleted = false;
+window.__puzzleCompleted = false;
+window.__footballCompleted = false;
 bus.on("game.finddiff.complete", () => {
   let curSlide;
   try {
@@ -160,6 +164,7 @@ class AppController {
     this.bgRenderer.setSize(this.width, this.height);
     this.bgRenderer.autoClear = true;
     this.bgRenderer.toneMapping = THREE.NeutralToneMapping;
+    this.bgRenderer.toneMappingExposure = 1.35;
     this.bgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--bg");
     this.container.appendChild(this.bgRenderer.domElement);
 
@@ -173,6 +178,7 @@ class AppController {
     this.fgRenderer.setSize(this.width, this.height);
     this.fgRenderer.autoClear = false;
     this.fgRenderer.toneMapping = THREE.NeutralToneMapping;
+    this.fgRenderer.toneMappingExposure = 1.35;
     this.fgRenderer.domElement.classList.add("gl-canvas", "gl-canvas--fg");
     this.container.appendChild(this.fgRenderer.domElement);
 
@@ -207,6 +213,11 @@ class AppController {
       return () => {
         if (fired) return;
         if (
+          currentSlide === "slide18" ||
+          currentSlide === "slide19" ||
+          currentSlide === "slide20" ||
+          currentSlide === "slide21" ||
+          currentSlide === "slide22" ||
           currentSlide === "slide29" ||
           currentSlide === "slide30" ||
           currentSlide === "slide31" ||
@@ -225,6 +236,11 @@ class AppController {
       return () => {
         if (fired) return;
         if (
+          currentSlide === "slide18" ||
+          currentSlide === "slide19" ||
+          currentSlide === "slide20" ||
+          currentSlide === "slide21" ||
+          currentSlide === "slide22" ||
           currentSlide === "slide29" ||
           currentSlide === "slide30" ||
           currentSlide === "slide31" ||
@@ -336,9 +352,9 @@ class AppController {
       shaderFG: this.shaderLayerFG,
       container: roomPickersContainer,
       slideBehavior: {
-        hidden: ["slide29", "slide32", "slide33"],
+        hidden: ["slide29", "slide33", "slide99"],
         lockedVisible: ["slide30"],
-        unlockedVisible: ["slide31"],
+        unlockedVisible: ["slide31", "slide32"],
       },
       anchors: {
         dino: {
@@ -366,9 +382,6 @@ class AppController {
     this.bus.on("flow.progress", (snap) => {
       currentSlide = snap?.value || snap;
       try {
-        pickerWall?.close?.();
-        pickerFloor?.close?.();
-        pickerTable?.close?.();
         toyController?.toyDino?.close?.();
         toyController?.toyShip?.close?.();
         toyController?.toyRobot?.close?.();
@@ -425,7 +438,7 @@ class AppController {
       flowActor.send({ type: "GOTO_22" });
     });
     bus.on("box.click", () => {
-      flowActor.send({ type: "GOTO_32" });
+      flowActor.send({ type: "GOTO_33" });
     });
     bus.on("football.click", () => {
       flowActor.send({ type: "GOTO_39" });
@@ -450,63 +463,112 @@ class AppController {
     gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
     gameManager.preload("puzzle");
     bus.on("game.puzzle.complete", () => {
+      if (window.__puzzleCompleted || window.__puzzleCompletedPending) return;
+      window.__puzzleCompletedPending = true;
+      try {
+        if (gameManager.active?.id === "puzzle") {
+          gameManager.active.api?.setActive?.(false);
+          gameManager.active.api?.hide?.();
+        }
+      } catch {}
+      try {
+        if (gameRoot) gameRoot.style.zIndex = "5";
+      } catch {}
+      try {
+        bus.emit("score.unlock");
+        bus.emit("score.hide");
+      } catch {}
       try {
         bus.emit("room.remove", { id: "book-floor" });
         this.interactionManager?.remove?.("book-floor");
       } catch {}
       try {
-        flowActor.send({ type: "NEXT" });
+        const wordDone =
+          !!window.__wordboxCompleted || !!window.__wordboxCompletedPending;
+        const footDone = !!window.__footballCompleted;
+        const willBeAllDone = wordDone && footDone;
+        if (willBeAllDone) {
+          window.__puzzleCompleted = true;
+          window.__puzzleCompletedPending = false;
+          flowActor.send({ type: "GOTO_45" });
+        } else {
+          flowActor.send({ type: "NEXT" });
+        }
       } catch {}
     });
 
     // Register WordBox game
     gameManager.register("wordbox", () => import("./games/wordbox/index.js"));
     gameManager.preload("wordbox");
-    let __wordboxCompleted = false;
     bus.on("game.wordbox.complete", () => {
-      if (__wordboxCompleted) return;
-      __wordboxCompleted = true;
+      if (window.__wordboxCompleted || window.__wordboxCompletedPending) return;
+      window.__wordboxCompletedPending = true;
       try {
         gameManager.active?.api?.setActive?.(false);
       } catch {}
-      // Hide scoreboard right after WordBox completes
       try {
         bus.emit("score.unlock");
         bus.emit("score.hide");
       } catch {}
-      // Remove the box from the room once the WordBox game is completed
-      try {
-        bus.emit("room.remove", { id: "box" });
-      } catch {}
       try {
         this.interactionManager?.remove?.("box");
         this.interactionManagerBG?.remove?.("box");
+        bus.emit("room.remove", { id: "box" });
       } catch {}
       try {
         gameManager.active?.api?.hide?.();
       } catch {}
       try {
-        flowActor.send({ type: "NEXT" });
+        const willBeAllDone =
+          window.__puzzleCompleted && window.__footballCompleted;
+        if (willBeAllDone) {
+          window.__wordboxCompleted = true;
+          window.__wordboxCompletedPending = false;
+          flowActor.send({ type: "GOTO_45" });
+        } else if (!window.__footballCompleted) {
+          flowActor.send({ type: "NEXT" });
+        } else {
+          flowActor.send({ type: "GOTO_99" });
+        }
       } catch {}
     });
 
     // Register football pump game
     gameManager.register("football", () => import("./games/football/index.js"));
     gameManager.preload("football");
-    let __footballCompleted = false;
     bus.on("game.football.complete", () => {
-      if (__footballCompleted) return;
-      __footballCompleted = true;
+      if (window.__footballCompleted) return;
+      window.__footballCompleted = true;
       try {
         gameManager.active?.api?.setActive?.(false);
+      } catch {}
+      try {
+        gameManager.active?.api?.hide?.();
+      } catch {}
+      try {
+        bus.emit("scene.parallax", { enabled: true });
+        bus.emit("scene.view.reset");
+      } catch {}
+      try {
+        if (gameRoot) gameRoot.style.zIndex = "5";
+      } catch {}
+      try {
+        if (flowActor && flowActor._wheelPumpCleanup) {
+          flowActor._wheelPumpCleanup();
+          flowActor._wheelPumpCleanup = null;
+        }
       } catch {}
       try {
         bus.emit("score.unlock");
         bus.emit("score.hide");
       } catch {}
-      // Do NOT hide football game immediately; keep it visible for next 2 slides (43,44)
       try {
-        flowActor.send({ type: "NEXT" });
+        const wordDone =
+          !!window.__wordboxCompleted || !!window.__wordboxCompletedPending;
+        const puzzDone =
+          !!window.__puzzleCompleted || !!window.__puzzleCompletedPending;
+        const allDone = puzzDone && wordDone && !!window.__footballCompleted;
+        flowActor.send({ type: allDone ? "GOTO_45" : "GOTO_99" });
       } catch {}
     });
 

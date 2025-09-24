@@ -323,10 +323,14 @@ export const Z_INDEX = {
   "skipping-rope": 103,
   "tennis-shelf": 104,
   // Pictures & overlays
-  picture: 110,
-  "picture-2": 111,
-  "picture-1": 112,
-  "picture-sh": 113,
+  // Ensure base picture frame is below the hockey stick (59)
+  picture: 58.2,
+  // Render picture-2 below hockey stick (59)
+  "picture-2": 58.5,
+  // Ensure picture-1 below hockey stick (59)
+  "picture-1": 58.4,
+  // Ensure picture shadow is also below the stick
+  "picture-sh": 58.3,
   "picture-hover": 114,
   "book-floor-hover": 115,
   "box-hover": 116,

@@ -48,6 +48,7 @@ export function createGame({ bus }) {
   let resizeObserver;
   let onPointerMoveBound;
   let onPointerUpBound;
+  let onKeyDownBound;
   let dragging = null; // {piece, startX, startY, offsetX, offsetY, originParent, originNext, startLeft, startTop}
 
   const groupOffsetX = 0;
@@ -491,6 +492,30 @@ export function createGame({ bus }) {
     if (placedCount >= totalPieces) finish();
   }
 
+  // Developer helper: snap all remaining pieces into place
+  function autoSolve() {
+    if (!active || complete) return;
+    if (dragging) {
+      const d = dragging;
+      dragging = null;
+      try {
+        d.piece?.el?.classList?.remove("dragging");
+      } catch {}
+    }
+    piecesState.forEach((ps) => {
+      if (ps.state !== "placed") snapPiece(ps);
+    });
+  }
+
+  function onGlobalKeyDown(e) {
+    // Alt+F triggers auto solve while puzzle is active
+    const key = e.key || "";
+    if (e.altKey && (key === "f" || key === "F")) {
+      e.preventDefault();
+      autoSolve();
+    }
+  }
+
   function finish() {
     if (complete) return;
     complete = true;
@@ -530,11 +555,21 @@ export function createGame({ bus }) {
         if (attempts < maxAttempts) setTimeout(stabilizer, 100);
       };
       setTimeout(stabilizer, 150);
+      // Attach dev hotkey listener
+      if (!onKeyDownBound) {
+        onKeyDownBound = onGlobalKeyDown;
+        window.addEventListener("keydown", onKeyDownBound);
+      }
     } else {
       root?.classList.remove("active");
       root.style.pointerEvents = "none";
 
       stopAnchorFollow();
+      // Detach dev hotkey listener
+      if (onKeyDownBound) {
+        window.removeEventListener("keydown", onKeyDownBound);
+        onKeyDownBound = null;
+      }
     }
   }
 
@@ -542,6 +577,10 @@ export function createGame({ bus }) {
     if (resizeObserver) resizeObserver.disconnect();
     window.removeEventListener("pointermove", onPointerMoveBound || (() => {}));
     window.removeEventListener("pointerup", onPointerUpBound || (() => {}));
+    if (onKeyDownBound) {
+      window.removeEventListener("keydown", onKeyDownBound);
+      onKeyDownBound = null;
+    }
     piecesState.forEach((ps) => {
       ps.el?.remove();
     });
