@@ -13,12 +13,43 @@ export function createGame({ bus }) {
   let completed = false;
   let onFlowProgress;
   let completeTimer = null;
+  let observedTargets = [];
+  let lastRect = null;
+  let rafId = null;
+
+  function getTargetImg() {
+    const slide = document.getElementById("slide34");
+    if (!slide) return null;
+    const candidates = Array.from(slide.querySelectorAll(".wb-blocks"));
+    for (const el of candidates) {
+      const r = el.getBoundingClientRect();
+      if (r && r.width > 0 && r.height > 0) return el;
+    }
+    return candidates[0] || null;
+  }
 
   function syncPosition() {
     if (!uiEl) return;
-    const targetImg = document.querySelector("#slide34 .wb-blocks");
+    const targetImg = getTargetImg();
     if (!targetImg) return;
     const r = targetImg.getBoundingClientRect();
+    if (!r || r.width < 10 || r.height < 10) {
+      if (lastRect) {
+        uiEl.style.position = "absolute";
+        uiEl.style.left = lastRect.left + "px";
+        uiEl.style.top = lastRect.top + "px";
+        uiEl.style.width = lastRect.width + "px";
+        uiEl.style.height = lastRect.height + "px";
+      }
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          syncPosition();
+        });
+      }
+      return;
+    }
+    lastRect = r;
     uiEl.style.position = "absolute";
     uiEl.style.left = r.left + "px";
     uiEl.style.top = r.top + "px";
@@ -49,6 +80,9 @@ export function createGame({ bus }) {
       const slide = document.getElementById("slide34");
       if (slide) slide.classList.add("is-complete");
       if (wrap) wrap.classList.add("is-complete");
+      // Re-sync now that visible image swaps (white -> green)
+      syncPosition();
+      requestAnimationFrame(() => syncPosition());
       if (!completeTimer) {
         completeTimer = setTimeout(() => {
           try {
@@ -116,13 +150,29 @@ export function createGame({ bus }) {
       } catch {}
       syncPosition();
       try {
-        const targetImg = document.querySelector("#slide34 .wb-blocks");
-        if (targetImg) {
-          if (!targetImg.complete) {
-            targetImg.addEventListener("load", syncPosition, { once: true });
-          }
+        const slide = document.getElementById("slide34");
+        const imgs = slide
+          ? Array.from(slide.querySelectorAll(".wb-blocks"))
+          : [];
+        if (imgs.length) {
+          imgs.forEach((img) => {
+            if (!img.complete) {
+              img.addEventListener("load", syncPosition, { once: true });
+            }
+          });
           ro = new ResizeObserver(() => syncPosition());
-          ro.observe(targetImg);
+          observedTargets = imgs;
+          observedTargets.forEach((img) => ro.observe(img));
+        }
+        if (slide) {
+          syncObserver = new MutationObserver(() => {
+            syncPosition();
+            requestAnimationFrame(() => syncPosition());
+          });
+          syncObserver.observe(slide, {
+            attributes: true,
+            attributeFilter: ["class"],
+          });
         }
       } catch {}
       window.addEventListener("resize", syncPosition);
@@ -178,8 +228,19 @@ export function createGame({ bus }) {
       window.removeEventListener("resize", syncPosition);
       window.removeEventListener("scroll", syncPosition, true);
       window.removeEventListener("app-resize", syncPosition);
+      if (syncObserver) {
+        try {
+          syncObserver.disconnect();
+        } catch {}
+        syncObserver = null;
+      }
       try {
-        ro && ro.disconnect && ro.disconnect();
+        if (ro) {
+          try {
+            observedTargets.forEach((img) => ro.unobserve(img));
+          } catch {}
+          ro.disconnect();
+        }
       } catch {}
       try {
         bus.off && onFlowProgress && bus.off("flow.progress", onFlowProgress);

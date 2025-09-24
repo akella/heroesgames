@@ -32,6 +32,7 @@ import { ensurePickersContainer } from "./modules/ui/pickersContainer.js";
 import { initAnchorManager } from "./modules/anchorManager.js";
 import { SceneController } from "./modules/SceneController.js";
 import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
+import { initHeaderProgress } from "./modules/ui/HeaderProgress.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -168,7 +169,9 @@ gonext.forEach((el) => {
 });
 
 // Initialize header/menu overlay interactions
-const menuOverlayApi = initMenuOverlay();
+const menuOverlayApi = initMenuOverlay({ bus });
+// Initialize header progress (game completion bar)
+initHeaderProgress({ bus });
 
 class AppController {
   constructor(options) {
@@ -462,7 +465,7 @@ class AppController {
         toyController?.toyShip?.close?.();
         toyController?.toyRobot?.close?.();
       } catch {}
-      if (currentSlide === "slide22" && !this._puzzleImagesPrefetched) {
+      if (currentSlide === "slide19" && !this._puzzleImagesPrefetched) {
         this._puzzleImagesPrefetched = true;
         hydrateImagesForSlides(PUZZLE_SLIDES);
       }
@@ -471,6 +474,33 @@ class AppController {
         currentSlide.startsWith("slide")
       ) {
         hydrateImagesForSlides([currentSlide]);
+      }
+    });
+
+    try {
+      this.shaderLayerFG?.preloadLayers?.([
+        "picture-hover",
+        "book-floor-hover",
+        "box-hover",
+        "football-hover",
+        "wheel-pump-hover",
+      ]);
+    } catch {}
+
+    this.bus.on("flow.progress", (snap) => {
+      const val = snap?.value || snap;
+      if (val === "slide16" && !this._pickerVariantsPreloaded) {
+        this._pickerVariantsPreloaded = true;
+        try {
+          this.shaderLayerBG?.preloadVariants?.("wall");
+          this.shaderLayerBG?.preloadVariants?.("floor");
+          this.shaderLayerBG?.preloadVariants?.("table");
+        } catch {}
+        try {
+          this.shaderLayerFG?.preloadVariants?.("wall");
+          this.shaderLayerFG?.preloadVariants?.("floor");
+          this.shaderLayerFG?.preloadVariants?.("table");
+        } catch {}
       }
     });
 

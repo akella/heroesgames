@@ -3,6 +3,7 @@ import gsap from "gsap";
 export function initMenuOverlay({
   buttonSelector = ".btn-burger",
   overlaySelector = "#app-menu",
+  bus,
 } = {}) {
   const menuButton = document.querySelector(buttonSelector);
   const menuOverlay = document.querySelector(overlaySelector);
@@ -90,6 +91,9 @@ export function initMenuOverlay({
           );
       }
     } catch {}
+    try {
+      bus && bus.emit && bus.emit("menu.open");
+    } catch {}
   }
 
   function close() {
@@ -106,6 +110,9 @@ export function initMenuOverlay({
       const left = menuOverlay.querySelector(".menu-preview--left");
       const center = menuOverlay.querySelector(".menu-preview--center");
       const right = menuOverlay.querySelector(".menu-preview--right");
+    } catch {}
+    try {
+      bus && bus.emit && bus.emit("menu.close");
     } catch {}
   }
 

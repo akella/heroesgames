@@ -33,19 +33,16 @@ export default class ModelLayer extends BaseLayer {
 
   _setupEnvironment() {
     try {
-      // Try to find a renderer from the foreground canvas to build PMREM
       const c = document.querySelector("canvas.gl-canvas--fg");
       if (!c || !c.getContext) return;
-      // Reuse the WebGL context to avoid extra memory; PMREM needs a renderer instance
       const gl = c.getContext("webgl2") || c.getContext("webgl");
       if (!gl) return;
-      // Create a temporary renderer bound to the same canvas/context
       const renderer = new THREE.WebGLRenderer({ canvas: c, context: gl });
       const pmrem = new THREE.PMREMGenerator(renderer);
       pmrem.compileEquirectangularShader();
       const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
       this.environment = env;
-      this.background = null; // keep transparent; only use env for IBL
+      this.background = null;
     } catch (e) {
       // Non-fatal if environment setup fails
     }
@@ -63,7 +60,7 @@ export default class ModelLayer extends BaseLayer {
   addLighting() {
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
     this.add(ambientLight);
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x8899aa, 0.8);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x8899aa, 1);
     hemi.position.set(0, 1, 0);
     this.add(hemi);
     const key = new THREE.DirectionalLight(0xffffff, 1.2);

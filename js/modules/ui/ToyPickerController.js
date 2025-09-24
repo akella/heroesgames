@@ -131,10 +131,12 @@ export class ToyPickerController {
         this.shaderBG.setLayerEnabled("dino", true);
         this.shaderBG.setLayerEnabled("books-shelf", false);
         this.bus?.emit && this.bus.emit("room.reveal", { id: "dino" });
+        this.bus?.emit && this.bus.emit("toy.placed", { id: "dino" });
         this.placed.dino = true;
       } else if (picker === this.toyShip) {
         this.shaderBG.setLayerEnabled("ship", true);
         this.bus?.emit && this.bus.emit("room.reveal", { id: "ship" });
+        this.bus?.emit && this.bus.emit("toy.placed", { id: "ship" });
         this.placed.ship = true;
       } else if (picker === this.toyRobot) {
         this.shaderBG.setLayerEnabled("robot", true);
@@ -145,6 +147,7 @@ export class ToyPickerController {
         this.bus?.emit && this.bus.emit("room.reveal", { id: "ufo" });
         this.bus?.emit && this.bus.emit("room.reveal", { id: "rocket" });
         this.bus?.emit && this.bus.emit("room.reveal", { id: "plane" });
+        this.bus?.emit && this.bus.emit("toy.placed", { id: "robot" });
         this.placed.robot = true;
       }
       picker.hide();

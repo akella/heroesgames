@@ -452,4 +452,33 @@ export default class ShaderLayer extends BaseLayer {
       });
     }
   }
+
+  preloadLayers(ids) {
+    if (!Array.isArray(ids)) return;
+    ids.forEach((id) => {
+      const entry = this.getLayerEntry(id);
+      if (!entry) return;
+      const def = entry.entry.def;
+      if (def.variant) {
+        this.preloadVariants(id);
+      } else {
+        this._ensureLayerTexture(id);
+      }
+    });
+  }
+
+  preloadVariants(id) {
+    const entry = this.getLayerEntry(id);
+    if (!entry) return;
+    const def = entry.entry.def;
+    if (!def.variant || !Array.isArray(def.variants)) return;
+    def.variants.forEach((path, i) => {
+      if (entry.entry.variants[i] !== this._placeholderTex) return;
+      this._loadTexture(path, (loaded) => {
+        entry.entry.variants[i] = loaded;
+        const active = this.variantState[id] || 0;
+        if (i === active) entry.material.uniforms.layerTex.value = loaded;
+      });
+    });
+  }
 }

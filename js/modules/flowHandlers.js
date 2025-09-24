@@ -85,7 +85,7 @@ export function setupFlowSubscription({
 
   const RULES = [
     { when: "slide7", gamePreload: ["finddiff"] },
-    { when: "slide24", gamePreload: ["puzzle"] },
+    { when: "slide19", gamePreload: ["puzzle", "wordbox", "football"] },
     { when: "slide33", gamePreload: ["wordbox"] },
     { when: "slide41", gamePreload: ["football"] },
     {

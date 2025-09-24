@@ -1,5 +1,4 @@
 import gsap from "gsap";
-// Asset imports (so Vite includes them in build)
 import BALL_10 from "../../../assets/games/football/ball-10.webp";
 import BALL_20 from "../../../assets/games/football/ball-20.webp";
 import BALL_30 from "../../../assets/games/football/ball-30.webp";
@@ -15,8 +14,6 @@ import HANDLE_SRC from "../../../assets/games/football/tube-2.webp";
 import SHADOW_SRC from "../../../assets/games/football/sh.webp";
 
 // Football pump mini-game
-// Click/tap the pump handle to animate and inflate the ball.
-// Shows counter 0..10; on 10 emits complete and swaps ball to 100% asset.
 
 function preloadImage(src) {
   return new Promise((resolve) => {
