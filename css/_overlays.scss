@@ -94,15 +94,9 @@
   position: absolute;
   inset: var(--help-gap);
   z-index: 1;
-  overflow: visible;
-}
-.help-overlay__panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
   background: #4071fd;
   clip-path: polygon(0 15px, 100% 0, 100% 100%, 0 calc(100% - 15px));
-  z-index: 0;
+  overflow: hidden;
 }
 .help-overlay__inner {
   position: absolute;
