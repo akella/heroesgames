@@ -112,6 +112,10 @@ try {
 window.__wordboxCompleted = false;
 window.__puzzleCompleted = false;
 window.__footballCompleted = false;
+window.__puzzleExitPending = false;
+window.__wordboxExitPending = false;
+window.__footballExitPending = false;
+window.__footballCompletedPending = false;
 bus.on("game.finddiff.complete", () => {
   let curSlide;
   try {
@@ -180,6 +184,7 @@ class AppController {
   constructor(options) {
     this.container = options.dom;
     this.bus = options.bus;
+    this.render = this.render.bind(this);
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
     // Create two renderers/canvases: background (filtered) and foreground (unfiltered)
@@ -215,6 +220,7 @@ class AppController {
     );
     this.perspCamera.position.set(0, 0, 2);
     this.time = 0;
+    this._canvasVisible = true;
     this.mouse = new THREE.Vector2(0.5, 0.5);
 
     this.shaderLayerBG = new ShaderLayer({
@@ -550,6 +556,10 @@ class AppController {
       filterEl: this.filterEl,
     });
 
+    this.bus.on("scene.canvas", ({ visible } = {}) => {
+      this.setCanvasActive(visible !== false);
+    });
+
     bus.on("picture.click", () => {
       flowActor.send({ type: "NEXT" });
     });
@@ -595,13 +605,13 @@ class AppController {
           !!window.__wordboxCompleted || !!window.__wordboxCompletedPending;
         const footDone = !!window.__footballCompleted;
         const willBeAllDone = wordDone && footDone;
+        window.__puzzleCompleted = true;
+        window.__puzzleCompletedPending = false;
+        window.__puzzleExitPending = true;
         if (willBeAllDone) {
-          window.__puzzleCompleted = true;
-          window.__puzzleCompletedPending = false;
-          flowActor.send({ type: "GOTO_45" });
-        } else {
-          flowActor.send({ type: "NEXT" });
+          window.__postGameRedirectAction = "GOTO_45";
         }
+        flowActor.send({ type: "NEXT" });
       } catch {}
     });
 
@@ -626,16 +636,14 @@ class AppController {
       } catch {}
       try {
         const willBeAllDone =
-          window.__puzzleCompleted && window.__footballCompleted;
+          !!window.__puzzleCompleted && !!window.__footballCompleted;
+        window.__wordboxCompleted = true;
+        window.__wordboxCompletedPending = false;
+        window.__wordboxExitPending = true;
         if (willBeAllDone) {
-          window.__wordboxCompleted = true;
-          window.__wordboxCompletedPending = false;
-          flowActor.send({ type: "GOTO_45" });
-        } else if (!window.__footballCompleted) {
-          flowActor.send({ type: "NEXT" });
-        } else {
-          flowActor.send({ type: "GOTO_99" });
+          window.__postGameRedirectAction = "GOTO_45";
         }
+        flowActor.send({ type: "NEXT" });
       } catch {}
     });
 
@@ -643,15 +651,12 @@ class AppController {
     bus.on("game.football.complete", () => {
       if (window.__footballCompleted) return;
       window.__footballCompleted = true;
+      window.__footballCompletedPending = false;
       try {
         gameManager.active?.api?.setActive?.(false);
       } catch {}
       try {
         gameManager.active?.api?.hide?.();
-      } catch {}
-      try {
-        bus.emit("scene.parallax", { enabled: true });
-        bus.emit("scene.view.reset");
       } catch {}
       try {
         if (gameRoot) gameRoot.style.zIndex = "5";
@@ -672,16 +677,55 @@ class AppController {
         const puzzDone =
           !!window.__puzzleCompleted || !!window.__puzzleCompletedPending;
         const allDone = puzzDone && wordDone && !!window.__footballCompleted;
-        flowActor.send({ type: allDone ? "GOTO_45" : "GOTO_99" });
+        window.__footballExitPending = true;
+        if (allDone) {
+          window.__footballCompletedPending = true;
+          window.__postGameRedirectAction = "GOTO_45";
+        }
+        flowActor.send({ type: "NEXT" });
       } catch {}
     });
 
-    this.isPlaying = true;
-    this.resize();
     this.setupResize();
     this.setupMouseMove();
+    this.isPlaying = false;
     this.lastTime = performance.now();
-    this.render();
+    this.setCanvasActive(false);
+  }
+
+  setCanvasActive(flag) {
+    const visible = !!flag;
+    if (visible === this._canvasVisible) return;
+    this._canvasVisible = visible;
+    this._setCanvasDisplay(visible);
+
+    if (visible) {
+      this.resize();
+      this.lastTime = performance.now();
+      this._applyFilterOpacity();
+      this._ensureRenderLoop();
+    } else {
+      this.isPlaying = false;
+    }
+  }
+
+  _ensureRenderLoop() {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+    requestAnimationFrame(this.render);
+  }
+
+  _setCanvasDisplay(visible) {
+    const display = visible ? "" : "none";
+    if (this.bgRenderer?.domElement) {
+      this.bgRenderer.domElement.style.display = display;
+    }
+    if (this.fgRenderer?.domElement) {
+      this.fgRenderer.domElement.style.display = display;
+    }
+    if (this.filterEl) {
+      this.filterEl.style.display = visible ? "" : "none";
+    }
   }
 
   showFilter(opacity = 0.5) {
@@ -758,7 +802,7 @@ class AppController {
     this.modelLayer.render(this.fgRenderer, this.perspCamera);
     if (this.overlayManager) this.overlayManager.update();
     gameManager.update(delta);
-    requestAnimationFrame(this.render.bind(this));
+    requestAnimationFrame(this.render);
   }
 }
 

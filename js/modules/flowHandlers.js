@@ -21,6 +21,43 @@ export function setupFlowSubscription({
     slide46: 3000,
   };
 
+  const CANVAS_ACTIVE_SLIDES = new Set([
+    "slide4",
+    "slide6",
+    "slide7",
+    "slide9",
+    "slide10",
+    "slide10",
+    "slide11",
+    "slide12",
+    "slide13",
+    "slide14",
+    "slide15",
+    "slide16",
+    "slide17",
+    "slide18",
+    "slide19",
+    "slide20",
+    "slide21",
+    "slide22",
+    "slide29",
+    "slide30",
+    "slide31",
+    "slide32",
+    "slide38",
+    "slide39",
+    "slide40",
+    "slide41",
+    "slide42",
+    "slide43",
+    "slide44",
+    "slide45",
+    "slide46",
+    "slide47",
+    "slide48",
+    "slide99",
+  ]);
+
   const pickers = () =>
     [window.__pickerWall, window.__pickerFloor, window.__pickerTable].filter(
       Boolean
@@ -188,11 +225,31 @@ export function setupFlowSubscription({
     { when: ["slide42", "slide43", "slide44"], pickers: { hide: true } },
     {
       when: "slide43",
-      postFootballPersist: { keepGame: true, z: 5 },
+      postFootballPersist: {
+        keepGame: true,
+        z: 5,
+        scene: {
+          parallax: false,
+          view: () => ({
+            zoom: 1.5,
+            offsetY: -Math.round(window.innerHeight * 0.25),
+          }),
+        },
+      },
     },
     {
       when: "slide44",
-      postFootballPersist: { keepGame: true, z: 5 },
+      postFootballPersist: {
+        keepGame: true,
+        z: 5,
+        scene: {
+          parallax: false,
+          view: () => ({
+            zoom: 1.5,
+            offsetY: -Math.round(window.innerHeight * 0.25),
+          }),
+        },
+      },
     },
     { when: "slide45", afterFootballEnd: true },
     { when: "slide45", character: "show" },
@@ -255,10 +312,51 @@ export function setupFlowSubscription({
     return puzzDone && wordDone && !!window.__footballCompleted;
   }
 
+  function parseSlideNumber(slide) {
+    if (typeof slide !== "string") return null;
+    if (!slide.startsWith("slide")) return null;
+    const n = parseInt(slide.slice(5), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
   function isGameSlide(slide, ranges) {
-    return ranges.some(([from, to]) => {
-      const n = parseInt((slide || "").replace("slide", ""), 10);
-      return n >= from && n <= to;
+    const n = parseSlideNumber(slide);
+    if (n == null) return false;
+    return ranges.some(([from, to]) => n >= from && n <= to);
+  }
+
+  function maybeHandlePostGameRedirect(slideNumber) {
+    const action = window.__postGameRedirectAction;
+    if (!action) return;
+    const allDone =
+      !!window.__puzzleCompleted &&
+      !!window.__wordboxCompleted &&
+      !!window.__footballCompleted;
+    if (!allDone) return;
+    if (
+      window.__puzzleExitPending ||
+      window.__wordboxExitPending ||
+      window.__footballExitPending
+    )
+      return;
+
+    if (slideNumber != null) {
+      if (action === "GOTO_45" && slideNumber >= 45) {
+        window.__postGameRedirectAction = null;
+        return;
+      }
+      if (action === "GOTO_99" && slideNumber >= 99) {
+        window.__postGameRedirectAction = null;
+        return;
+      }
+    }
+
+    const toSend = action;
+    window.__postGameRedirectAction = null;
+    setTimeout(() => {
+      try {
+        flowActor.send({ type: toSend });
+      } catch {}
     });
   }
 
@@ -486,15 +584,32 @@ export function setupFlowSubscription({
     layerManager.syncToState(snap);
     emit("flow.progress", snap);
     const slide = snap.value;
+    const slideNumber = parseSlideNumber(slide);
+
+    emit("scene.canvas", { visible: CANVAS_ACTIVE_SLIDES.has(slide) });
 
     if (slide === "slide22" || slide === "slide32" || slide === "slide39") {
       if (!allGamesDone()) {
       }
     }
 
+    if (slideNumber != null) {
+      if (window.__puzzleExitPending && slideNumber >= 29) {
+        window.__puzzleExitPending = false;
+      }
+      if (window.__wordboxExitPending && slideNumber >= 38) {
+        window.__wordboxExitPending = false;
+      }
+      if (window.__footballExitPending && slideNumber >= 45) {
+        window.__footballExitPending = false;
+      }
+      maybeHandlePostGameRedirect(slideNumber);
+    } else maybeHandlePostGameRedirect(null);
+
     if (
       window.__puzzleCompleted &&
       !window.__puzzleCompletedPending &&
+      !window.__puzzleExitPending &&
       isGameSlide(slide, [[25, 27]])
     ) {
       try {
@@ -510,12 +625,18 @@ export function setupFlowSubscription({
     if (
       window.__wordboxCompleted &&
       !window.__wordboxCompletedPending &&
+      !window.__wordboxExitPending &&
       isGameSlide(slide, [[34, 37]])
     ) {
       flowActor.send({ type: "NEXT" });
       return;
     }
-    if (window.__footballCompleted && isGameSlide(slide, [[42, 44]])) {
+    if (
+      window.__footballCompleted &&
+      !window.__footballCompletedPending &&
+      !window.__footballExitPending &&
+      isGameSlide(slide, [[42, 44]])
+    ) {
       flowActor.send({ type: "NEXT" });
       return;
     }
@@ -576,6 +697,19 @@ export function setupFlowSubscription({
         const cfg = rule.postFootballPersist;
         if (cfg.showCharacter) dispatchChar("show");
         if (cfg.z != null && gameRoot) gameRoot.style.zIndex = String(cfg.z);
+        if (cfg.scene) {
+          if (cfg.scene.parallax != null)
+            emit("scene.parallax", { enabled: !!cfg.scene.parallax });
+          if (cfg.scene.view) {
+            try {
+              const view =
+                typeof cfg.scene.view === "function"
+                  ? cfg.scene.view()
+                  : cfg.scene.view;
+              if (view) emit("scene.view", view);
+            } catch {}
+          }
+        }
       }
       if (rule.afterFootballEnd) handlePostFootball(slide);
       if (rule.outro) handleOutro(slide);
@@ -619,6 +753,12 @@ export function setupFlowSubscription({
       try {
         window.__puzzleCompleted = true;
         window.__puzzleCompletedPending = false;
+      } catch {}
+    }
+
+    if (slide === "slide45" && window.__footballCompletedPending) {
+      try {
+        window.__footballCompletedPending = false;
       } catch {}
     }
 
