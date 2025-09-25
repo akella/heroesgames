@@ -10,6 +10,10 @@ export class InteractionManager {
     this._onClick = this._onClick.bind(this);
     this._hoverActive = false;
     this._currentSlide = null;
+    this._hoverAllowedSlides = new Set();
+    this._clickAllowedSlides = new Set();
+    this._hoverRestricted = false;
+    this._clickRestricted = false;
   }
 
   register(config) {
@@ -19,6 +23,7 @@ export class InteractionManager {
     });
     item.init();
     this.items.push(item);
+    this._syncAllowedSlides(config);
     return item;
   }
 
@@ -48,11 +53,23 @@ export class InteractionManager {
   }
 
   _onPointerMove(e) {
-    // Block interaction hover if not on an allowlisted slide
-    const allowHover = new Set([
-      "slide21", "slide22", "slide29", "slide30", "slide31", "slide32", "slide33", "slide38", "slide99"
-    ]);
-    if (!allowHover.has(this._currentSlide)) {
+    if (
+      this._currentSlide === "slide33" ||
+      this._currentSlide === "slide34" ||
+      this._currentSlide === "slide35" ||
+      this._currentSlide === "slide36" ||
+      this._currentSlide === "slide37"
+    ) {
+      if (this._hoverActive) {
+        this._hoverActive = false;
+        document.body.style.cursor = "";
+      }
+      return;
+    }
+    if (
+      this._hoverRestricted &&
+      !this._hoverAllowedSlides.has(this._currentSlide)
+    ) {
       if (this._hoverActive) {
         this._hoverActive = false;
         document.body.style.cursor = "";
@@ -85,11 +102,21 @@ export class InteractionManager {
   }
 
   _onClick(e) {
-    // Allow clicks only on specific slides
-    const allowClick = new Set([
-      "slide21", "slide22", "slide29", "slide30", "slide31", "slide32", "slide33", "slide38", "slide99"
-    ]);
-    if (!allowClick.has(this._currentSlide)) return;
+    if (
+      this._currentSlide === "slide33" ||
+      this._currentSlide === "slide34" ||
+      this._currentSlide === "slide35" ||
+      this._currentSlide === "slide36" ||
+      this._currentSlide === "slide37"
+    ) {
+      return;
+    }
+    if (
+      this._clickRestricted &&
+      !this._clickAllowedSlides.has(this._currentSlide)
+    ) {
+      return;
+    }
     const topEl = document.elementFromPoint(e.clientX, e.clientY);
     if (topEl) {
       const isOverUI = topEl.closest?.(
@@ -106,6 +133,28 @@ export class InteractionManager {
       if (item && item.click(x, y)) {
         this.bus.emit("interaction.click", { id: item.config.id });
         break;
+      }
+    }
+  }
+
+  _syncAllowedSlides(config) {
+    const { visibleSlides, hover, hoverOnlyOnSlides, click } = config;
+    if (hover) {
+      const slides = Array.isArray(hoverOnlyOnSlides)
+        ? hoverOnlyOnSlides
+        : Array.isArray(visibleSlides)
+        ? visibleSlides
+        : null;
+      if (slides) {
+        slides.forEach((s) => this._hoverAllowedSlides.add(s));
+        this._hoverRestricted = true;
+      }
+    }
+    if (click) {
+      const slides = Array.isArray(visibleSlides) ? visibleSlides : null;
+      if (slides) {
+        slides.forEach((s) => this._clickAllowedSlides.add(s));
+        this._clickRestricted = true;
       }
     }
   }
