@@ -55,6 +55,7 @@ export function setupFlowSubscription({
     "slide46",
     "slide47",
     "slide48",
+    "slide49",
     "slide99",
   ]);
 
@@ -714,7 +715,7 @@ export function setupFlowSubscription({
       if (rule.afterFootballEnd) handlePostFootball(slide);
       if (rule.outro) handleOutro(slide);
       const n = parseInt((slide || "").replace("slide", ""), 10);
-      if (n >= 46 && n <= 48 && !allGamesDone()) {
+      if (n >= 46 && n <= 49 && !allGamesDone()) {
         redirectToHub();
         return;
       }

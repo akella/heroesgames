@@ -187,7 +187,10 @@ export function createGame({ bus }) {
         const val = snap?.value || snap;
         if (val === "slide42") return;
         if (completed && (val === "slide43" || val === "slide44")) {
-          if (wrap) wrap.style.display = "block";
+          if (wrap) {
+            wrap.style.display = "block";
+            renderBall();
+          }
           return;
         }
         if (wrap) wrap.style.display = "none";
@@ -217,8 +220,10 @@ export function createGame({ bus }) {
     hide() {
       if (!wrap) return;
       wrap.style.display = "none";
-      progress = 0;
-      renderBall();
+      if (!completed) {
+        progress = 0;
+        renderBall();
+      }
     },
     destroy() {
       try {

@@ -265,6 +265,11 @@ export const flowMachine = createMachine(
       slide48: {
         entry: "showSlide48",
         exit: "hideSlide48",
+        on: { NEXT: "slide49" },
+      },
+      slide49: {
+        entry: "showSlide49",
+        exit: "hideSlide49",
         on: { NEXT: "outro" },
       },
       slide99: {
@@ -295,6 +300,8 @@ export const flowMachine = createMachine(
       hideSlide47: () => {},
       showSlide48: () => {},
       hideSlide48: () => {},
+      showSlide49: () => {},
+      hideSlide49: () => {},
       showSlide99: () => {},
       hideSlide99: () => {},
     },
