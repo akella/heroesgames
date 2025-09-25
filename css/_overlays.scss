@@ -73,3 +73,282 @@
     opacity: 1;
   }
 }
+
+.help-overlay {
+  position: fixed;
+  --help-gap: 32px;
+  inset: 0;
+  z-index: 220;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.help-overlay[hidden] {
+  display: none !important;
+}
+.help-overlay.is-open {
+  display: flex;
+}
+.help-overlay__panel {
+  position: absolute;
+  inset: var(--help-gap);
+  clip-path: polygon(0 15px, 100% 0, 100% 100%, 0 calc(100% - 15px));
+  background: #4071fd;
+  z-index: 1;
+}
+.help-overlay__inner {
+  position: absolute;
+  inset: 0;
+}
+.help-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 20, 20, 0.6);
+  z-index: 0;
+}
+.help-overlay__close {
+  position: absolute;
+  right: 24px;
+  top: 18px;
+  z-index: 3;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.help-overlay__header {
+  position: absolute;
+  top: clamp(20px, 7vh, 80px);
+  left: 0;
+  right: 0;
+  width: 100%;
+  transform: none;
+  text-align: center;
+  color: #fff;
+  padding: 0 24px;
+}
+.help-title {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 900;
+  font-size: clamp(32px, 6vw, 64px);
+  line-height: 64px;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+}
+.help-subtitle {
+  margin-top: 12px;
+  max-width: 860px;
+  margin-left: auto;
+  margin-right: auto;
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: -0.012em;
+  color: rgba(255, 255, 255, 0.8);
+}
+.help-overlay__body {
+  position: absolute;
+  inset: 0;
+  padding-top: clamp(120px, 18vh, 220px);
+  display: grid;
+  grid-template-columns: 1fr min(38vw, 420px) 1fr;
+  align-items: end;
+}
+.help-hero {
+  position: relative;
+  height: 60vh;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.help-hero__img {
+  position: relative;
+  z-index: 1;
+  max-height: 100%;
+  width: auto;
+}
+.help-hero--left {
+  justify-self: start;
+}
+.help-hero--right {
+  justify-self: end;
+}
+
+.help-bubble {
+  position: absolute;
+  bottom: 60%;
+  width: clamp(220px, 24vw, 360px);
+  transform: translateY(-18px);
+  z-index: 2;
+}
+.help-bubble__bg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.help-bubble--left {
+  left: 60px;
+}
+.help-bubble--right {
+  right: 120px;
+}
+.help-bubble__text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 22px 24px 28px;
+  text-align: center;
+  color: #4071fd;
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 900;
+  font-size: clamp(14px, 2vw, 20px);
+  line-height: 1.1;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+}
+.help-bubble--left .help-bubble__bg {
+  transform: none;
+}
+.help-bubble--right .help-bubble__bg {
+  transform: none;
+}
+.help-bubble--right .help-bubble__text {
+  transform: none;
+}
+
+.help-form {
+  justify-self: center;
+  align-self: end;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+  width: min(92vw, 360px);
+  padding-bottom: clamp(16px, 6vh, 48px);
+}
+.help-field {
+  display: block;
+  margin-top: 16px;
+}
+.help-field[data-label] {
+  position: relative;
+}
+.help-field[data-label]::before {
+  content: attr(data-label);
+  position: absolute;
+  left: 0;
+  top: 20px;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.024em;
+  pointer-events: none;
+  transform-origin: left top;
+  transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 0.2s ease;
+  will-change: transform;
+}
+.help-field.is-floating::before {
+  transform: translateY(-18px) scale(0.7333);
+  opacity: 0.95;
+}
+.help-field input::placeholder,
+.help-field textarea::placeholder {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.help-field input:focus::placeholder,
+.help-field textarea:focus::placeholder {
+  opacity: 0;
+}
+.help-field {
+  position: relative;
+}
+.help-field input,
+.help-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  border-radius: 0;
+  padding: 22px 0 12px 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 18px;
+  letter-spacing: -0.024em;
+  font-variant-numeric: lining-nums tabular-nums;
+  outline: none;
+  transition: color 0.2s ease;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.help-field textarea {
+  resize: none;
+  min-height: 96px;
+}
+.help-field--textarea textarea {
+  min-height: 132px;
+  padding-top: 26px;
+}
+.help-field input::placeholder,
+.help-field textarea::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+.help-field:focus-within input,
+.help-field:focus-within textarea {
+  color: rgba(255, 255, 255, 0.9);
+}
+.help-field.is-floating input,
+.help-field.is-floating textarea {
+  color: rgba(255, 255, 255, 0.9);
+}
+.help-field::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 1px;
+  width: 0%;
+  background: #fff;
+  transition: width 0.25s ease;
+  pointer-events: none;
+}
+.help-field:focus-within::after {
+  width: 100%;
+}
+.help-field input:focus::placeholder,
+.help-field textarea:focus::placeholder {
+  font-size: 11px;
+}
+.help-submit {
+  justify-self: stretch;
+  width: 100%;
+  margin-top: 43px;
+  cursor: pointer;
+}
+
+@media (max-width: 960px) {
+  .help-overlay__body {
+    grid-template-columns: 1fr;
+    align-items: center;
+  }
+  .help-hero {
+    display: none;
+  }
+  .help-form {
+    width: min(92vw, 520px);
+  }
+}

@@ -48,14 +48,11 @@ export class InteractionManager {
   }
 
   _onPointerMove(e) {
-    // Block interaction hover if on gameplay slides
-    if (
-      this._currentSlide === "slide33" ||
-      this._currentSlide === "slide34" ||
-      this._currentSlide === "slide35" ||
-      this._currentSlide === "slide36" ||
-      this._currentSlide === "slide37"
-    ) {
+    // Block interaction hover if not on an allowlisted slide
+    const allowHover = new Set([
+      "slide21", "slide22", "slide29", "slide30", "slide31", "slide32", "slide33", "slide38", "slide99"
+    ]);
+    if (!allowHover.has(this._currentSlide)) {
       if (this._hoverActive) {
         this._hoverActive = false;
         document.body.style.cursor = "";
@@ -88,16 +85,11 @@ export class InteractionManager {
   }
 
   _onClick(e) {
-    // Disable clicks during gameplay slides
-    if (
-      this._currentSlide === "slide33" ||
-      this._currentSlide === "slide34" ||
-      this._currentSlide === "slide35" ||
-      this._currentSlide === "slide36" ||
-      this._currentSlide === "slide37"
-    ) {
-      return;
-    }
+    // Allow clicks only on specific slides
+    const allowClick = new Set([
+      "slide21", "slide22", "slide29", "slide30", "slide31", "slide32", "slide33", "slide38", "slide99"
+    ]);
+    if (!allowClick.has(this._currentSlide)) return;
     const topEl = document.elementFromPoint(e.clientX, e.clientY);
     if (topEl) {
       const isOverUI = topEl.closest?.(

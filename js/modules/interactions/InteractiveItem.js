@@ -9,7 +9,8 @@ export class InteractiveItem {
     this._bbox = null; // in mask/newUV space (same as shader newUV before parallax)
     this._isActiveSlide = false;
     this._isHover = false;
-    this._isVisible = true;
+    // Default to not visible until the first flow.progress sets a slide
+    this._isVisible = false;
     this._currentSlide = null;
 
     if (this.config.highlight !== false) {
@@ -19,7 +20,8 @@ export class InteractiveItem {
 
   init() {
     const { layers } = this.config;
-    if (layers.default) this.shaderLayer.setLayerEnabled(layers.default, true);
+    // Start with all variants hidden until onFlowProgress determines state
+    if (layers.default) this.shaderLayer.setLayerEnabled(layers.default, false);
     if (layers.active) this.shaderLayer.setLayerEnabled(layers.active, false);
     if (layers.hover) this.shaderLayer.setLayerEnabled(layers.hover, false);
 
@@ -50,8 +52,10 @@ export class InteractiveItem {
   onFlowProgress(val) {
     this._currentSlide = val;
     const { activeSlide, visibleSlides } = this.config;
-    const visible =
-      !Array.isArray(visibleSlides) || visibleSlides.includes(val);
+    // Visible only on explicitly listed slides; otherwise keep hidden
+    const visible = Array.isArray(visibleSlides)
+      ? visibleSlides.includes(val)
+      : false;
     const active = visible && activeSlide && val === activeSlide;
     const changedVisibility = visible !== this._isVisible;
     const changedActive = active !== this._isActiveSlide;

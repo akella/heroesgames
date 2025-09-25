@@ -33,6 +33,7 @@ import { initAnchorManager } from "./modules/anchorManager.js";
 import { SceneController } from "./modules/SceneController.js";
 import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
 import { initHeaderProgress } from "./modules/ui/HeaderProgress.js";
+import { initHelpOverlay } from "./modules/ui/HelpOverlay.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -172,6 +173,8 @@ gonext.forEach((el) => {
 const menuOverlayApi = initMenuOverlay({ bus });
 // Initialize header progress (game completion bar)
 initHeaderProgress({ bus });
+// Initialize help overlay (contact form)
+initHelpOverlay();
 
 class AppController {
   constructor(options) {
