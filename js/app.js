@@ -34,6 +34,7 @@ import { SceneController } from "./modules/SceneController.js";
 import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
 import { initHeaderProgress } from "./modules/ui/HeaderProgress.js";
 import { initHelpOverlay } from "./modules/ui/HelpOverlay.js";
+import { initShareOverlay } from "./modules/ui/ShareOverlay.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -179,6 +180,8 @@ const menuOverlayApi = initMenuOverlay({ bus });
 initHeaderProgress({ bus });
 // Initialize help overlay (contact form)
 initHelpOverlay();
+// Initialize share overlay (share form)
+const shareApi = initShareOverlay();
 
 class AppController {
   constructor(options) {
@@ -469,6 +472,16 @@ class AppController {
 
     this.bus.on("flow.progress", (snap) => {
       currentSlide = snap?.value || snap;
+      // Toggle share (spark) visibility starting at slide6, without layout shift
+      try {
+        const spark = document.querySelector(".btn-icon-circle--spark");
+        if (spark) {
+          const show =
+            typeof currentSlide === "string" &&
+            /^(slide[6-9]|slide\d{2,})$/.test(currentSlide);
+          spark.classList.toggle("is-visible", !!show);
+        }
+      } catch {}
       try {
         toyController?.toyDino?.close?.();
         toyController?.toyShip?.close?.();
