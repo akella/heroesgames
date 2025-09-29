@@ -37,6 +37,7 @@ import { initHelpOverlay } from "./modules/ui/HelpOverlay.js";
 import { initShareOverlay } from "./modules/ui/ShareOverlay.js";
 import { initMessageOverlay } from "./modules/ui/MessageOverlay.js";
 import { initGameBackButton } from "./modules/ui/GameBackButton.js";
+import { initPsychOverlay } from "./modules/ui/PsychOverlay.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -177,7 +178,15 @@ gonext.forEach((el) => {
 });
 
 // Initialize header/menu overlay interactions
-const menuOverlayApi = initMenuOverlay({ bus });
+const psychOverlayApi = initPsychOverlay();
+const menuOverlayApi = initMenuOverlay({
+  bus,
+  onOpenPsych: () => {
+    try {
+      psychOverlayApi?.open?.();
+    } catch {}
+  },
+});
 // Initialize header progress (game completion bar)
 initHeaderProgress({ bus });
 // Initialize help overlay (contact form)

@@ -262,37 +262,6 @@
   letter-spacing: -0.012em;
   color: rgba(25, 20, 20, 0.4);
 }
-.message-actions {
-  margin-top: auto;
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.message-actions .btn-pill {
-  flex: 1 1 0;
-  height: 52px;
-  cursor: pointer;
-}
-/* Hide UI noise when body has is-capturing (used during screenshot) */
-body.is-capturing #room-pickers-container,
-body.is-capturing .room-picker-root,
-body.is-capturing .scoreboard,
-body.is-capturing .help-overlay,
-body.is-capturing .menu-overlay,
-body.is-capturing .share-overlay {
-  display: none !important;
-}
-.share-overlay__panel {
-  position: relative;
-  z-index: 1;
-  background: transparent;
-  display: grid;
-  place-items: center;
-  width: 100%;
-  height: 100%;
-  padding: var(--gap);
-  box-sizing: border-box;
-}
 .share-overlay__book {
   position: relative;
   display: grid;
@@ -514,6 +483,331 @@ body.is-capturing .share-overlay {
 .share-overlay__close:focus-visible {
   outline: none;
   transform: scale(1.04);
+}
+
+.psych-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 230;
+  display: none;
+  align-items: stretch;
+  justify-content: center;
+}
+.psych-overlay::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(25, 20, 20, 0.6);
+  z-index: 0;
+  opacity: 0;
+}
+.psych-overlay[hidden] {
+  display: none !important;
+}
+.psych-overlay.is-open {
+  display: flex;
+}
+.psych-overlay__panel {
+  opacity: 0;
+  transform: translateY(10px) scale(0.98);
+}
+.psych-overlay.is-open .psych-overlay__panel {
+  animation: psychOverlayIn 0.36s cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.psych-overlay.is-open::before {
+  animation: psychBackdropIn 0.36s ease forwards;
+}
+
+@keyframes psychOverlayIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes psychBackdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.psych-overlay__panel {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  padding: 32px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: auto;
+  min-height: 0;
+}
+.psych-overlay__columns {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0;
+  height: 100%;
+  max-width: 100%;
+  min-height: 0;
+}
+.psych-column {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  padding: 32px;
+  padding-top: 50px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  box-sizing: border-box;
+}
+.psych-column__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  height: 100%;
+  min-height: 0;
+}
+.psych-column--light {
+  background: #ffffff;
+}
+.psych-column--dark {
+  background: #f0f0f0;
+}
+.psych-column--right {
+  clip-path: polygon(15px 15px, 100% 0, 100% 100%, 15px calc(100% - 15px));
+  z-index: 2;
+  padding-right: 17px;
+}
+.psych-column--left {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 15px) 15px,
+    calc(100% - 15px) calc(100% - 15px),
+    0 100%
+  );
+  z-index: 1;
+  padding-left: 17px;
+}
+.psych-column + .psych-column {
+  margin-left: -15px;
+}
+.psych-overlay__columns > .psych-column:nth-child(2) {
+  transform: translate(15px);
+}
+.psych-overlay__columns > .psych-column:nth-child(3) {
+  transform: translate(-15px);
+}
+.psych-hero-title {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  font-style: normal;
+  color: #191414;
+  transform: rotate(-3deg);
+}
+.psych-hero-text {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  color: rgba(25, 20, 20, 0.72);
+  max-width: 320px;
+}
+.psych-image {
+  margin-top: auto;
+  margin-bottom: auto;
+  img {
+    width: min(100%, clamp(240px, 42vw, 420px));
+    height: 160px;
+    border-radius: 16px;
+    display: block;
+    object-fit: cover;
+  }
+  p {
+    margin-top: 8px;
+    font-family: "Factor A TRIAL", Arial, sans-serif;
+    font-weight: 400;
+    font-size: 12px;
+    line-height: 16px;
+    letter-spacing: -0.012em;
+    color: #191414;
+    text-align: center;
+  }
+}
+.psych-image__link {
+  position: relative;
+  display: inline-block;
+}
+.psych-image__link img {
+  display: block;
+}
+.psych-image__icon {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+}
+.psych-image__icon svg {
+  display: block;
+}
+.psych-heading {
+  margin: 0;
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 900;
+  font-size: 20px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  color: #4071fd;
+}
+.psych-body {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  color: #19141466;
+}
+.psych-list,
+.psych-links {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+  display: grid;
+  gap: 20px;
+}
+.psych-list li,
+.psych-links li {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  color: #19141466;
+}
+
+.psych-links a {
+  font-family: "Factor A TRIAL", Arial, sans-serif;
+  font-weight: 500;
+  font-size: 16px;
+  line-height: 20px;
+  letter-spacing: -0.012em;
+  color: #4071fd;
+  text-decoration: none;
+  display: inline-block;
+}
+.psych-links a:hover,
+.psych-links a:focus {
+  text-decoration: underline;
+}
+.psych-links span {
+  display: block;
+  margin-top: 6px;
+}
+.psych-overlay__close {
+  position: absolute;
+  right: 32px;
+  top: 32px;
+  z-index: 3;
+  width: 56px;
+  height: 56px;
+  border-radius: 64px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  background: #ffffff;
+  background-clip: padding-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: inset 0 -8px 16px rgba(0, 0, 0, 0.16),
+    inset 0 8px 16px rgba(255, 255, 255, 0.16);
+  transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+  transform-origin: center;
+  will-change: transform;
+}
+.psych-overlay__close svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+.psych-overlay__close:hover {
+  transform: scale(1.06);
+}
+.psych-overlay__close:active {
+  transform: scale(0.96) translateY(1px);
+}
+.psych-overlay__close:focus-visible {
+  outline: none;
+  transform: scale(1.04);
+}
+
+@media (max-width: 1280px) {
+  .psych-overlay__columns {
+    flex-wrap: wrap;
+  }
+  .psych-column {
+    flex: 1 1 50%;
+    min-height: 50%;
+  }
+  .psych-column:nth-child(odd) {
+    margin-left: 0;
+  }
+  .psych-overlay__columns > .psych-column:nth-child(2),
+  .psych-overlay__columns > .psych-column:nth-child(3) {
+    transform: none;
+  }
+}
+
+@media (max-width: 960px) {
+  .psych-overlay__panel {
+    padding: 24px;
+  }
+  .psych-column {
+    margin-left: 0 !important;
+    clip-path: none;
+    box-shadow: none;
+  }
+  .psych-overlay__columns {
+    flex-direction: column;
+  }
+  .psych-column {
+    flex: 1 1 auto;
+    padding: 24px;
+    background: #ffffff;
+    border-radius: 24px;
+  }
+  .psych-column + .psych-column {
+    margin-top: 16px;
+  }
+  .psych-overlay__columns > .psych-column:nth-child(2),
+  .psych-overlay__columns > .psych-column:nth-child(3) {
+    transform: none;
+  }
+  .psych-overlay__close {
+    right: 24px;
+    top: 24px;
+  }
 }
 .help-overlay.is-open {
   display: flex;

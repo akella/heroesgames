@@ -394,6 +394,14 @@
   max-width: 100%;
 }
 
+.menu-psych-bubble {
+  position: absolute;
+  top: clamp(24px, 12vh, 40px);
+  right: clamp(-10px, -1.4vw, -40px);
+  object-fit: contain;
+  cursor: pointer;
+}
+
 .menu-caption {
   margin-top: 32px;
   color: #fff;

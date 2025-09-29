@@ -82,6 +82,13 @@
               alt="Прею по центру"
               loading="eager"
             />
+            <div
+              class="menu-psych-bubble"
+              type="button"
+              aria-label="Поради психолога"
+            >
+              <img src="assets/dogexcl.webp" alt="" />
+            </div>
             <div class="menu-caption is-strong">Довгоручик</div>
             <button
               class="btn-circle menu-restart-btn"
@@ -121,6 +128,175 @@
         </footer>
       </div>
     </div>
+    <div id="psych-overlay" class="psych-overlay" hidden aria-hidden="true">
+      <div
+        class="psych-overlay__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Поради психолога"
+      >
+        <button class="psych-overlay__close" type="button" aria-label="Закрити">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 28 28"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              fill-rule="evenodd"
+              clip-rule="evenodd"
+              d="M6.17569 6.17374C6.6313 5.71813 7.37 5.71813 7.82561 6.17374L14.0007 12.3488L20.1757 6.17374C20.6313 5.71813 21.37 5.71813 21.8256 6.17374C22.2812 6.62935 22.2812 7.36804 21.8256 7.82366L15.6506 13.9987L21.8256 20.1737C22.2812 20.6294 22.2812 21.368 21.8256 21.8237C21.37 22.2793 20.6313 22.2793 20.1757 21.8237L14.0007 15.6486L7.82561 21.8237C7.37 22.2793 6.6313 22.2793 6.17569 21.8237C5.72008 21.368 5.72008 20.6294 6.17569 20.1737L12.3507 13.9987L6.17569 7.82366C5.72008 7.36804 5.72008 6.62935 6.17569 6.17374Z"
+              fill="#4071FD"
+            />
+          </svg>
+        </button>
+        <div class="psych-overlay__columns">
+          <section class="psych-column psych-column--right psych-column--light">
+            <div class="psych-column__inner">
+              <h2 class="psych-hero-title">Поради психолога</h2>
+              <div class="psych-image">
+                <a
+                  class="psych-image__link"
+                  href="#"
+                  aria-label="Відкрити посилання"
+                >
+                  <img
+                    src="assets/advice-image.webp"
+                    alt="Ілюстрація з порадами психолога"
+                  />
+                  <span class="psych-image__icon" aria-hidden="true">
+                    <svg
+                      width="17"
+                      height="22"
+                      viewBox="0 0 17 22"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M15.835 11.5544L1.70346 20.9755C1.39711 21.1797 0.983192 21.0969 0.778952 20.7905C0.705952 20.6811 0.666992 20.5524 0.666992 20.4208V1.57878C0.666992 1.21059 0.965472 0.912109 1.33366 0.912109C1.46527 0.912109 1.59395 0.951069 1.70346 1.02408L15.835 10.4451C16.1413 10.6493 16.2241 11.0632 16.0198 11.3696C15.971 11.4428 15.9082 11.5056 15.835 11.5544Z"
+                        fill="white"
+                      />
+                    </svg>
+                  </span>
+                </a>
+                <p>The significance of these problems</p>
+              </div>
+            </div>
+          </section>
+          <section class="psych-column psych-column--left psych-column--dark">
+            <div class="psych-column__inner">
+              <h3 class="psych-heading">Self-help</h3>
+              <p class="psych-body">
+                Self-help is something you can do on your own to improve your
+                psychological health and well-being. Self-care includes aspects
+                such as:
+              </p>
+              <ul class="psych-list">
+                <li>
+                  <span class="psych-list__label">Physical health:</span>
+                  take care of your body, follow a sleep, diet and rest
+                  schedule, engage in physical activity, avoid bad habits, get
+                  regular medical check-ups.
+                </li>
+                <li>
+                  <span class="psych-list__label">Mental health:</span>
+                  take care of your mind, develop your abilities, learn new
+                  things, read, solve puzzles, meditate, relax, do things you
+                  like and enjoy.
+                </li>
+                <li>
+                  <span class="psych-list__label">Emotional health:</span>
+                  take care of your feelings, acknowledge and express them
+                  appropriately, deal with negative emotions, cultivate positive
+                  emotions, use humor, be kind to yourself and others.
+                </li>
+                <li>
+                  <span class="psych-list__label">Social health:</span>
+                  take care of your relationships, socialize with friends,
+                  relatives, colleagues, neighbors, participate in social
+                  events, volunteering, hobby clubs, maintain your social
+                  network, be open and trusting of people.
+                </li>
+              </ul>
+            </div>
+          </section>
+          <section class="psych-column psych-column--right psych-column--light">
+            <div class="psych-column__inner">
+              <h3 class="psych-heading">Professional help</h3>
+              <p class="psych-body">
+                Professional help is what you can get from qualified
+                professionals who have experience and expertise in psychology
+                and psychotherapy. Professional help includes aspects such as:
+              </p>
+              <ul class="psych-list">
+                <li>
+                  <span class="psych-list__label"
+                    >Psychological counseling:</span
+                  >
+                  when you see a psychologist or psychotherapist for help with
+                  your psychological problems, where you get a diagnosis,
+                  assessment, advice, support, etc.
+                </li>
+                <li>
+                  <span class="psych-list__label">Psychotherapy:</span>
+                  when you are treated by a psychologist or psychotherapist,
+                  when you use different methods and techniques to change your
+                  thoughts, feelings, and behaviors that cause depression.
+                </li>
+                <li>
+                  <span class="psych-list__label">Medication therapy:</span>
+                  when you take medication that a psychiatrist or doctor
+                  prescribes for you when you improve your chemical balance in
+                  your brain that is disrupted due to depression.
+                </li>
+              </ul>
+            </div>
+          </section>
+          <section class="psych-column psych-column--left psych-column--dark">
+            <div class="psych-column__inner">
+              <h3 class="psych-heading">Supplemental Resources</h3>
+              <p class="psych-body">
+                Discover more ideas and tools that can support you or someone
+                you care about on the journey to healing.
+              </p>
+              <ul class="psych-links">
+                <li>
+                  <a href="#"
+                    >The book "The Self Psychotherapist. (How to beat
+                    depression, anxiety and stress" by author David Burns</a
+                  >
+                  <span class="psych-body">
+                    It is a practical guide to cognitive behavioral therapy that
+                    helps you change the negative thoughts and behaviors that
+                    cause depression.
+                  </span>
+                </li>
+                <li>
+                  <a href="#">Psychology for Everyone website</a>
+                  <span class="psych-body">
+                    It is an online platform that provides free psychological
+                    tests, articles, videos, courses and counseling on a variety
+                    of topics related to psychological health.
+                  </span>
+                </li>
+                <li>
+                  <a href="#">The video “10 Ways to Cheer Yourself Up”</a>
+                  <span class="psych-body">
+                    This is a short and positive video that gives simple and
+                    effective tips on how to boost your mood and deal with
+                    depression.
+                  </span>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
     <div id="container"></div>
     <div id="slide1" class="slide">
       <img src="assets/enter.webp" alt="" />

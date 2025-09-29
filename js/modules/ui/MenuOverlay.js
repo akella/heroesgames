@@ -4,6 +4,7 @@ export function initMenuOverlay({
   buttonSelector = ".btn-burger",
   overlaySelector = "#app-menu",
   bus,
+  onOpenPsych,
 } = {}) {
   const menuButton = document.querySelector(buttonSelector);
   const menuOverlay = document.querySelector(overlaySelector);
@@ -130,7 +131,6 @@ export function initMenuOverlay({
     if (e.key === "Escape") close();
   };
 
-  // Restart button under center preview -> reset current game (finddiff if active)
   const restartBtn = menuOverlay.querySelector(".menu-restart-btn");
   const onRestart = () => {
     try {
@@ -182,6 +182,23 @@ export function initMenuOverlay({
       rightEl.removeEventListener("mousemove", moveHandler);
       rightEl.removeEventListener("mouseleave", leaveHandler);
     }
+    if (psychButton) {
+      psychButton.removeEventListener("click", onPsychClick);
+    }
+  }
+
+  const psychButton = menuOverlay.querySelector(".menu-psych-bubble");
+  const onPsychClick = (e) => {
+    e.preventDefault();
+    close();
+    requestAnimationFrame(() => {
+      try {
+        onOpenPsych?.();
+      } catch {}
+    });
+  };
+  if (psychButton) {
+    psychButton.addEventListener("click", onPsychClick);
   }
 
   return { open, close, toggle, destroy };
