@@ -1,0 +1,101 @@
+@use "variables" as *;
+
+// Reusable mixins
+
+// Circular icon button with standard styles
+@mixin icon-button(
+  $size: $btn-size-lg,
+  $bg: $color-surface,
+  $borderColor: $btn-border-color
+) {
+  width: $size;
+  height: $size;
+  border-radius: $radius-xl;
+  border: 4px solid $borderColor;
+  cursor: pointer;
+  background: $bg;
+  background-clip: padding-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  box-shadow: $shadow-inset-strong;
+  transition: transform $transition-fast, filter $transition-fast,
+    box-shadow $transition-fast;
+  transform-origin: center;
+  will-change: transform;
+
+  svg {
+    width: $icon-size-md;
+    height: $icon-size-md;
+    display: block;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: scale(1.06);
+  }
+  &:active {
+    transform: scale(0.96) translateY(1px);
+  }
+  &:focus-visible {
+    outline: none;
+    transform: scale(1.04);
+  }
+}
+
+// Title styles
+@mixin title(
+  $size: 24px,
+  $lineHeight: 24px,
+  $weight: 900,
+  $color: $color-brand
+) {
+  margin: 0 0 8px 0;
+  font-family: $font-family-base;
+  font-weight: $weight;
+  font-size: $size;
+  line-height: $lineHeight;
+  letter-spacing: -0.012em;
+  color: $color;
+}
+
+// Subtitle styles
+@mixin subtitle($size: 14px, $lineHeight: 18px, $color: $color-text-muted) {
+  margin: 12px 0 0 0;
+  font-family: $font-family-base;
+  font-weight: 400;
+  font-size: $size;
+  line-height: $lineHeight;
+  letter-spacing: -0.012em;
+  color: $color;
+}
+
+// Social button (neutral)
+@mixin social-button() {
+  width: 56px;
+  height: 56px;
+  border-radius: $radius-xl;
+  background: rgba($color-text, 0.05);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+  transition: transform $transition-fast, filter $transition-fast,
+    box-shadow $transition-fast;
+  transform-origin: center;
+  will-change: transform;
+
+  &:hover {
+    transform: scale(1.06);
+  }
+  &:active {
+    transform: scale(0.96) translateY(1px);
+  }
+  &:focus-visible {
+    outline: none;
+    transform: scale(1.04);
+  }
+}

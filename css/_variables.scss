@@ -1,0 +1,38 @@
+// Global design tokens
+// Colors
+$color-brand: #4071fd;
+$color-accent: #fff669;
+$color-text: #191414;
+$color-text-muted: rgba(25, 20, 20, 0.4);
+$color-text-subtle: #19141466; // ~40% opacity
+$color-backdrop: rgba(25, 20, 20, 0.6);
+$color-surface: #ffffff;
+$color-surface-alt: #f0f0f0;
+$color-surface-soft: #f6f7fb;
+
+// Typography
+$font-family-base: "Factor A TRIAL", Arial, sans-serif;
+
+// Radii
+$radius-xl: 64px;
+$radius-lg: 32px;
+$radius-md: 24px;
+$radius-sm: 16px;
+
+// Sizes
+$btn-size-lg: 56px;
+$icon-size-md: 28px;
+
+// Borders
+$btn-border-color: rgba(#fff, 0.2);
+
+// Shadows
+$shadow-inset-strong: inset 0 -8px 16px rgba(0, 0, 0, 0.16),
+  inset 0 8px 16px rgba(255, 255, 255, 0.16);
+$shadow-inset-soft: inset 0 -8px 16px rgba(0, 0, 0, 0.06),
+  inset 0 8px 16px rgba(255, 255, 255, 0.4);
+$drop-shadow-md: 0 8px 14px rgba(0, 0, 0, 0.12);
+
+// Transitions
+$transition-fast: 0.18s ease;
+$transition-base: 0.2s ease;

@@ -1,3 +1,4 @@
+@use "variables" as *;
 .gl-canvas {
   display: block;
   opacity: 1;
@@ -21,7 +22,7 @@
 .scene-filter {
   position: absolute;
   inset: 0;
-  background: #ffffff;
+  background: $color-surface;
   pointer-events: none;
   z-index: 5;
   opacity: 0.5;

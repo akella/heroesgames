@@ -1,3 +1,4 @@
+@use "variables" as *;
 .slide {
   inset: 0;
   position: absolute;
@@ -58,12 +59,12 @@
     top: 0;
     right: 0;
     transform: translate(50%, -100%);
-    font-family: "Factor A TRIAL", Arial, sans-serif;
+    font-family: $font-family-base;
     font-weight: 900;
     font-size: 20px;
     line-height: 24px;
     letter-spacing: -0.012em;
-    color: #4071fd;
+    color: $color-brand;
     text-transform: uppercase;
     text-align: center;
     z-index: 60;
@@ -263,7 +264,7 @@
     inset: 14% 16% 20% 16%;
     display: flex;
     align-items: center;
-    font-family: "Factor A TRIAL", Arial, sans-serif;
+    font-family: $font-family-base;
     font-weight: 900;
     font-size: clamp(1.6vw, 1.6vmin, 24px);
     line-height: 1.15;
