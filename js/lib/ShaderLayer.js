@@ -9,9 +9,9 @@ import {
   INITIAL_HIDE,
   MID_GAME_REVEALABLE,
   END_GAME_GROUP,
-} from "../modules/roomLayersConfig.js";
-import depthMapFull from "../../assets/room/room-depth-2.webp";
-import depthMapEmpty from "../../assets/room/room-depth-1.webp";
+} from "../modules/core/config/roomLayersConfig.js";
+import depthMapFull from "/assets/room/room-depth-2.webp";
+import depthMapEmpty from "/assets/room/room-depth-1.webp";
 
 export default class ShaderLayer extends BaseLayer {
   constructor({ mouse, events, includeIds = null, excludeIds = null }) {

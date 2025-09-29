@@ -1,13 +1,13 @@
 // Lightweight RoomPicker UI (no title): button + form with wallpaper thumbnails.
 // Picker images are imported as modules to let the bundler handle them (Vite).
 
-import pickerBase from "../../../assets/picker/room-picker.webp";
-import pickerLocked from "../../../assets/picker/room-picker-locked.webp";
-import wall1 from "../../../assets/picker/wall-1.webp";
-import wall2 from "../../../assets/picker/wall-2.webp";
-import wall3 from "../../../assets/picker/wall-3.webp";
-import wall4 from "../../../assets/picker/wall-4.webp";
-import wall5 from "../../../assets/picker/wall-5.webp";
+import pickerBase from "/assets/picker/room-picker.webp";
+import pickerLocked from "/assets/picker/room-picker-locked.webp";
+import wall1 from "/assets/picker/wall-1.webp";
+import wall2 from "/assets/picker/wall-2.webp";
+import wall3 from "/assets/picker/wall-3.webp";
+import wall4 from "/assets/picker/wall-4.webp";
+import wall5 from "/assets/picker/wall-5.webp";
 
 const wallThumbs = [wall1, wall2, wall3, wall4, wall5];
 

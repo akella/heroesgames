@@ -1,5 +1,8 @@
 import gsap from "gsap";
-import { captureRoom, downloadBlob } from "../captureRoom.js";
+import {
+  captureRoom,
+  downloadBlob,
+} from "../../interactions/managers/captureRoom.js";
 
 export function initShareOverlay({
   buttonSelector = ".btn-icon-circle--spark",
