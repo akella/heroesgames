@@ -134,13 +134,7 @@ export function initMenuOverlay({
   const restartBtn = menuOverlay.querySelector(".menu-restart-btn");
   const onRestart = () => {
     try {
-      close();
-    } catch {}
-    try {
-      window.__finddiffHideAt = null;
-    } catch {}
-    try {
-      window.location.reload();
+      bus && bus.emit && bus.emit("restart.request");
     } catch {}
   };
 

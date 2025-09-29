@@ -9,6 +9,7 @@ export const flowMachine = createMachine(
     context: { score: 0 },
     initial: "slide1",
     on: {
+      GOTO_21: { target: ".slide21" },
       GOTO_22: { target: ".slide22" },
       GOTO_32: { target: ".slide32" },
       GOTO_39: { target: ".slide39" },

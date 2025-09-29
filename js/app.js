@@ -35,6 +35,8 @@ import { initMenuOverlay } from "./modules/ui/MenuOverlay.js";
 import { initHeaderProgress } from "./modules/ui/HeaderProgress.js";
 import { initHelpOverlay } from "./modules/ui/HelpOverlay.js";
 import { initShareOverlay } from "./modules/ui/ShareOverlay.js";
+import { initMessageOverlay } from "./modules/ui/MessageOverlay.js";
+import { initGameBackButton } from "./modules/ui/GameBackButton.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -182,6 +184,46 @@ initHeaderProgress({ bus });
 initHelpOverlay();
 // Initialize share overlay (share form)
 const shareApi = initShareOverlay();
+
+// Initialize generic message overlay
+const messageApi = initMessageOverlay({ bus });
+
+// Initialize game back button (uses message overlay for confirmation)
+const gameBackButtonApi = initGameBackButton({
+  bus,
+  messageApi,
+  flowActor,
+  gameManager,
+});
+
+// Route restart requests through the generic message overlay
+bus.on("restart.request", () => {
+  messageApi.open({
+    title: "Ти дійсно хочеш почати гру заново?",
+    subtitle:
+      "Весь прогрес буде втрачено, і доведеться розпочати все спочатку.",
+    actions: [
+      {
+        label: "Так",
+        onClick: () => {
+          try {
+            menuOverlayApi?.close?.();
+          } catch {}
+          try {
+            window.__finddiffHideAt = null;
+          } catch {}
+          try {
+            window.location.reload();
+          } catch {}
+        },
+      },
+      {
+        label: "Ні",
+        onClick: () => {},
+      },
+    ],
+  });
+});
 
 class AppController {
   constructor(options) {

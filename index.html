@@ -2122,6 +2122,46 @@
         </svg>
       </button>
     </div>
+    <!-- Generic Message overlay -->
+    <div id="message-overlay" class="message-overlay" hidden aria-hidden="true">
+      <div
+        class="message-overlay__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Повідомлення"
+      >
+        <div class="message-wrapper">
+          <div class="message-card">
+            <header class="message-header">
+              <h2 class="message-title"></h2>
+              <p class="message-subtitle"></p>
+            </header>
+            <div class="message-actions"></div>
+          </div>
+          <button
+            class="message-overlay__close"
+            type="button"
+            aria-label="Закрити"
+          >
+            <svg
+              width="28"
+              height="28"
+              viewBox="0 0 28 28"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M20.1717 6.72794C19.7812 6.33742 19.148 6.33742 18.7575 6.72794L13.4496 12.0359L8.14162 6.72794C7.7511 6.33742 7.11794 6.33742 6.72742 6.72794C6.3369 7.11847 6.3369 7.75163 6.72742 8.14215L12.0354 13.4501L6.72742 18.7581C6.3369 19.1486 6.3369 19.7818 6.72742 20.1723C7.11794 20.5628 7.7511 20.5628 8.14162 20.1723L13.4496 14.8643L18.7575 20.1723C19.148 20.5628 19.7812 20.5628 20.1717 20.1723C20.5622 19.7818 20.5622 19.1486 20.1717 18.7581L14.8637 13.4501L20.1717 8.14215C20.5622 7.75163 20.5622 7.11847 20.1717 6.72794Z"
+                fill="#191414"
+                fill-opacity="0.4"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
     <div id="share-overlay" class="share-overlay" hidden aria-hidden="true">
       <div
         class="share-overlay__panel"
