@@ -453,6 +453,7 @@
   &__panel {
     opacity: 0;
     transform: translateY(10px) scale(0.98);
+    max-width: 1300px;
   }
   &__close {
     position: absolute;
@@ -599,13 +600,17 @@
     color: #191414;
     text-align: center;
   }
-}
-.psych-image {
   &__link {
     position: relative;
     display: inline-block;
     img {
       display: block;
+    }
+    &:hover {
+      svg {
+        transform: scale(1.3);
+        transition: transform 0.1s ease;
+      }
     }
   }
   &__icon {
@@ -619,6 +624,7 @@
     height: 56px;
     svg {
       display: block;
+      transition: transform 0.1s ease;
     }
   }
 }
@@ -733,6 +739,8 @@
     background: $color-brand;
     clip-path: polygon(0 15px, 100% 0, 100% 100%, 0 calc(100% - 15px));
     overflow: hidden;
+    max-width: 1300px;
+    margin: auto;
   }
   &__inner {
     position: absolute;

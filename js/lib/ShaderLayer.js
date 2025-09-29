@@ -37,7 +37,6 @@ export default class ShaderLayer extends BaseLayer {
     this._buildMultiPass();
     this._applyInitialVisibility();
     this._wireRevealEvents();
-    setTimeout(() => this.setVariant("table", 1), 0);
   }
 
   _buildMultiPass() {
