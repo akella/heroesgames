@@ -17,14 +17,16 @@
 
 import "../css/style.scss";
 import { createActor } from "xstate";
-import { flowMachine } from "./modules/core/StateMachine/FlowMachine.js";
+import {
+  createFlowMachine,
+  flowMachine as fallbackFlowMachine,
+} from "./modules/core/StateMachine/FlowMachine.js";
 import { setupFlowSubscription } from "./modules/core/StateMachine/FlowHandlers.js";
 import mitt from "mitt";
 import { LayerManager } from "./modules/core/LayerManager.js";
 import { generateLayersFromDOM } from "./modules/core/generateLayers.js";
 import { GameManager } from "./modules/core/GameManager.js";
 import { initAnchorManager } from "./modules/interactions/managers/anchorManager.js";
-// UI overlays/back button are initialized inside UIController
 import { AppController } from "./modules/core/AppController.js";
 import { ScoreBoard } from "./modules/ui/components/ScoreBoard.js";
 import { UIController } from "./modules/ui/UIController.js";
@@ -63,7 +65,18 @@ gameManager.register("puzzle", () => import("./games/puzzle/index.js"));
 gameManager.register("wordbox", () => import("./games/wordbox/index.js"));
 gameManager.register("football", () => import("./games/football/index.js"));
 
-const flowActor = createActor(flowMachine);
+// Prefer dynamic machine built from actual slide IDs; fallback to static if needed
+let flowActor;
+try {
+  const slideIds = Object.keys(layerManager.layerMap).filter((k) =>
+    /^slide\d+$/.test(k)
+  );
+  const dynMachine = createFlowMachine(slideIds, "slide1");
+  flowActor = createActor(dynMachine);
+} catch (e) {
+  console.warn("Falling back to static flow machine:", e);
+  flowActor = createActor(fallbackFlowMachine);
+}
 
 // Instantiate controller (rendering, scene)
 const appController = new AppController({

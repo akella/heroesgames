@@ -13,6 +13,13 @@ import {
   applyGameMisc as applyGameMiscSvc,
 } from "./services/gameService.js";
 import { bindGameCompletionHandlers } from "./handlers/gameCompletion.js";
+import {
+  handleWordBoxRule,
+  handlePuzzleRules,
+  handleFootballRule,
+  handlePostFootball,
+  handleOutro,
+} from "./handlers/slideHandlers.js";
 
 export function setupFlowSubscription({
   flowActor,
@@ -37,223 +44,8 @@ export function setupFlowSubscription({
       : rule.when === slide;
   }
 
-  function allGamesDone() {
-    const wordDone =
-      !!window.__wordboxCompleted || !!window.__wordboxCompletedPending;
-    const puzzDone =
-      !!window.__puzzleCompleted || !!window.__puzzleCompletedPending;
-    return puzzDone && wordDone && !!window.__footballCompleted;
-  }
-
-  function parseSlideNumber(slide) {
-    if (typeof slide !== "string") return null;
-    if (!slide.startsWith("slide")) return null;
-    const n = parseInt(slide.slice(5), 10);
-    return Number.isFinite(n) ? n : null;
-  }
-
-  function isGameSlide(slide, ranges) {
-    const n = parseSlideNumber(slide);
-    if (n == null) return false;
-    return ranges.some(([from, to]) => n >= from && n <= to);
-  }
-
-  function maybeHandlePostGameRedirect(slideNumber) {
-    const action = window.__postGameRedirectAction;
-    if (!action) return;
-    const allDone =
-      !!window.__puzzleCompleted &&
-      !!window.__wordboxCompleted &&
-      !!window.__footballCompleted;
-    if (!allDone) return;
-    if (
-      window.__puzzleExitPending ||
-      window.__wordboxExitPending ||
-      window.__footballExitPending
-    )
-      return;
-
-    if (slideNumber != null) {
-      if (action === "GOTO_45" && slideNumber >= 45) {
-        window.__postGameRedirectAction = null;
-        return;
-      }
-      if (action === "GOTO_99" && slideNumber >= 99) {
-        window.__postGameRedirectAction = null;
-        return;
-      }
-    }
-
-    const toSend = action;
-    window.__postGameRedirectAction = null;
-    setTimeout(() => {
-      try {
-        flowActor.send({ type: toSend });
-      } catch {}
-    });
-  }
-
-  function redirectToHub() {
-    try {
-      emit("scene.parallax", { enabled: true });
-      emit("scene.view.reset");
-      dispatchChar("show");
-    } catch {}
-    try {
-      if (gameManager.active) {
-        gameManager.active.api?.setActive?.(false);
-        gameManager.active.api?.hide?.();
-        if (typeof gameManager.deactivate === "function") {
-        }
-      }
-      if (gameRoot) gameRoot.style.zIndex = "5";
-    } catch {}
-    try {
-      emit("score.unlock");
-      emit("score.hide");
-    } catch {}
-    try {
-      flowActor.send({ type: "GOTO_99" });
-    } catch {}
-  }
-
   const applyGameMisc = (cfg) =>
     applyGameMiscSvc({ gameManager, bus, gameRoot }, cfg);
-
-  function handleWordBoxRule(rule, slide) {
-    if (!rule.wordbox) return;
-    const cfg = rule.wordbox;
-    if (cfg.activate) {
-      activateGame("wordbox", {
-        ensureSlide: slide,
-        active: true,
-        gameRootZ: 20,
-        score: { init: { total: 7, value: 0 }, lock: true, show: true },
-      });
-    } else if (cfg.hide) {
-      if (gameManager.active?.id === "wordbox") {
-        gameManager.active?.api?.setActive?.(false);
-        gameManager.active?.api?.hide?.();
-        if (gameRoot) gameRoot.style.zIndex = "5";
-      }
-      if (cfg.scoreHide) {
-        emit("score.unlock");
-        emit("score.hide");
-      }
-    }
-  }
-
-  function handlePuzzleRules(slide) {
-    if (slide === "slide25") {
-      activateGame("puzzle", {
-        ensureSlide: slide,
-        active: false,
-        gameRootZ: 40,
-        score: { show: true },
-      });
-      // Extra safety: hide pickers if still visible
-      [window.__pickerWall, window.__pickerFloor, window.__pickerTable].forEach(
-        (p) => {
-          try {
-            p && p.hide();
-          } catch {}
-        }
-      );
-      return true;
-    }
-    if (slide === "slide26" && gameManager.active?.id === "puzzle") {
-      gameManager.active?.api?.show?.();
-      gameManager.active?.api?.setActive?.(true);
-      emit("score.show");
-      if (gameRoot) gameRoot.style.zIndex = "40";
-      return true;
-    }
-    if (slide === "slide27" && gameManager.active?.id === "puzzle") {
-      gameManager.active?.api?.setActive?.(false);
-      gameManager.active?.api?.hide?.();
-      emit("score.show");
-      if (gameRoot) gameRoot.style.zIndex = "5";
-      return true;
-    }
-    return false;
-  }
-
-  function handleFootballRule(slide) {
-    if (slide !== "slide42") return;
-    activateGame("football", {
-      ensureSlide: slide,
-      active: true,
-      gameRootZ: 40,
-      roomHideIds: ["football-0", "sh-football"],
-      score: { init: { total: 10, value: 0 }, lock: true, show: true },
-      scene: {
-        parallax: false,
-        view: { zoom: 1.5, offsetY: -Math.round(window.innerHeight * 0.25) },
-      },
-    });
-
-    // Dynamic wheel-pump visibility when centered
-    try {
-      const wp = document.querySelector('[data-id="wheel-pump"]');
-      if (wp) {
-        wp.style.opacity = "0";
-        wp.style.transition = "opacity 0.35s ease";
-        const check = () => {
-          if (!wp.isConnected) return;
-          const r = wp.getBoundingClientRect();
-          const cx = window.innerWidth / 2;
-          const cy = window.innerHeight / 2;
-          const inside =
-            r.left < cx && r.right > cx && r.top < cy && r.bottom > cy;
-          wp.style.opacity = inside ? "1" : "0";
-        };
-        check();
-        window.addEventListener("resize", check, { passive: true });
-        window.addEventListener("scroll", check, { passive: true });
-        // Store cleanup for later slides
-        flowActor._wheelPumpCleanup = () => {
-          window.removeEventListener("resize", check);
-          window.removeEventListener("scroll", check);
-        };
-      }
-    } catch {}
-  }
-
-  function handlePostFootball(slide) {
-    if (slide === "slide45") {
-      // Now hide football game finally
-      if (gameManager.active?.id === "football") {
-        try {
-          gameManager.active?.api?.hide?.();
-        } catch {}
-      }
-      emit("scene.parallax", { enabled: true });
-      emit("scene.view.reset");
-      const ps = pickers();
-      ps.forEach((p) => {
-        p.show();
-        p.setLocked(false);
-        p.close();
-      });
-      if (gameRoot) gameRoot.style.zIndex = "5";
-    }
-  }
-
-  function handleOutro(slide) {
-    if (slide !== "outro") return;
-    if (gameManager.active) {
-      try {
-        gameManager.active?.api?.hide?.();
-      } catch {}
-      try {
-        gameManager.deactivate();
-      } catch {}
-    }
-    emit("score.unlock");
-    emit("score.hide");
-    emit("scene.view.reset");
-    if (gameRoot) gameRoot.style.zIndex = "5";
-  }
 
   // Centralized game completion bus handlers
   bindGameCompletionHandlers({
@@ -293,8 +85,8 @@ export function setupFlowSubscription({
       if (window.__footballExitPending && slideNumber >= 45) {
         window.__footballExitPending = false;
       }
-      maybeHandlePostGameRedirect(slideNumber);
-    } else maybeHandlePostGameRedirect(null);
+      maybeHandlePostGameRedirect(flowActor, slideNumber);
+    } else maybeHandlePostGameRedirect(flowActor, null);
 
     if (
       window.__puzzleCompleted &&
@@ -340,9 +132,18 @@ export function setupFlowSubscription({
         AUTO_SLIDES[slide]
       );
     }
-    if (handlePuzzleRules(slide)) return;
+    if (
+      handlePuzzleRules({
+        slide,
+        activateGame,
+        gameManager,
+        emit,
+        gameRoot,
+      })
+    )
+      return;
     if (slide === "slide45" && !allGamesDone()) {
-      redirectToHub();
+      redirectToHub({ flowActor, bus, gameManager, gameRoot });
       return;
     }
 
@@ -380,9 +181,25 @@ export function setupFlowSubscription({
         applyGameMisc(rule.gameEnsure);
       }
       handleRoomOps(rule, slide);
-      if (rule.wordbox) handleWordBoxRule(rule, slide);
-      if (rule.football) handleFootballRule(slide);
-      if (rule.postFootball) handlePostFootball(slide); // legacy (unused now)
+      if (rule.wordbox)
+        handleWordBoxRule({
+          rule,
+          slide,
+          emit,
+          gameManager,
+          gameRoot,
+          activateGame,
+        });
+      if (rule.football)
+        handleFootballRule({
+          slide,
+          activateGame,
+          flowActor,
+          gameManager,
+          emit,
+        });
+      if (rule.postFootball)
+        handlePostFootball({ slide, gameManager, emit, gameRoot }); // legacy
       if (rule.postFootballPersist) {
         const cfg = rule.postFootballPersist;
         if (cfg.showCharacter) dispatchChar("show");
@@ -401,11 +218,12 @@ export function setupFlowSubscription({
           }
         }
       }
-      if (rule.afterFootballEnd) handlePostFootball(slide);
-      if (rule.outro) handleOutro(slide);
+      if (rule.afterFootballEnd)
+        handlePostFootball({ slide, gameManager, emit, gameRoot });
+      if (rule.outro) handleOutro({ slide, gameManager, emit, gameRoot });
       const n = parseInt((slide || "").replace("slide", ""), 10);
       if (n >= 46 && n <= 49 && !allGamesDone()) {
-        redirectToHub();
+        redirectToHub({ flowActor, bus, gameManager, gameRoot });
         return;
       }
       if (rule.onEnter === "slide46_setup") {
@@ -441,7 +259,7 @@ export function setupFlowSubscription({
       try {
         if (window.__puzzleCompleted && window.__footballCompleted) {
           window.__postGameRedirectAction = "GOTO_45";
-          maybeHandlePostGameRedirect(38);
+          maybeHandlePostGameRedirect(flowActor, 38);
         }
       } catch {}
     }
@@ -455,7 +273,7 @@ export function setupFlowSubscription({
       try {
         if (window.__wordboxCompleted && window.__footballCompleted) {
           window.__postGameRedirectAction = "GOTO_45";
-          maybeHandlePostGameRedirect(28);
+          maybeHandlePostGameRedirect(flowActor, 28);
         }
       } catch {}
     }
