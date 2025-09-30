@@ -556,12 +556,115 @@ export function setupFlowSubscription({
     if (gameRoot) gameRoot.style.zIndex = "5";
   }
 
+  try {
+    bus.on("game.finddiff.complete", () => {
+      let curSlide;
+      try {
+        curSlide = flowActor.getSnapshot().value;
+      } catch {}
+      const m = /slide(\d+)/.exec(curSlide || "");
+      let hideAt = null;
+      if (m) {
+        const base = parseInt(m[1], 10);
+        hideAt = "slide" + (base + 3);
+      }
+      try {
+        window.__finddiffHideAt = hideAt;
+      } catch {}
+      try {
+        if (gameManager.active?.id === "finddiff") {
+          gameManager.active.api?.setActive?.(false);
+        }
+      } catch {}
+      try {
+        bus.emit("score.hide");
+      } catch {}
+      try {
+        bus.emit("room.remove", { id: "picture" });
+      } catch {}
+      try {
+        flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+    // When puzzle completes, mark pending and advance; finalize on slide28
+    bus.on("game.puzzle.complete", () => {
+      try {
+        window.__puzzleCompletedPending = true;
+      } catch {}
+      // Remove puzzle hub object immediately so it doesn't linger
+      try {
+        emit("room.remove", { id: "book-floor" });
+      } catch {}
+      try {
+        const cur = flowActor.getSnapshot().value;
+        const n = parseSlideNumber(cur);
+        if (n != null && n >= 25 && n <= 27) flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+    // When wordbox completes, mark pending and advance; finalize on slide38
+    bus.on("game.wordbox.complete", () => {
+      try {
+        window.__wordboxCompletedPending = true;
+      } catch {}
+      // Remove wordbox hub object immediately
+      try {
+        emit("room.remove", { id: "box" });
+      } catch {}
+      try {
+        const cur = flowActor.getSnapshot().value;
+        const n = parseSlideNumber(cur);
+        if (n != null && n >= 34 && n <= 37) flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+    // When football completes, promote to completed and advance immediately
+    bus.on("game.football.complete", () => {
+      try {
+        window.__footballCompleted = true;
+        window.__footballCompletedPending = false;
+      } catch {}
+      // Remove football hub object immediately
+      try {
+        emit("room.remove", { id: "football-0" });
+        emit("room.remove", { id: "sh-football" });
+      } catch {}
+      // If others are already completed, schedule jump to final slides
+      try {
+        if (window.__puzzleCompleted && window.__wordboxCompleted) {
+          window.__postGameRedirectAction = "GOTO_45";
+          const cur = flowActor.getSnapshot().value;
+          maybeHandlePostGameRedirect(parseSlideNumber(cur));
+        }
+      } catch {}
+      try {
+        const cur = flowActor.getSnapshot().value;
+        const n = parseSlideNumber(cur);
+        if (n != null && n >= 42 && n <= 44) flowActor.send({ type: "NEXT" });
+      } catch {}
+    });
+  } catch {}
+
   function handleRoomOps(rule, slide) {
     if (rule.roomReveal) {
       const ids = rule.roomReveal.filter((id) => {
         if (
           id === "box" &&
           (window.__wordboxCompleted || window.__wordboxCompletedPending) &&
+          slide !== "slide45" &&
+          slide !== "slide46"
+        ) {
+          return false;
+        }
+        if (
+          id === "book-floor" &&
+          (window.__puzzleCompleted || window.__puzzleCompletedPending) &&
+          slide !== "slide45" &&
+          slide !== "slide46"
+        ) {
+          return false;
+        }
+        if (
+          id === "football-0" &&
+          (window.__footballCompleted || window.__footballCompletedPending) &&
           slide !== "slide45" &&
           slide !== "slide46"
         ) {
@@ -748,12 +851,26 @@ export function setupFlowSubscription({
         window.__wordboxCompleted = true;
         window.__wordboxCompletedPending = false;
       } catch {}
+      // All games finished? Jump to final slides
+      try {
+        if (window.__puzzleCompleted && window.__footballCompleted) {
+          window.__postGameRedirectAction = "GOTO_45";
+          maybeHandlePostGameRedirect(38);
+        }
+      } catch {}
     }
 
     if (slide === "slide28" && window.__puzzleCompletedPending) {
       try {
         window.__puzzleCompleted = true;
         window.__puzzleCompletedPending = false;
+      } catch {}
+      // All games finished? Jump to final slides
+      try {
+        if (window.__wordboxCompleted && window.__footballCompleted) {
+          window.__postGameRedirectAction = "GOTO_45";
+          maybeHandlePostGameRedirect(28);
+        }
       } catch {}
     }
 

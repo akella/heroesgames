@@ -48,6 +48,7 @@ export function initGameBackButton({
   messageApi,
   flowActor,
   gameManager,
+  menuOverlayApi,
   slides = DEFAULT_GAME_SLIDES,
   onExit = defaultOnExit,
 } = {}) {
@@ -85,10 +86,40 @@ export function initGameBackButton({
     });
   });
 
+  // Handle global restart requests via message overlay
+  const onRestartRequest = () => {
+    messageApi.open({
+      title: "Ти дійсно хочеш почати гру заново?",
+      subtitle:
+        "Весь прогрес буде втрачено, і доведеться розпочати все спочатку.",
+      actions: [
+        {
+          label: "Так",
+          onClick: () => {
+            try {
+              menuOverlayApi?.close?.();
+            } catch {}
+            try {
+              window.__finddiffHideAt = null;
+            } catch {}
+            try {
+              window.location.reload();
+            } catch {}
+          },
+        },
+        { label: "Ні", onClick: () => {} },
+      ],
+    });
+  };
+  bus.on("restart.request", onRestartRequest);
+
   return {
     destroy: () => {
       try {
         bus.off("flow.progress", onFlowProgress);
+      } catch {}
+      try {
+        bus.off("restart.request", onRestartRequest);
       } catch {}
       try {
         button.remove();
