@@ -1,5 +1,9 @@
 export function getPickers() {
-  return [window.__pickerWall, window.__pickerFloor, window.__pickerTable].filter(Boolean);
+  return [
+    window.__pickerWall,
+    window.__pickerFloor,
+    window.__pickerTable,
+  ].filter(Boolean);
 }
 
 export function applyPickers(cfg, slide) {

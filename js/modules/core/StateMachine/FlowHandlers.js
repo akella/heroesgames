@@ -1,11 +1,17 @@
 // Declarative slide rules system for readability & reduced code size
 import { AUTO_SLIDES, CANVAS_ACTIVE_SLIDES, RULES } from "./flowConfig.js";
 import { parseSlideNumber, isGameSlide, allGamesDone } from "./flowUtils.js";
-import { maybeHandlePostGameRedirect, redirectToHub } from "./postGameRedirect.js";
+import {
+  maybeHandlePostGameRedirect,
+  redirectToHub,
+} from "./postGameRedirect.js";
 import { applyPickers, applyScore } from "./services/uiService.js";
 import { applyRoomOps } from "./services/roomService.js";
 import { dispatchChar } from "./services/sceneService.js";
-import { activateGame as activateGameSvc, applyGameMisc as applyGameMiscSvc } from "./services/gameService.js";
+import {
+  activateGame as activateGameSvc,
+  applyGameMisc as applyGameMiscSvc,
+} from "./services/gameService.js";
 import { bindGameCompletionHandlers } from "./handlers/gameCompletion.js";
 
 export function setupFlowSubscription({
@@ -24,7 +30,6 @@ export function setupFlowSubscription({
   };
   const activateGame = (id, opts = {}) =>
     activateGameSvc({ gameManager, bus, flowActor, gameRoot }, id, opts);
-
 
   function matches(rule, slide) {
     return Array.isArray(rule.when)
@@ -112,7 +117,8 @@ export function setupFlowSubscription({
     } catch {}
   }
 
-  const applyGameMisc = (cfg) => applyGameMiscSvc({ gameManager, bus, gameRoot }, cfg);
+  const applyGameMisc = (cfg) =>
+    applyGameMiscSvc({ gameManager, bus, gameRoot }, cfg);
 
   function handleWordBoxRule(rule, slide) {
     if (!rule.wordbox) return;
@@ -344,8 +350,8 @@ export function setupFlowSubscription({
     RULES.forEach((rule) => {
       if (!matches(rule, slide)) return;
       if (rule.character) dispatchChar(rule.character);
-  if (rule.pickers) applyPickers(rule.pickers, slide);
-  if (rule.score) applyScore(emit, rule.score);
+      if (rule.pickers) applyPickers(rule.pickers, slide);
+      if (rule.score) applyScore(emit, rule.score);
       if (rule.gameMisc) applyGameMisc(rule.gameMisc);
       if (rule.gameDeactivate && gameManager.active) {
         try {
@@ -373,7 +379,7 @@ export function setupFlowSubscription({
       if (rule.gameEnsure && gameManager.active?.id === rule.gameEnsure.id) {
         applyGameMisc(rule.gameEnsure);
       }
-  handleRoomOps(rule, slide);
+      handleRoomOps(rule, slide);
       if (rule.wordbox) handleWordBoxRule(rule, slide);
       if (rule.football) handleFootballRule(slide);
       if (rule.postFootball) handlePostFootball(slide); // legacy (unused now)

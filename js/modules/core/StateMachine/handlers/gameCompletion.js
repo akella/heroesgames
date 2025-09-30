@@ -1,6 +1,12 @@
 import { parseSlideNumber } from "../flowUtils.js";
 
-export function bindGameCompletionHandlers({ bus, flowActor, gameManager, emit, maybeHandlePostGameRedirect }) {
+export function bindGameCompletionHandlers({
+  bus,
+  flowActor,
+  gameManager,
+  emit,
+  maybeHandlePostGameRedirect,
+}) {
   if (!bus || !flowActor) return;
 
   try {

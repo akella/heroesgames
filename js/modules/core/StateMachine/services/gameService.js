@@ -1,4 +1,8 @@
-export function activateGame({ gameManager, bus, flowActor, gameRoot }, id, opts = {}) {
+export function activateGame(
+  { gameManager, bus, flowActor, gameRoot },
+  id,
+  opts = {}
+) {
   (async () => {
     try {
       if (gameManager.active && gameManager.active.id !== id) {
@@ -28,9 +32,11 @@ export function activateGame({ gameManager, bus, flowActor, gameRoot }, id, opts
       }
       gameManager.active?.api?.show?.();
       gameManager.active?.api?.setActive?.(!!opts.active);
-      if (opts.gameRootZ != null && gameRoot) gameRoot.style.zIndex = String(opts.gameRootZ);
+      if (opts.gameRootZ != null && gameRoot)
+        gameRoot.style.zIndex = String(opts.gameRootZ);
       if (opts.scene) {
-        if (opts.scene.parallax != null) bus.emit("scene.parallax", { enabled: opts.scene.parallax });
+        if (opts.scene.parallax != null)
+          bus.emit("scene.parallax", { enabled: opts.scene.parallax });
         if (opts.scene.view) bus.emit("scene.view", opts.scene.view);
       }
     } catch (e) {
