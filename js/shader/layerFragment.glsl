@@ -24,10 +24,13 @@ void main(){
   float depth = texture2D(depthTexture, newUV).r;
   vec2 offset = (mouse - 0.5) * 0.5;
   vec2 parallaxUV = newUV - offset * depth * parallaxStrength;
+  // Clamp parallaxUV to avoid sampling outside when mouse is at extremes
+  parallaxUV = clamp(parallaxUV, vec2(0.0), vec2(1.0));
   // Local UV remap for layer texture based on mask bounding box
   vec2 localUV = (parallaxUV - bboxMin) / bboxSize; // reverted: no additional aspect scaling
-  bool outside = localUV.x < 0.0 || localUV.x > 1.0 || localUV.y < 0.0 || localUV.y > 1.0;
-  vec4 col = outside ? vec4(0.0) : texture2D(layerTex, localUV);
+  // Clamp localUV to avoid black edges when bbox is near border
+  localUV = clamp(localUV, vec2(0.0), vec2(1.0));
+  vec4 col = texture2D(layerTex, localUV);
   vec4 mS = texture2D(maskTex, parallaxUV);
   float m = (maskChannel==0)?mS.r: (maskChannel==1)?mS.g: (maskChannel==2)?mS.b: mS.a;
   col.rgb *= col.a; // premult
