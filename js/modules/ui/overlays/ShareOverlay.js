@@ -1,4 +1,5 @@
 import gsap from "gsap";
+import shareBorderUrl from "/assets/picture-border.png?url";
 import {
   captureRoom,
   downloadBlob,
@@ -100,7 +101,7 @@ export function initShareOverlay({
       if (previewImg) previewImg.src = cap.url;
       if (previewBorder) {
         const frame = previewBorder.closest(".share-preview__frame");
-        const src = frame?.getAttribute("data-border-src");
+        const src = frame?.getAttribute("data-border-src") || shareBorderUrl;
         if (src) previewBorder.src = src;
       }
     } catch (e) {
