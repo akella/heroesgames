@@ -278,13 +278,34 @@ export function createGame({ bus }) {
     );
   }
 
-  // Place a visual marker
-  function addMarker(x, y) {
+  // Place a visual marker with fade-in animation (opacity 0 -> 1)
+  function addMarker(x, y, { transient = false, ttlMs = 0 } = {}) {
     const m = highlightTemplate.cloneNode();
     m.style.left = x + "px";
     m.style.top = y + "px";
     m.style.width = m.style.height = DIFF_RADIUS * 2 + "px";
+    // Start hidden for fade-in
+    m.style.opacity = "0";
+    m.style.willChange = "opacity, transform";
     overlayLayer.appendChild(m);
+    // Animate in
+    gsap.to(m, { opacity: 1, duration: 0.35, ease: "power2.out" });
+    if (transient && ttlMs > 0) {
+      setTimeout(() => {
+        try {
+          gsap.to(m, {
+            opacity: 0,
+            duration: 0.25,
+            ease: "power2.in",
+            onComplete: () => m.remove(),
+          });
+        } catch {
+          try {
+            m.remove();
+          } catch {}
+        }
+      }, ttlMs);
+    }
   }
 
   function clearMarkers() {
@@ -313,8 +334,209 @@ export function createGame({ bus }) {
       addMarker(x, y);
       // Emit score update
       bus.emit("score.update", { value: found.length });
-      if (found.length >= REQUIRED_DIFFS) finish();
+      // Remove current hint and schedule next hint after 15s if needed
+      if (currentHintTween) {
+        try {
+          currentHintTween.kill();
+        } catch {}
+        currentHintTween = null;
+      }
+      if (currentHintMarker) {
+        try {
+          currentHintMarker.remove();
+        } catch {}
+        currentHintMarker = null;
+      }
+      clearTimeout(hintTimeout);
+      // Reset the hint cycling since progress changed
+      hintIndex = 0;
+      if (found.length < REQUIRED_DIFFS) {
+        // Arm a 15s timer: if player can't find next one, show another hint
+        hintTimeout = setTimeout(showNextHint, 15000);
+      } else {
+        finish();
+      }
     }
+  }
+
+  // Find a hint location by sampling the mask for a pixel that belongs to a diff
+  function findHintLocation(maxTries = 800) {
+    if (!maskData) return null;
+    const taken = found.slice();
+    for (let i = 0; i < maxTries; i++) {
+      const rx = Math.random() * maskData.width;
+      const ry = Math.random() * maskData.height;
+      if (!isDiff(rx, ry)) continue;
+      if (alreadyFound(rx, ry)) continue;
+      // Center the hint marker on this pixel
+      return { x: rx, y: ry };
+    }
+    return null;
+  }
+
+  // Progressive hint system
+  let hintTimeout = null;
+  let currentHintMarker = null;
+  let currentHintTween = null;
+  let hintCircles = [];
+  let hintIndex = 0;
+
+  function getAllWhiteCircles() {
+    if (!maskData) return [];
+    const w = maskData.width,
+      h = maskData.height;
+    const step = 4;
+    const visited = new Set();
+    const circles = [];
+
+    for (let y = 0; y < h; y += step) {
+      for (let x = 0; x < w; x += step) {
+        const key = `${x},${y}`;
+        if (!visited.has(key) && isDiff(x, y)) {
+          const region = [];
+          const stack = [[x, y]];
+          visited.add(key);
+
+          while (stack.length > 0) {
+            const [cx, cy] = stack.pop();
+            region.push([cx, cy]);
+
+            const neighbors = [
+              [cx + step, cy],
+              [cx - step, cy],
+              [cx, cy + step],
+              [cx, cy - step],
+            ];
+
+            for (const [nx, ny] of neighbors) {
+              const nkey = `${nx},${ny}`;
+              if (
+                nx >= 0 &&
+                nx < w &&
+                ny >= 0 &&
+                ny < h &&
+                !visited.has(nkey) &&
+                isDiff(nx, ny)
+              ) {
+                visited.add(nkey);
+                stack.push([nx, ny]);
+              }
+            }
+          }
+
+          if (region.length > 10) {
+            const centerX =
+              region.reduce((sum, [px, py]) => sum + px, 0) / region.length;
+            const centerY =
+              region.reduce((sum, [px, py]) => sum + py, 0) / region.length;
+            // Exclude circles that are already found using proximity check
+            if (!alreadyFound(centerX, centerY)) {
+              circles.push({ x: centerX, y: centerY });
+            }
+          }
+        }
+      }
+    }
+    return circles;
+  }
+
+  function showNextHint() {
+    if (complete) return;
+    // If a hint is already displayed, don't switch it
+    if (currentHintMarker && currentHintMarker.parentNode) return;
+
+    // Get all unfound circles
+    hintCircles = getAllWhiteCircles();
+    if (hintCircles.length === 0) return;
+    if (hintIndex >= hintCircles.length) hintIndex = 0;
+
+    // Remove current hint if exists (safety)
+    if (currentHintTween) {
+      try {
+        currentHintTween.kill();
+      } catch {}
+      currentHintTween = null;
+    }
+    if (currentHintMarker) {
+      try {
+        currentHintMarker.remove();
+      } catch {}
+      currentHintMarker = null;
+    }
+
+    // Show next hint with looping pulse animation
+    // Pick next unfound circle; skip any that became found in the meantime
+    let attempts = 0;
+    let nextCircle = hintCircles[hintIndex];
+    while (
+      attempts < hintCircles.length &&
+      alreadyFound(nextCircle.x, nextCircle.y)
+    ) {
+      hintIndex = (hintIndex + 1) % hintCircles.length;
+      nextCircle = hintCircles[hintIndex];
+      attempts++;
+    }
+    if (
+      attempts >= hintCircles.length &&
+      alreadyFound(nextCircle.x, nextCircle.y)
+    ) {
+      return;
+    }
+    hintIndex = (hintIndex + 1) % hintCircles.length;
+    currentHintMarker = document.createElement("img");
+    currentHintMarker.src = HIGHLIGHT_SRC;
+    Object.assign(currentHintMarker.style, {
+      position: "absolute",
+      left: nextCircle.x + "px",
+      top: nextCircle.y + "px",
+      width: DIFF_RADIUS * 2 + "px",
+      height: DIFF_RADIUS * 2 + "px",
+      pointerEvents: "none",
+      transform: "translate(-50%, -50%)",
+      opacity: "0",
+      willChange: "opacity",
+    });
+    overlayLayer.appendChild(currentHintMarker);
+
+    currentHintTween = gsap.to(currentHintMarker, {
+      opacity: 1,
+      duration: 1.0,
+      ease: "power2.inOut",
+      yoyo: true,
+      repeat: -1,
+    });
+  }
+
+  function startHintSystem() {
+    if (complete || !active) return;
+    hintIndex = 0;
+    showNextHint();
+  }
+
+  function stopHintSystem() {
+    clearTimeout(hintTimeout);
+    if (currentHintTween) {
+      try {
+        currentHintTween.kill();
+      } catch {}
+      currentHintTween = null;
+    }
+    if (currentHintMarker) {
+      try {
+        currentHintMarker.remove();
+      } catch {}
+      currentHintMarker = null;
+    }
+    hintIndex = 0;
+  }
+
+  // Public hint: show a non-scoring marker with fade-in animation
+  function showHint({ ttlMs = 1500 } = {}) {
+    if (complete) return false;
+    const pt = findHintLocation();
+    if (!pt) return false;
+    addMarker(pt.x, pt.y, { transient: true, ttlMs });
+    return true;
   }
 
   function finish() {
@@ -323,6 +545,7 @@ export function createGame({ bus }) {
     freezeBottomRight();
     if (brushFollower) brushFollower.style.display = "none";
     document.body.style.cursor = "";
+    stopHintSystem();
   }
 
   // Park game UI bottom-right when done
@@ -353,10 +576,14 @@ export function createGame({ bus }) {
         if (q) centerRootAt(q.x, q.y, false);
       }
       bus.emit("score.show");
+      // Start hints only when game is active
+      startHintSystem();
     } else {
       document.body.style.cursor = "";
       if (brushFollower) brushFollower.style.display = "none";
       if (!complete) bus.emit("score.hide");
+      // Pause/stop hints when inactive
+      stopHintSystem();
     }
   }
 
@@ -374,6 +601,8 @@ export function createGame({ bus }) {
     window.removeEventListener("mousemove", onMouseMove);
     window.removeEventListener("resize", onResize);
     canvas.removeEventListener("click", handleClick);
+    // Ensure timers/animations are stopped
+    stopHintSystem();
     if (brushFollower?.parentNode)
       brushFollower.parentNode.removeChild(brushFollower);
     if (handImg?.parentNode) handImg.parentNode.removeChild(handImg);
@@ -466,6 +695,16 @@ export function createGame({ bus }) {
     window.addEventListener("resize", onResize);
     // Initialize scoreboard now (value 0)
     bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
+
+    // Optional: hook a bus event to trigger a hint externally
+    try {
+      bus.on &&
+        bus.on("game.finddiff.hint", () => {
+          try {
+            showHint({ ttlMs: 1600 });
+          } catch {}
+        });
+    } catch {}
   }
 
   // Reset for a new round (round 2 uses alternative room image)
@@ -506,5 +745,7 @@ export function createGame({ bus }) {
     },
     setActive,
     resetRound,
+    // Expose hint API for UI/Flow integration
+    showHint,
   };
 }

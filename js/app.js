@@ -71,7 +71,7 @@ try {
   const slideIds = Object.keys(layerManager.layerMap).filter((k) =>
     /^slide\d+$/.test(k)
   );
-  const dynMachine = createFlowMachine(slideIds, "slide1");
+  const dynMachine = createFlowMachine(slideIds, "slide9");
   flowActor = createActor(dynMachine);
 } catch (e) {
   console.warn("Falling back to static flow machine:", e);

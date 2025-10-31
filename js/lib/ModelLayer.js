@@ -90,7 +90,10 @@ export default class ModelLayer extends BaseLayer {
         this.model.scale.set(scale, scale, scale);
         const boundingBox = new THREE.Box3().setFromObject(this.model);
         const center = boundingBox.getCenter(new THREE.Vector3());
-        console.log(center);
+        if (import.meta.env?.DEV) {
+          // Debug model center while tuning
+          console.log(center);
+        }
         this.model.position.x = -center.x;
         this.model.position.y = -center.y - 0.7;
         const zOffset = 0.18;
