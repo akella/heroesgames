@@ -694,7 +694,11 @@ export function createGame({ bus }) {
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("resize", onResize);
     // Initialize scoreboard now (value 0)
-    bus.emit("score.init", { total: REQUIRED_DIFFS, value: 0 });
+    bus.emit("score.init", {
+      total: REQUIRED_DIFFS,
+      value: 0,
+      gameType: "finddiff",
+    });
 
     // Optional: hook a bus event to trigger a hint externally
     try {

@@ -5,7 +5,7 @@
   left: 50%;
   bottom: 28px;
   transform: translateX(-50%);
-  width: 324px;
+  width: 380px;
   min-height: 56px;
   display: flex;
   align-items: center;
@@ -38,6 +38,19 @@
   letter-spacing: 1px;
   position: relative;
   z-index: 2;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 50px;
+}
+
+.scoreboard__count {
+  font-size: 32px;
+}
+
+.scoreboard__text {
+  font-size: 16px;
 }
 .scoreboard__star-wrap {
   position: absolute;
@@ -389,7 +402,11 @@ body.cursor-brush {
   bottom: 0;
   z-index: 3;
   will-change: transform;
-  transform: translateX(-181%);
+  transform: translateX(-234px);
+}
+
+.football-handle:not(.is-pumping):hover {
+  transform: translate(-270px, 35px) !important;
 }
 
 /* Misc */

@@ -74,7 +74,7 @@ export function bindGameCompletionHandlers({
     bus.on("game.football.complete", () => {
       try {
         window.__footballCompleted = true;
-        window.__footballCompletedPending = false;
+        window.__footballCompletedPending = true;
       } catch {}
       try {
         emit("room.remove", { id: "football-0" });
@@ -85,13 +85,7 @@ export function bindGameCompletionHandlers({
         const n = parseSlideNumber(cur);
         if (n != null && n >= 42 && n <= 44) flowActor.send({ type: "NEXT" });
       } catch {}
-      try {
-        if (window.__puzzleCompleted && window.__wordboxCompleted) {
-          window.__postGameRedirectAction = "GOTO_45";
-          const cur = flowActor.getSnapshot().value;
-          maybeHandlePostGameRedirect(flowActor, parseSlideNumber(cur));
-        }
-      } catch {}
+      // Do not jump directly to slide45 here; allow slides 43 and 44 to be shown even when all games are complete.
     });
   } catch {}
 }

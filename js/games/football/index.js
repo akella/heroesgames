@@ -11,6 +11,7 @@ import BALL_90 from "../../../assets/games/football/ball-90.webp";
 import BALL_100 from "../../../assets/games/football/ball-100.webp";
 import BASE_SRC from "../../../assets/games/football/tube-1.webp";
 import HANDLE_SRC from "../../../assets/games/football/tube-2.webp";
+import HANDLE_HOVER_SRC from "../../../assets/games/football/tube-2-hover.webp";
 import SHADOW_SRC from "../../../assets/games/football/sh.webp";
 
 // Football pump mini-game
@@ -37,7 +38,7 @@ export async function preload() {
     BALL_90,
     BALL_100,
   ];
-  const others = [BASE_SRC, HANDLE_SRC, SHADOW_SRC];
+  const others = [BASE_SRC, HANDLE_SRC, HANDLE_HOVER_SRC, SHADOW_SRC];
   const assets = [...others, ...balls];
   await Promise.all(assets.map(preloadImage));
 }
@@ -51,6 +52,8 @@ export function createGame({ bus }) {
   let pumping = false;
   let onFlowProgress;
   let completed = false;
+  const REST_Y = 0; // px: neutral rest position
+  const DOWN_Y = 110; // px: click animation depth
 
   function layout() {
     if (!uiEl) return;
@@ -93,14 +96,16 @@ export function createGame({ bus }) {
     e.stopPropagation();
     if (pumping) return;
     pumping = true;
+    handleImgEl.classList.add("is-pumping");
+    try {
+      handleImgEl.src = HANDLE_SRC;
+    } catch {}
 
-    // Animate handle down then up
-    const downY = 110; // px relative movement
     gsap.fromTo(
       handleImgEl,
       { y: 0 },
       {
-        y: downY,
+        y: DOWN_Y,
         duration: 0.18,
         ease: "power1.in",
         onComplete: () => {
@@ -110,6 +115,17 @@ export function createGame({ bus }) {
             ease: "power1.out",
             onComplete: () => {
               pumping = false;
+              handleImgEl.classList.remove("is-pumping");
+              gsap.set(handleImgEl, { clearProps: "transform" });
+              // If still hovered, restore hover sprite
+              try {
+                if (
+                  handleImgEl.matches(":hover") ||
+                  (handleWrapEl && handleWrapEl.matches(":hover"))
+                ) {
+                  handleImgEl.src = HANDLE_HOVER_SRC;
+                }
+              } catch {}
             },
           });
         },
@@ -172,9 +188,21 @@ export function createGame({ bus }) {
       handleWrapEl.addEventListener("click", onPumpClick);
       handleWrapEl.style.cursor = "pointer";
 
+      // Add hover effects for the pump handle
+      handleWrapEl.addEventListener("mouseenter", () => {
+        if (active && !pumping) {
+          handleImgEl.src = HANDLE_HOVER_SRC;
+        }
+      });
+      handleWrapEl.addEventListener("mouseleave", () => {
+        if (active && !pumping) {
+          handleImgEl.src = HANDLE_SRC;
+        }
+      });
+
       // Setup score 0..10
       try {
-        bus.emit("score.init", { total: 10, value: 0 });
+        bus.emit("score.init", { total: 10, value: 0, gameType: "football" });
         bus.emit("score.show");
       } catch {}
 
@@ -243,7 +271,11 @@ export function createGame({ bus }) {
       if (wrap) wrap.style.pointerEvents = active ? "auto" : "none";
       if (active) {
         try {
-          bus.emit("score.init", { total: 10, value: progress });
+          bus.emit("score.init", {
+            total: 10,
+            value: progress,
+            gameType: "football",
+          });
           bus.emit("score.show");
         } catch {}
       }

@@ -297,8 +297,14 @@ export class UIController {
       });
     };
     const resolveBuiltUrl = (p) => {
-      const abs = p.startsWith("/") ? p : "/" + p;
-      return WEBP_URLS[abs] || abs;
+      try {
+        if (!p) return p;
+        if (/^(data:|blob:|https?:)/.test(p)) return p;
+        const abs = p.startsWith("/") ? p : "/" + p;
+        return WEBP_URLS[abs] || abs;
+      } catch {
+        return p;
+      }
     };
     const hydrateImagesForSlides = (ids) => {
       ids.forEach((sid) => {

@@ -139,7 +139,11 @@ export function createGame({ bus }) {
     });
     tray.appendChild(frag);
     measureBoard();
-    bus.emit("score.init", { total: totalPieces, value: placedCount });
+    bus.emit("score.init", {
+      total: totalPieces,
+      value: placedCount,
+      gameType: "puzzle",
+    });
   }
 
   function measureBoard() {
@@ -538,7 +542,11 @@ export function createGame({ bus }) {
 
       startAnchorFollow();
       // Re-init scoreboard (guard in case previous game hid it asynchronously)
-      bus.emit("score.init", { total: totalPieces, value: placedCount });
+      bus.emit("score.init", {
+        total: totalPieces,
+        value: placedCount,
+        gameType: "puzzle",
+      });
       bus.emit("score.show");
       bus.emit("score.lock");
       // Reinforce visibility in case of late hide from previous game
@@ -550,7 +558,11 @@ export function createGame({ bus }) {
       const stabilizer = () => {
         attempts++;
         if (!active || complete) return;
-        bus.emit("score.init", { total: totalPieces, value: placedCount });
+        bus.emit("score.init", {
+          total: totalPieces,
+          value: placedCount,
+          gameType: "puzzle",
+        });
         bus.emit("score.show");
         if (attempts < maxAttempts) setTimeout(stabilizer, 100);
       };

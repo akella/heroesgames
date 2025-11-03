@@ -26,7 +26,7 @@ export function activateGame(
       }
       if (opts.score) {
         const { init, lock, show } = opts.score;
-        if (init) bus.emit("score.init", init);
+        if (init) bus.emit("score.init", { ...init, gameType: id });
         if (lock) bus.emit("score.lock");
         if (show) bus.emit("score.show");
       }

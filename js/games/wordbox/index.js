@@ -146,7 +146,11 @@ export function createGame({ bus }) {
       );
       renderBlocks();
       try {
-        bus.emit("score.init", { total: TARGET.length, value: 0 });
+        bus.emit("score.init", {
+          total: TARGET.length,
+          value: 0,
+          gameType: "wordbox",
+        });
       } catch {}
       syncPosition();
       try {
@@ -258,7 +262,11 @@ export function createGame({ bus }) {
           else break;
         }
         try {
-          bus.emit("score.init", { total: TARGET.length, value: matchLen });
+          bus.emit("score.init", {
+            total: TARGET.length,
+            value: matchLen,
+            gameType: "wordbox",
+          });
           bus.emit("score.show");
         } catch {}
       } else {

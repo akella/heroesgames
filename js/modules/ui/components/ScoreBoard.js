@@ -8,6 +8,7 @@ export class ScoreBoard {
     this.value = 0;
     this.visible = false;
     this.locked = false;
+    this.gameType = null;
     this._rafShow = null;
     this._build(parent);
     this._bindBus();
@@ -30,7 +31,7 @@ export class ScoreBoard {
 
   _bindBus() {
     if (!this.bus) return;
-    this.bus.on("score.init", ({ total, value = 0 } = {}) => {
+    this.bus.on("score.init", ({ total, value = 0, gameType } = {}) => {
       if (
         this.locked &&
         this.total &&
@@ -39,6 +40,7 @@ export class ScoreBoard {
       ) {
         return;
       }
+      this.gameType = gameType;
       this.setTotal(total);
       this.setValue(value);
     });
@@ -79,7 +81,48 @@ export class ScoreBoard {
   }
 
   _render() {
-    if (this.valueEl) this.valueEl.textContent = `${this.value}/${this.total}`;
+    if (this.valueEl) {
+      if (this.value === this.total && this.total > 0) {
+        // All completed - show completion message
+        switch (this.gameType) {
+          case "finddiff":
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total} відмінностей знайдено</span>`;
+            break;
+          case "puzzle":
+            // Completed puzzle: show success phrase
+            this.valueEl.innerHTML = `<span class="scoreboard__text">Всі пазли зібрано</span>`;
+            break;
+          case "wordbox":
+            // Completed wordbox: show success phrase
+            this.valueEl.innerHTML = `<span class="scoreboard__text">Всі букви відгадано</span>`;
+            break;
+          case "football":
+            // Completed football: show success phrase
+            this.valueEl.innerHTML = `<span class="scoreboard__text">М’яч накачано</span>`;
+            break;
+          default:
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total}</span>`;
+        }
+      } else {
+        // In progress - show progress message
+        switch (this.gameType) {
+          case "finddiff":
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total} відмінностей знайдено</span>`;
+            break;
+          case "puzzle":
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total} пазлів зібрано</span>`;
+            break;
+          case "wordbox":
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total} букв відгадано</span>`;
+            break;
+          case "football":
+            this.valueEl.innerHTML = `<span class="scoreboard__text">Накачано </span><span class="scoreboard__count">${this.value}</span><span class="scoreboard__text"> з ${this.total} разів</span>`;
+            break;
+          default:
+            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total}</span>`;
+        }
+      }
+    }
     if (this.fillEl) {
       const pct = this.total > 0 ? (this.value / this.total) * 100 : 0;
       this.fillEl.style.width = pct + "%";

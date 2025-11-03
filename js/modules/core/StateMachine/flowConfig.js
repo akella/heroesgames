@@ -58,7 +58,8 @@ export const RULES = [
   {
     when: "slide99",
     pickers: { show: true, locked: false, close: true },
-    roomReveal: ["book-floor", "box", "football-0"],
+    // Reveal both variants; filterRoomRevealIds will hide football-0 after completion
+    roomReveal: ["book-floor", "box", "football-0", "football"],
     score: { unlock: true, hide: true },
   },
   // Force-hide pickers across puzzle pre-intro and gameplay slides
@@ -153,6 +154,8 @@ export const RULES = [
   { when: "slide41", roomRemove: ["wheel-pump", "sh-wheel-pump"] },
   { when: "slide42", football: true },
   { when: ["slide42", "slide43", "slide44"], pickers: { hide: true } },
+  // Ensure completed football object is visible starting after slide 44
+  { when: "slide44", roomReveal: ["football"] },
   {
     when: "slide43",
     postFootballPersist: {
