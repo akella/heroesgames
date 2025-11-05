@@ -51,8 +51,62 @@ export function createGame({ bus }) {
   let onKeyDownBound;
   let dragging = null; // {piece, startX, startY, offsetX, offsetY, originParent, originNext, startLeft, startTop}
 
+  // Debug mode: allow free movement and log positions to console
+  const DEBUG_MODE = false;
+  const debugLog = (...args) => {
+    if (DEBUG_MODE) console.log("[PUZZLE DEBUG]", ...args);
+  };
+  const debugPiecePositions = () => {
+    if (!DEBUG_MODE) return;
+    debugLog("=== CURRENT PIECE POSITIONS ===");
+    piecesState.forEach((state, id) => {
+      const el = state.el;
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const style = window.getComputedStyle(el);
+        // Derive approximate board-space coordinates for config (top-left of piece)
+        const bRect = board?.getBoundingClientRect?.() || { left: 0, top: 0 };
+        const boardX = Math.round(
+          (rect.left - bRect.left) / (boardScale * GROUP_SCALE)
+        );
+        const boardY = Math.round(
+          (rect.top - bRect.top) / (boardScale * GROUP_SCALE)
+        );
+        debugLog(`Piece ${id}:`, {
+          left: style.left,
+          top: style.top,
+          transform: style.transform,
+          rect: {
+            x: rect.x,
+            y: rect.y,
+            width: rect.width,
+            height: rect.height,
+          },
+          boardX,
+          boardY,
+          placed: state.placed,
+          targetX: state.targetX,
+          targetY: state.targetY,
+        });
+      }
+    });
+    debugLog("================================");
+  };
+
+  // Expose a tiny helper in debug
+  if (DEBUG_MODE) {
+    window.puzzleDebug = {
+      logPositions: debugPiecePositions,
+      getPieceState: (id) => piecesState.get(id),
+      getAllPieces: () => Array.from(piecesState.entries()),
+      getBoardRect: () => board?.getBoundingClientRect(),
+    };
+  }
+
   const groupOffsetX = 0;
   const groupOffsetY = 0;
+  // Keep tray piece size unchanged; spacing is controlled via CSS
+  const TRAY_SCALE = 1;
   // z-layering: corners frame should sit above any puzzle piece (even while dragging)
   // We'll keep dragged pieces below a high frame layer defined in CSS (e.g. 140)
   let zStackCounter = 60; // incremental base for free pieces (kept < frame)
@@ -126,8 +180,8 @@ export function createGame({ bus }) {
             p.naturalW = img.naturalWidth;
             p.naturalH = img.naturalHeight;
             if (boardScale) {
-              const tw = p.naturalW * GROUP_SCALE * boardScale;
-              const th = p.naturalH * GROUP_SCALE * boardScale;
+              const tw = p.naturalW * GROUP_SCALE * boardScale * TRAY_SCALE;
+              const th = p.naturalH * GROUP_SCALE * boardScale * TRAY_SCALE;
               Object.assign(img.style, { width: tw + "px", height: th + "px" });
             }
           },
@@ -178,8 +232,8 @@ export function createGame({ bus }) {
         if (meta.naturalW || w) {
           const baseW = meta.naturalW || w;
           const baseH = meta.naturalH || h;
-          el.style.width = baseW * GROUP_SCALE * boardScale + "px";
-          el.style.height = baseH * GROUP_SCALE * boardScale + "px";
+          el.style.width = baseW * GROUP_SCALE * boardScale * TRAY_SCALE + "px";
+          el.style.height = baseH * GROUP_SCALE * boardScale * TRAY_SCALE + "px";
         }
       }
     });
@@ -428,8 +482,17 @@ export function createGame({ bus }) {
     // Dev emergency: allow force snap via global flag
     if (window.PUZZLE_FORCE_SNAP) shouldSnap = true;
 
+    // In debug mode, disable snapping and dump all positions to help capture targets
+    if (DEBUG_MODE) {
+      debugLog("=== DEBUG MODE: Snapping disabled ===");
+      shouldSnap = false;
+    }
+
     if (shouldSnap) snapPiece(piece);
-    else finalizeFreePlacement(piece, r);
+    else {
+      finalizeFreePlacement(piece, r);
+      if (DEBUG_MODE) debugPiecePositions();
+    }
 
     dragging = null;
   }

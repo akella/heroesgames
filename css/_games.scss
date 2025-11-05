@@ -274,7 +274,11 @@ body.cursor-brush {
   pointer-events: auto;
   z-index: 34;
   padding: 8px 4px 12px;
-  overflow-y: auto;
+  overflow: auto;
+  .puzzlegame-piece,
+  .puzzlegame-piece-placeholder {
+    margin: -15px;
+  }
 }
 .puzzlegame-piece {
   position: relative;
