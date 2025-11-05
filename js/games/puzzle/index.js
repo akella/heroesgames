@@ -233,7 +233,8 @@ export function createGame({ bus }) {
           const baseW = meta.naturalW || w;
           const baseH = meta.naturalH || h;
           el.style.width = baseW * GROUP_SCALE * boardScale * TRAY_SCALE + "px";
-          el.style.height = baseH * GROUP_SCALE * boardScale * TRAY_SCALE + "px";
+          el.style.height =
+            baseH * GROUP_SCALE * boardScale * TRAY_SCALE + "px";
         }
       }
     });
