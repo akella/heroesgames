@@ -30,6 +30,7 @@ import { initAnchorManager } from "./modules/interactions/managers/anchorManager
 import { AppController } from "./modules/core/AppController.js";
 import { ScoreBoard } from "./modules/ui/components/ScoreBoard.js";
 import { UIController } from "./modules/ui/UIController.js";
+import { Preloader } from "./modules/ui/Preloader.js";
 
 const { layers, layerMap } = generateLayersFromDOM({
   fallbackCount: 50,
@@ -38,6 +39,9 @@ const { layers, layerMap } = generateLayersFromDOM({
 const layerManager = new LayerManager(layers, layerMap);
 
 const bus = mitt();
+
+// Fullscreen preloader
+new Preloader({ bus });
 
 // Create global scoreboard (controlled via bus events from games/flow)
 new ScoreBoard({ bus });

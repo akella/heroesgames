@@ -8,6 +8,15 @@
     <link rel="stylesheet" href="css/style.scss" />
   </head>
   <body>
+    <div id="preloader" class="preloader" style="position:fixed;inset:0;background:#4071FD;display:grid;grid-template-rows:1fr auto;align-items:stretch;justify-items:stretch;z-index:300;overflow:hidden">
+      <video id="preloaderVideo" class="preloader__video" src="assets/preloader/preloader.webm" autoplay muted playsinline style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#4071FD;z-index:0"></video>
+      <div class="preloader__bottom" style="grid-row:2;display:flex;flex-direction:column;align-items:center;gap:10px;padding:16px 24px 75px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);position:relative;z-index:1">
+        <div id="preloaderPercent" class="preloader__percent" style="font-family:'Factor A TRIAL', Arial, sans-serif;font-weight:900;font-size:20px;line-height:20px;letter-spacing:-0.012em;text-transform:uppercase;text-align:center">0%</div>
+        <button id="preloaderBtn" class="preloader__btn btn-pill preloader__enter-btn" type="button" hidden>Увійти</button>
+      </div>
+      <img id="preloaderHero" class="preloader__heroes" src="assets/preloader/heroes-logo-img.png" alt="" aria-hidden="true" style="display:none;position:absolute;inset:0;margin:auto;max-width:min(100vw,1200px);max-height:100%;object-fit:contain;z-index:2;pointer-events:none" />
+    </div>
+
     <header class="app-header" role="banner">
       <button
         class="btn-burger"
