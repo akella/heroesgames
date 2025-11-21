@@ -1,4 +1,3 @@
-// Declarative slide rules system for readability & reduced code size
 import { AUTO_SLIDES, CANVAS_ACTIVE_SLIDES, RULES } from "./flowConfig.js";
 import { parseSlideNumber, isGameSlide, allGamesDone } from "./flowUtils.js";
 import {
@@ -29,6 +28,8 @@ export function setupFlowSubscription({
   gameRoot,
 }) {
   let prevSnap;
+  let faceSlideActive = false;
+  let pictureTemporarilyHidden = false;
 
   const emit = (type, payload) => {
     try {
@@ -66,8 +67,85 @@ export function setupFlowSubscription({
     const slide = snap.value;
     const slideNumber = parseSlideNumber(slide);
 
+    const slideEl = (() => {
+      try {
+        return document.getElementById(slide);
+      } catch {
+        return null;
+      }
+    })();
+    const hasCharacterFace = !!slideEl?.querySelector?.(".character-face");
+    const isFaceZoomSlide = hasCharacterFace && (slideNumber === 5 || slideNumber === 8);
+
     try {
       bus.emit("scene.canvas", { visible: CANVAS_ACTIVE_SLIDES.has(slide) });
+    } catch {}
+
+    try {
+      const fgCanvas = document.querySelector(".gl-canvas--fg");
+      if (isFaceZoomSlide) {
+        emit("scene.canvas", { visible: true });
+        if (fgCanvas) fgCanvas.style.zIndex = "12";
+        emit("scene.parallax", { enabled: false });
+        emit("model.view", { cameraZ: 1, yOffset: -0.12, scaleMul: 1.15 });
+        emit("model.motion", { enabled: false });
+        try {
+          const filterEl = document.querySelector(".scene-filter");
+          if (filterEl) filterEl.style.opacity = "0";
+        } catch {}
+        try {
+          ["picture", "picture-1", "picture-2", "picture-sh"].forEach((id) => {
+            bus.emit("room.hide", { id });
+          });
+          pictureTemporarilyHidden = true;
+        } catch {}
+        try {
+          document.dispatchEvent(new CustomEvent("showCharacter"));
+        } catch {}
+        faceSlideActive = true;
+
+        const hideFaceIfModelReady = () => {
+          try {
+            if (!faceSlideActive) return;
+            const faceEl = slideEl?.querySelector?.(".character-face");
+            if (faceEl) faceEl.style.display = "none";
+          } catch {}
+        };
+        if (window.__characterLoaded) {
+          hideFaceIfModelReady();
+        } else {
+          const onLoaded = () => {
+            hideFaceIfModelReady();
+            document.removeEventListener("characterLoaded", onLoaded);
+          };
+          document.addEventListener("characterLoaded", onLoaded);
+        }
+      } else if (faceSlideActive) {
+        faceSlideActive = false;
+        try {
+          const prev = document.querySelector(".slide .character-face[style]");
+          if (prev) prev.style.display = "";
+        } catch {}
+        if (fgCanvas) fgCanvas.style.zIndex = "";
+        emit("scene.parallax", { enabled: true });
+        emit("model.view.reset");
+        if (pictureTemporarilyHidden) {
+          try {
+            ["picture", "picture-1", "picture-2", "picture-sh"].forEach((id) => {
+              bus.emit("room.reveal", { id });
+            });
+          } catch {}
+          pictureTemporarilyHidden = false;
+        }
+        try {
+          const filterEl = document.querySelector(".scene-filter");
+          if (filterEl && CANVAS_ACTIVE_SLIDES.has(slide)) filterEl.style.opacity = "0.5";
+        } catch {}
+        try {
+          document.dispatchEvent(new CustomEvent("hideCharacter"));
+        } catch {}
+          emit("model.motion", { enabled: true });
+      }
     } catch {}
 
     if (slide === "slide22" || slide === "slide32" || slide === "slide39") {

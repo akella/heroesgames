@@ -1,6 +1,3 @@
-/* The `AppController` class manages rendering and interaction for a 3D scene with background and
-foreground layers, including shaders, models, and camera controls. 
-*/
 import * as THREE from "three";
 import ShaderLayer from "../../lib/ShaderLayer.js";
 import ModelLayer from "../../lib/ModelLayer.js";
@@ -18,7 +15,6 @@ export class AppController {
     this.width = this.container.offsetWidth;
     this.height = this.container.offsetHeight;
 
-    // Create two renderers/canvases: background (filtered) and foreground (unfiltered)
     this.bgRenderer = new THREE.WebGLRenderer({ antialias: true });
     this.bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.bgRenderer.setSize(this.width, this.height);
@@ -31,7 +27,6 @@ export class AppController {
     this.filterEl = document.createElement("div");
     this.filterEl.className = "scene-filter";
     this.filterEl.style.opacity = "0.5";
-    // Track current filter opacity so we can re-apply on show
     this.filterOpacity = 0.5;
     this.container.appendChild(this.filterEl);
 
@@ -68,8 +63,8 @@ export class AppController {
     });
 
     this.modelLayer = new ModelLayer({ mouse: this.mouse, events: this.bus });
+    try { this.modelLayer.attachBusListeners(); } catch {}
 
-    // Scene controller (parallax + zoom/pan) via bus API
     this.sceneController = new SceneController({
       bus: this.bus,
       shaderLayerBG: this.shaderLayerBG,
@@ -81,6 +76,23 @@ export class AppController {
 
     this.bus.on("scene.canvas", ({ visible } = {}) => {
       this.setCanvasActive(visible !== false);
+    });
+
+    this.bus.on("model.view", ({ cameraZ, yOffset, scaleMul } = {}) => {
+      try {
+        if (typeof cameraZ === "number") {
+          this.perspCamera.position.z = cameraZ;
+        }
+        if (this.modelLayer?.applyView) {
+          this.modelLayer.applyView({ yOffset, scaleMul });
+        }
+      } catch {}
+    });
+    this.bus.on("model.view.reset", () => {
+      try {
+        this.perspCamera.position.z = 2;
+        if (this.modelLayer?.resetView) this.modelLayer.resetView();
+      } catch {}
     });
 
     // Game completion wiring and UI events are external

@@ -52,8 +52,15 @@ export function createGame({ bus }) {
   let pumping = false;
   let onFlowProgress;
   let completed = false;
+  let hasClickedOnce = false; // Track if user has clicked the pump
   const REST_Y = 0; // px: neutral rest position
   const DOWN_Y = 110; // px: click animation depth
+  
+  // Hint system
+  let hintTimeout = null;
+  let hintMarker = null;
+  let hintTween = null;
+  let hintOverlay = null;
 
   function layout() {
     if (!uiEl) return;
@@ -90,11 +97,93 @@ export function createGame({ bus }) {
     ballEl.src = ballImgFor(progress);
   }
 
+  function showHint() {
+    if (completed || hasClickedOnce || !active) return;
+    
+    // Remove existing hint if any
+    if (hintTween) {
+      try {
+        hintTween.kill();
+      } catch {}
+      hintTween = null;
+    }
+    if (hintMarker) {
+      try {
+        hintMarker.remove();
+      } catch {}
+      hintMarker = null;
+    }
+    
+    // Create white circle hint marker on the pump handle
+    hintMarker = document.createElement("div");
+    Object.assign(hintMarker.style, {
+      position: "absolute",
+      left: "50%",
+      bottom: "540px",
+      width: "64px",
+      height: "64px",
+      border: "2px solid #FFFFFF",
+      borderRadius: "50%",
+      boxShadow: "0 1px 3px rgba(0,0,0,0.2)",
+      pointerEvents: "none",
+      transform: "translate(-190px, 0)",
+      opacity: "0",
+      willChange: "opacity",
+      zIndex: "10"
+    });
+    
+    if (uiEl) {
+      const stage = uiEl.querySelector(".football-stage");
+      if (stage) {
+        stage.appendChild(hintMarker);
+        
+        // Looping pulse animation
+        hintTween = gsap.to(hintMarker, {
+          opacity: 1,
+          duration: 1.0,
+          ease: "power2.inOut",
+          yoyo: true,
+          repeat: -1
+        });
+      }
+    }
+  }
+
+  function startHintSystem() {
+    if (completed || hasClickedOnce || !active) return;
+    clearTimeout(hintTimeout);
+    // Show hint immediately
+    hintTimeout = setTimeout(showHint, 0);
+  }
+
+  function stopHintSystem() {
+    clearTimeout(hintTimeout);
+    if (hintTween) {
+      try {
+        hintTween.kill();
+      } catch {}
+      hintTween = null;
+    }
+    if (hintMarker) {
+      try {
+        hintMarker.remove();
+      } catch {}
+      hintMarker = null;
+    }
+  }
+
   function onPumpClick(e) {
     if (!active) return;
     e.preventDefault();
     e.stopPropagation();
     if (pumping) return;
+    
+    // Stop hint system on first click
+    if (!hasClickedOnce) {
+      hasClickedOnce = true;
+      stopHintSystem();
+    }
+    
     pumping = true;
     handleImgEl.classList.add("is-pumping");
     try {
@@ -248,12 +337,14 @@ export function createGame({ bus }) {
     hide() {
       if (!wrap) return;
       wrap.style.display = "none";
+      stopHintSystem();
       if (!completed) {
         progress = 0;
         renderBall();
       }
     },
     destroy() {
+      stopHintSystem();
       try {
         bus.off && onFlowProgress && bus.off("flow.progress", onFlowProgress);
       } catch {}
@@ -278,6 +369,14 @@ export function createGame({ bus }) {
           });
           bus.emit("score.show");
         } catch {}
+        
+        // Start hint system if user hasn't clicked yet
+        if (!hasClickedOnce) {
+          startHintSystem();
+        }
+      } else {
+        // Stop hint system when game becomes inactive
+        stopHintSystem();
       }
     },
     update() {},

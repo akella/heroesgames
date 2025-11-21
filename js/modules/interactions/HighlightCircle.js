@@ -60,8 +60,10 @@ export class HighlightCircle {
       transition: "opacity 0.15s",
       opacity: 0,
       zIndex: 14,
+      animation: "highlight-yoyo 2s ease-in-out infinite",
     });
     this._el = el;
+    HighlightCircle._ensureKeyframes();
     const container = HighlightCircle._ensureContainer();
     container.appendChild(el);
   }
@@ -176,9 +178,11 @@ export class HighlightCircle {
     const py = (1 - sy) * window.innerHeight;
     const ox = this.offset.x || 0;
     const oy = this.offset.y || 0;
-    this._el.style.transform = `translate3d(${Math.round(
-      px - 24 + ox
-    )}px, ${Math.round(py - 24 + oy)}px,0)`;
+    const tx = Math.round(px - 24 + ox);
+    const ty = Math.round(py - 24 + oy);
+    this._el.style.setProperty('--tx', `${tx}px`);
+    this._el.style.setProperty('--ty', `${ty}px`);
+    this._el.style.transform = `translate3d(${tx}px, ${ty}px, 0)`;
     this._lastPx = px;
     this._lastPy = py;
     try {
@@ -212,6 +216,23 @@ export class HighlightCircle {
       this._el.style.opacity = canShow ? "1" : "0";
       this._updatePosition();
     }
+  }
+
+  static _ensureKeyframes() {
+    if (HighlightCircle._keyframesInjected) return;
+    HighlightCircle._keyframesInjected = true;
+    const style = document.createElement("style");
+    style.textContent = `
+      @keyframes highlight-yoyo {
+        0%, 100% {
+          transform: translate3d(var(--tx), var(--ty), 0) scale(1);
+        }
+        50% {
+          transform: translate3d(var(--tx), var(--ty), 0) scale(1.15);
+        }
+      }
+    `;
+    document.head.appendChild(style);
   }
 
   static _ensureContainer() {

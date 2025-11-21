@@ -2,9 +2,9 @@
 
 export const AUTO_SLIDES = {
   slide3: 1500,
-  slide5: 1500,
+  slide5: 2000,
   slide6: 2000,
-  slide8: 1500,
+  slide8: 2000,
   slide16: 2000,
   slide20: 2000,
   slide23: 1500,
@@ -13,7 +13,9 @@ export const AUTO_SLIDES = {
 };
 
 export const CANVAS_ACTIVE_SLIDES = new Set([
+  "slide5",
   "slide4",
+  "slide8",
   "slide6",
   "slide7",
   "slide9",

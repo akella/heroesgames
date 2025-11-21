@@ -131,7 +131,6 @@ export default class ShaderLayer extends BaseLayer {
     });
   }
 
-  _applyInitialVisibility() {}
   _applyInitialVisibility() {
     if (!this.layerMeshes) return;
     this.layerMeshes.forEach(({ entry, material }) => {
@@ -182,6 +181,11 @@ export default class ShaderLayer extends BaseLayer {
     this.events.on("room.remove", ({ id }) => {
       if (!id) return;
       this.removeLayer(id);
+    });
+    // Non-destructive hide: just disable the layer (and paired shadow via setLayerEnabled)
+    this.events.on("room.hide", ({ id }) => {
+      if (!id) return;
+      this.setLayerEnabled(id, false);
     });
   }
 

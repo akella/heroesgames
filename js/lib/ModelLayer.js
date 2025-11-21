@@ -14,6 +14,10 @@ export default class ModelLayer extends BaseLayer {
     this.model = null;
     this.mixer = null;
     this.actions = [];
+    // Presentation overrides (for close-up face slides)
+    this._viewScaleMul = 1.0;
+    this._viewYOffset = 0.0;
+    this._motionEnabled = true; // allow disabling mouse-driven motion for static close-up
     const forceVisible =
       typeof window !== "undefined" &&
       (window.SHOW_MODEL === true ||
@@ -29,6 +33,20 @@ export default class ModelLayer extends BaseLayer {
     document.addEventListener("hideCharacter", () => {
       this.hideCharacter();
     });
+  }
+
+  attachBusListeners() {
+    if (!this.events) return;
+    try {
+      this.events.on("model.motion", ({ enabled } = {}) => {
+        this._motionEnabled = enabled !== false;
+        if (!this._motionEnabled && this.model) {
+          // Reset rotation to neutral
+            this.model.rotation.x = 0.07;
+            this.model.rotation.y = 0;
+        }
+      });
+    } catch {}
   }
 
   _setupEnvironment() {
@@ -87,6 +105,7 @@ export default class ModelLayer extends BaseLayer {
         this.model = gltf.scene;
         this.model.visible = !!this._shouldBeVisible;
         let scale = 0.33;
+        this._baseScale = scale;
         this.model.scale.set(scale, scale, scale);
         const boundingBox = new THREE.Box3().setFromObject(this.model);
         const center = boundingBox.getCenter(new THREE.Vector3());
@@ -124,12 +143,38 @@ export default class ModelLayer extends BaseLayer {
           );
           this.playAnimation(0);
         }
+        try {
+          // Mark globally and notify listeners that the character model is ready
+          if (typeof window !== "undefined") window.__characterLoaded = true;
+          document.dispatchEvent(new CustomEvent("characterLoaded"));
+        } catch {}
       },
       undefined,
       (err) => {
         console.error("Failed to load model:", modelUrl, err);
       }
     );
+  }
+
+  // Apply presentation overrides for close-up slides
+  applyView({ scaleMul, yOffset } = {}) {
+    if (typeof scaleMul === "number") this._viewScaleMul = scaleMul;
+    if (typeof yOffset === "number") this._viewYOffset = yOffset;
+    if (this.model) {
+      const s = (this._baseScale || 1) * (this._viewScaleMul || 1);
+      this.model.scale.set(s, s, s);
+      this.model.position.y = (this.modelY || 0) + (this._viewYOffset || 0);
+    }
+  }
+
+  resetView() {
+    this._viewScaleMul = 1.0;
+    this._viewYOffset = 0.0;
+    if (this.model) {
+      const s = this._baseScale || 1;
+      this.model.scale.set(s, s, s);
+      this.model.position.y = this.modelY || 0;
+    }
   }
 
   render(renderer, camera) {
@@ -146,12 +191,14 @@ export default class ModelLayer extends BaseLayer {
     if (this.mixer) {
       this.mixer.update(delta);
     }
-    if (this.model && this.mouse) {
+    if (this.model && this.mouse && this._motionEnabled) {
       this.targetMouse.lerp(this.mouse, 0.05);
       this.model.rotation.y = -(this.targetMouse.x - 0.5) * Math.PI * 0.04;
       this.model.rotation.x =
         0.07 + (this.targetMouse.y - 0.5) * Math.PI * 0.02;
-      this.model.position.y = this.modelY + (this.targetMouse.y - 0.5) * 0.05;
+      // Apply subtle idle motion on top of presentation offset
+      const baseY = (this.modelY || 0) + (this._viewYOffset || 0);
+      this.model.position.y = baseY + (this.targetMouse.y - 0.5) * 0.05;
     }
   }
 }

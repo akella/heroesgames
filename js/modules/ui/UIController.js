@@ -68,6 +68,7 @@ export class UIController {
             "slide31",
             "slide47",
             "slide48",
+            "slide99",
           ].includes(currentSlide)
         )
           return;
@@ -93,6 +94,7 @@ export class UIController {
             "slide31",
             "slide47",
             "slide48",
+            "slide99",
           ].includes(currentSlide)
         )
           return;
