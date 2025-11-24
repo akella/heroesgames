@@ -92,8 +92,8 @@ export class UIController {
             "slide29",
             "slide30",
             "slide31",
-            "slide47",
-            "slide48",
+            "slide50",
+            "slide51",
             "slide99",
           ].includes(currentSlide)
         )
@@ -109,7 +109,7 @@ export class UIController {
       return () => {
         if (fired) return;
         if (
-          ["slide47", "slide48", "slide29", "slide30", "slide31"].includes(
+          ["slide50", "slide51", "slide29", "slide30", "slide31"].includes(
             currentSlide
           )
         )
@@ -204,7 +204,7 @@ export class UIController {
       shaderFG: this.shaderLayerFG,
       container,
       slideBehavior: {
-        hidden: ["slide29", "slide33", "slide99"],
+        hidden: ["slide29", "slide33", "slide34", "slide35", "slide36", "slide99"],
         lockedVisible: ["slide30"],
         unlockedVisible: ["slide31", "slide32"],
       },
@@ -275,8 +275,11 @@ export class UIController {
       "slide35",
       "slide36",
       "slide37",
+      "slide38",
+      "slide39",
+      "slide40",
     ];
-    const FOOTBALL_SLIDES = ["slide41"];
+    const FOOTBALL_SLIDES = ["slide44"];
     const DEFER_SLIDES = [
       ...PUZZLE_SLIDES,
       ...WORDBOX_SLIDES,

@@ -18,6 +18,7 @@
     height: 100%;
     background: url("../assets/face.webp") no-repeat center bottom;
     background-size: contain;
+    display: none;
   }
   .character-back {
     height: 100%;
@@ -94,7 +95,7 @@
   }
 }
 
-#slide41 .center-pump {
+#slide44 .center-pump {
   position: absolute;
   left: 50%;
   top: 28%;
@@ -264,6 +265,8 @@
     inset: 14% 16% 20% 16%;
     display: flex;
     align-items: center;
+    justify-content: center;
+    flex-direction: column;
     font-family: $font-family-base;
     font-weight: 900;
     font-size: clamp(1.6vw, 1.6vmin, 24px);
@@ -278,17 +281,20 @@
     pointer-events: none;
     height: auto;
   }
+  .wb-word-preview {
+    margin-top: 30px;
+  }
 }
 
 #slide34 .wb-blocks--white {
   display: block;
 }
-#slide34 .wb-blocks--green {
+#slide37 .wb-blocks--green {
   display: none;
 }
-#slide34.is-complete .wb-blocks--white {
+#slide37.is-complete .wb-blocks--white {
   display: none;
 }
-#slide34.is-complete .wb-blocks--green {
+#slide37.is-complete .wb-blocks--green {
   display: block;
 }

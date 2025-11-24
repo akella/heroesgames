@@ -12,7 +12,7 @@ export function maybeHandlePostGameRedirect(flowActor, slideNumber) {
     return;
 
   if (slideNumber != null) {
-    if (action === "GOTO_45" && slideNumber >= 45) {
+    if (action === "GOTO_45" && slideNumber >= 48) {
       window.__postGameRedirectAction = null;
       return;
     }

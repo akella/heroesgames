@@ -37,8 +37,8 @@ export function createFlowMachine(slideIds = [], startSlide) {
       GOTO_22: goto("slide22"),
       GOTO_32: goto("slide32"),
       GOTO_33: goto("slide33"),
-      GOTO_39: goto("slide39"),
-      GOTO_45: goto("slide45"),
+      GOTO_39: goto("slide42"),
+      GOTO_45: goto("slide48"),
       GOTO_99: goto("slide99"),
     },
     states,
@@ -46,6 +46,6 @@ export function createFlowMachine(slideIds = [], startSlide) {
 }
 
 export const flowMachine = createFlowMachine(
-  Array.from({ length: 49 }, (_, i) => `slide${i + 1}`).concat(["slide99"]),
+  Array.from({ length: 52 }, (_, i) => `slide${i + 1}`).concat(["slide99"]),
   "slide1"
 );

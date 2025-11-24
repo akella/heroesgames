@@ -34,7 +34,7 @@ export function filterRoomRevealIds(ids, slide) {
   });
 }
 
-export function applyRoomOps(bus, rule, slide) {
+export function applyRoomOps(bus, rule, slide, allGamesDone = true) {
   if (rule.roomReveal) {
     const ids = filterRoomRevealIds(rule.roomReveal, slide);
     ids.forEach((id) => safeEmit(bus, "room.reveal", { id }));
@@ -44,5 +44,19 @@ export function applyRoomOps(bus, rule, slide) {
   }
   if (rule.roomRemove) {
     rule.roomRemove.forEach((id) => safeEmit(bus, "room.remove", { id }));
+  }
+  // Only apply roomRevealAll and depthMap when all games are done
+  if (rule.roomRevealAll && allGamesDone) {
+    safeEmit(bus, "room.revealAll");
+  }
+  if (rule.depthMap && allGamesDone) {
+    safeEmit(bus, "room.setDepth", { mode: rule.depthMap });
+    // Also disable scene filter overlay when switching to full depth map
+    if (rule.depthMap === "full") {
+      try {
+        const filterEl = document.querySelector(".scene-filter");
+        if (filterEl) filterEl.style.opacity = "0";
+      } catch {}
+    }
   }
 }

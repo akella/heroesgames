@@ -10,7 +10,7 @@ import handImgSrc from "../../../assets/games/finddiff/hand.webp";
 
 // Game tuning values / assets
 const DIFF_RADIUS = 32; // marker radius
-const REQUIRED_DIFFS = 10; // how many to find to win
+const REQUIRED_DIFFS = 8; // how many to find to win
 const MASK_THRESHOLD = 200; // brightness threshold for mask
 // Safe area margins
 const SAFE_MARGIN = 70; // left, right, top

@@ -1,11 +1,9 @@
 import gsap from "gsap";
 import BALL_10 from "../../../assets/games/football/ball-10.webp";
 import BALL_20 from "../../../assets/games/football/ball-20.webp";
-import BALL_30 from "../../../assets/games/football/ball-30.webp";
 import BALL_40 from "../../../assets/games/football/ball-40.webp";
 import BALL_50 from "../../../assets/games/football/ball-50.webp";
 import BALL_60 from "../../../assets/games/football/ball-60.webp";
-import BALL_70 from "../../../assets/games/football/ball-70.webp";
 import BALL_80 from "../../../assets/games/football/ball-80.webp";
 import BALL_90 from "../../../assets/games/football/ball-90.webp";
 import BALL_100 from "../../../assets/games/football/ball-100.webp";
@@ -29,11 +27,9 @@ export async function preload() {
   const balls = [
     BALL_10,
     BALL_20,
-    BALL_30,
     BALL_40,
     BALL_50,
     BALL_60,
-    BALL_70,
     BALL_80,
     BALL_90,
     BALL_100,
@@ -48,7 +44,7 @@ export function createGame({ bus }) {
   let wrap = null;
   let active = false;
   let uiEl, handleWrapEl, handleImgEl, baseEl, ballEl;
-  let progress = 0; // 0..10
+  let progress = 0; // 0..8
   let pumping = false;
   let onFlowProgress;
   let completed = false;
@@ -64,7 +60,7 @@ export function createGame({ bus }) {
 
   function layout() {
     if (!uiEl) return;
-    const slide = document.getElementById("slide42");
+    const slide = document.getElementById("slide45");
     if (!slide) return;
     const r = slide.getBoundingClientRect();
     uiEl.style.position = "absolute";
@@ -77,18 +73,16 @@ export function createGame({ bus }) {
   const BALL_SRCS = [
     BALL_10,
     BALL_20,
-    BALL_30,
     BALL_40,
     BALL_50,
     BALL_60,
-    BALL_70,
     BALL_80,
     BALL_90,
     BALL_100,
   ];
 
   function ballImgFor(n) {
-    const idx = Math.max(1, Math.min(10, n)) - 1; // clamp to 0..9
+    const idx = Math.max(1, Math.min(8, n)) - 1; // clamp to 0..7
     return BALL_SRCS[idx];
   }
 
@@ -222,13 +216,13 @@ export function createGame({ bus }) {
     );
 
     // Increment progress with clamp
-    if (progress < 10) {
+    if (progress < 8) {
       progress += 1;
       renderBall();
       try {
         bus.emit("score.update", { value: progress });
       } catch {}
-      if (progress === 10) {
+      if (progress === 8) {
         completed = true;
         try {
           bus.emit("game.football.complete");
@@ -289,9 +283,9 @@ export function createGame({ bus }) {
         }
       });
 
-      // Setup score 0..10
+      // Setup score 0..8
       try {
-        bus.emit("score.init", { total: 10, value: 0, gameType: "football" });
+        bus.emit("score.init", { total: 8, value: 0, gameType: "football" });
         bus.emit("score.show");
       } catch {}
 
@@ -302,8 +296,8 @@ export function createGame({ bus }) {
 
       onFlowProgress = (snap) => {
         const val = snap?.value || snap;
-        if (val === "slide42") return;
-        if (completed && (val === "slide43" || val === "slide44")) {
+        if (val === "slide45") return;
+        if (completed && (val === "slide46" || val === "slide47")) {
           if (wrap) {
             wrap.style.display = "block";
             renderBall();
@@ -312,7 +306,7 @@ export function createGame({ bus }) {
         }
         if (wrap) wrap.style.display = "none";
         if (completed) {
-          if (val === "slide45" || val === "outro") {
+          if (val === "slide48" || val === "outro") {
             progress = 0;
             completed = false;
             renderBall();
@@ -363,7 +357,7 @@ export function createGame({ bus }) {
       if (active) {
         try {
           bus.emit("score.init", {
-            total: 10,
+            total: 8,
             value: progress,
             gameType: "football",
           });

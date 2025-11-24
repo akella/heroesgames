@@ -83,7 +83,10 @@ export class HighlightCircle {
       s === "slide34" ||
       s === "slide35" ||
       s === "slide36" ||
-      s === "slide37"
+      s === "slide37" ||
+      s === "slide38" ||
+      s === "slide39" ||
+      s === "slide40"
     ) {
       this._setVisible(false);
       return;

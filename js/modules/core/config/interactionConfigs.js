@@ -10,7 +10,10 @@ const SLIDES_VISIBLE_COMMON = [
   "slide31",
   "slide32",
   "slide33",
-  "slide38",
+  "slide34",
+  "slide35",
+  "slide36",
+  "slide41",
   "slide99",
 ];
 const SLIDES_HOVER_ONLY_COMMON = [
@@ -21,7 +24,10 @@ const SLIDES_HOVER_ONLY_COMMON = [
   "slide31",
   "slide32",
   "slide33",
-  "slide38",
+  "slide34",
+  "slide35",
+  "slide36",
+  "slide41",
   "slide99",
 ];
 const SLIDES_HIGHLIGHT_ONLY_COMMON = SLIDES_VISIBLE_COMMON;
@@ -123,15 +129,15 @@ export const INTERACTION_CONFIGS = [
     config: {
       id: "wheel-pump",
       layers: { active: "wheel-pump-spot", hover: "wheel-pump-hover" },
-      visibleSlides: ["slide40"],
+      visibleSlides: ["slide43"],
       hover: true,
       hoverWhenInactive: true,
-      hoverOnlyOnSlides: ["slide40"],
+      hoverOnlyOnSlides: ["slide43"],
       click: true,
       clickWhenInactive: true,
       bboxLayer: "hover",
       eventsPrefix: "wheel-pump",
-      highlightOnlyOnSlides: ["slide40"],
+      highlightOnlyOnSlides: ["slide43"],
       highlightMode: "visible",
       highlightParallax: true,
     },

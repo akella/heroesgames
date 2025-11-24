@@ -83,10 +83,9 @@ export class ScoreBoard {
   _render() {
     if (this.valueEl) {
       if (this.value === this.total && this.total > 0) {
-        // All completed - show completion message
         switch (this.gameType) {
           case "finddiff":
-            this.valueEl.innerHTML = `<span class="scoreboard__count">${this.value}</span><span class="scoreboard__text">/${this.total} відмінностей знайдено</span>`;
+            this.valueEl.innerHTML = `<span class="scoreboard__text">Всі відмінності знайдено</span>`;
             break;
           case "puzzle":
             // Completed puzzle: show success phrase

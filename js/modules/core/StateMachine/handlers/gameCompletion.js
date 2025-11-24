@@ -30,13 +30,22 @@ export function bindGameCompletionHandlers({
         }
       } catch {}
       try {
-        emit("score.hide");
+        emit("score.lock");
+        emit("score.show");
       } catch {}
       try {
         emit("room.remove", { id: "picture" });
       } catch {}
       try {
         flowActor.send({ type: "NEXT" });
+      } catch {}
+      try {
+        setTimeout(() => {
+          try {
+            emit("score.unlock");
+            emit("score.hide");
+          } catch {}
+        }, 3000);
       } catch {}
     });
 
@@ -66,7 +75,7 @@ export function bindGameCompletionHandlers({
       try {
         const cur = flowActor.getSnapshot().value;
         const n = parseSlideNumber(cur);
-        if (n != null && n >= 34 && n <= 37) flowActor.send({ type: "NEXT" });
+        if (n != null && n >= 37 && n <= 40) flowActor.send({ type: "NEXT" });
       } catch {}
     });
 
@@ -83,9 +92,9 @@ export function bindGameCompletionHandlers({
       try {
         const cur = flowActor.getSnapshot().value;
         const n = parseSlideNumber(cur);
-        if (n != null && n >= 42 && n <= 44) flowActor.send({ type: "NEXT" });
+        if (n != null && n >= 45 && n <= 47) flowActor.send({ type: "NEXT" });
       } catch {}
-      // Do not jump directly to slide45 here; allow slides 43 and 44 to be shown even when all games are complete.
+      // Do not jump directly to slide48 here; allow slides 46 and 47 to be shown even when all games are complete.
     });
   } catch {}
 }

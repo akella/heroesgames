@@ -18,7 +18,7 @@ export function createGame({ bus }) {
   let rafId = null;
 
   function getTargetImg() {
-    const slide = document.getElementById("slide34");
+    const slide = document.getElementById("slide37");
     if (!slide) return null;
     const candidates = Array.from(slide.querySelectorAll(".wb-blocks"));
     for (const el of candidates) {
@@ -77,7 +77,7 @@ export function createGame({ bus }) {
       try {
         bus.emit("score.update", { value: TARGET.length });
       } catch {}
-      const slide = document.getElementById("slide34");
+      const slide = document.getElementById("slide37");
       if (slide) slide.classList.add("is-complete");
       if (wrap) wrap.classList.add("is-complete");
       // Re-sync now that visible image swaps (white -> green)
@@ -154,7 +154,7 @@ export function createGame({ bus }) {
       } catch {}
       syncPosition();
       try {
-        const slide = document.getElementById("slide34");
+        const slide = document.getElementById("slide37");
         const imgs = slide
           ? Array.from(slide.querySelectorAll(".wb-blocks"))
           : [];
@@ -185,10 +185,10 @@ export function createGame({ bus }) {
 
       onFlowProgress = (snap) => {
         const val = snap?.value || snap;
-        if (val !== "slide34") {
+        if (val !== "slide37") {
           try {
             if (wrap) wrap.style.display = "none";
-            const slide = document.getElementById("slide34");
+            const slide = document.getElementById("slide37");
             if (slide) slide.classList.remove("is-complete");
             if (wrap) wrap.classList.remove("is-complete");
             value = "";
@@ -212,7 +212,7 @@ export function createGame({ bus }) {
     hide() {
       if (!wrap) return;
       wrap.style.display = "none";
-      const slide = document.getElementById("slide34");
+      const slide = document.getElementById("slide37");
       if (slide) slide.classList.remove("is-complete");
       if (wrap) wrap.classList.remove("is-complete");
       value = "";

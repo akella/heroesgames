@@ -58,7 +58,10 @@ export class InteractionManager {
       this._currentSlide === "slide34" ||
       this._currentSlide === "slide35" ||
       this._currentSlide === "slide36" ||
-      this._currentSlide === "slide37"
+      this._currentSlide === "slide37" ||
+      this._currentSlide === "slide38" ||
+      this._currentSlide === "slide39" ||
+      this._currentSlide === "slide40"
     ) {
       if (this._hoverActive) {
         this._hoverActive = false;
@@ -107,7 +110,10 @@ export class InteractionManager {
       this._currentSlide === "slide34" ||
       this._currentSlide === "slide35" ||
       this._currentSlide === "slide36" ||
-      this._currentSlide === "slide37"
+      this._currentSlide === "slide37" ||
+      this._currentSlide === "slide38" ||
+      this._currentSlide === "slide39" ||
+      this._currentSlide === "slide40"
     ) {
       return;
     }

@@ -10,7 +10,10 @@ const DEFAULT_GAME_SLIDES = [
   "slide35",
   "slide36",
   "slide37",
-  "slide41",
+  "slide38",
+  "slide39",
+  "slide40",
+  "slide44",
 ];
 
 const EXIT_TITLE = "Ти дійсно хочеш вийти?";
@@ -89,9 +92,9 @@ export function initGameBackButton({
   // Handle global restart requests via message overlay
   const onRestartRequest = () => {
     messageApi.open({
-      title: "Ти дійсно хочеш почати гру заново?",
+      title: "Впевнений, що хочешь почати з початку?",
       subtitle:
-        "Весь прогрес буде втрачено, і доведеться розпочати все спочатку.",
+        "Весь прогрес буде втрачено і вам доведеться почати спочатку.",
       actions: [
         {
           label: "Так",

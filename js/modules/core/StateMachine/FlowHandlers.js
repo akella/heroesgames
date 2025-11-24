@@ -57,7 +57,7 @@ export function setupFlowSubscription({
     maybeHandlePostGameRedirect: (fa, n) => maybeHandlePostGameRedirect(fa, n),
   });
 
-  const handleRoomOps = (rule, slide) => applyRoomOps(bus, rule, slide);
+  const handleRoomOps = (rule, slide, gamesDone) => applyRoomOps(bus, rule, slide, gamesDone);
 
   flowActor.subscribe((snap) => {
     if (snap === prevSnap) return;
@@ -94,7 +94,7 @@ export function setupFlowSubscription({
           if (filterEl) filterEl.style.opacity = "0";
         } catch {}
         try {
-          ["picture", "picture-1", "picture-2", "picture-sh"].forEach((id) => {
+          ["picture-1", "picture-2", "picture-sh"].forEach((id) => {
             bus.emit("room.hide", { id });
           });
           pictureTemporarilyHidden = true;
@@ -131,7 +131,7 @@ export function setupFlowSubscription({
         emit("model.view.reset");
         if (pictureTemporarilyHidden) {
           try {
-            ["picture", "picture-1", "picture-2", "picture-sh"].forEach((id) => {
+            ["picture-1", "picture-2", "picture-sh"].forEach((id) => {
               bus.emit("room.reveal", { id });
             });
           } catch {}
@@ -157,10 +157,10 @@ export function setupFlowSubscription({
       if (window.__puzzleExitPending && slideNumber >= 29) {
         window.__puzzleExitPending = false;
       }
-      if (window.__wordboxExitPending && slideNumber >= 38) {
+      if (window.__wordboxExitPending && slideNumber >= 41) {
         window.__wordboxExitPending = false;
       }
-      if (window.__footballExitPending && slideNumber >= 45) {
+      if (window.__footballExitPending && slideNumber >= 48) {
         window.__footballExitPending = false;
       }
       maybeHandlePostGameRedirect(flowActor, slideNumber);
@@ -186,7 +186,7 @@ export function setupFlowSubscription({
       window.__wordboxCompleted &&
       !window.__wordboxCompletedPending &&
       !window.__wordboxExitPending &&
-      isGameSlide(slide, [[34, 37]])
+      isGameSlide(slide, [[37, 40]])
     ) {
       flowActor.send({ type: "NEXT" });
       return;
@@ -195,7 +195,7 @@ export function setupFlowSubscription({
       window.__footballCompleted &&
       !window.__footballCompletedPending &&
       !window.__footballExitPending &&
-      isGameSlide(slide, [[42, 44]])
+      isGameSlide(slide, [[45, 47]])
     ) {
       flowActor.send({ type: "NEXT" });
       return;
@@ -220,7 +220,7 @@ export function setupFlowSubscription({
       })
     )
       return;
-    if (slide === "slide45" && !allGamesDone()) {
+    if (slide === "slide48" && !allGamesDone()) {
       redirectToHub({ flowActor, bus, gameManager, gameRoot });
       return;
     }
@@ -258,7 +258,7 @@ export function setupFlowSubscription({
       if (rule.gameEnsure && gameManager.active?.id === rule.gameEnsure.id) {
         applyGameMisc(rule.gameEnsure);
       }
-      handleRoomOps(rule, slide);
+      handleRoomOps(rule, slide, allGamesDone());
       if (rule.wordbox)
         handleWordBoxRule({
           rule,
@@ -300,7 +300,7 @@ export function setupFlowSubscription({
         handlePostFootball({ slide, gameManager, emit, gameRoot });
       if (rule.outro) handleOutro({ slide, gameManager, emit, gameRoot });
       const n = parseInt((slide || "").replace("slide", ""), 10);
-      if (n >= 46 && n <= 49 && !allGamesDone()) {
+      if (n >= 48 && n <= 51 && !allGamesDone()) {
         redirectToHub({ flowActor, bus, gameManager, gameRoot });
         return;
       }
@@ -319,7 +319,7 @@ export function setupFlowSubscription({
         } catch {}
       }
       if (
-        (slide === "slide43" || slide === "slide44" || slide === "slide45") &&
+        (slide === "slide46" || slide === "slide47" || slide === "slide48") &&
         flowActor._wheelPumpCleanup
       ) {
         try {
@@ -328,7 +328,7 @@ export function setupFlowSubscription({
       }
     });
 
-    if (slide === "slide38" && window.__wordboxCompletedPending) {
+    if (slide === "slide41" && window.__wordboxCompletedPending) {
       try {
         window.__wordboxCompleted = true;
         window.__wordboxCompletedPending = false;
@@ -337,7 +337,7 @@ export function setupFlowSubscription({
       try {
         if (window.__puzzleCompleted && window.__footballCompleted) {
           window.__postGameRedirectAction = "GOTO_45";
-          maybeHandlePostGameRedirect(flowActor, 38);
+          maybeHandlePostGameRedirect(flowActor, 41);
         }
       } catch {}
     }
@@ -356,7 +356,7 @@ export function setupFlowSubscription({
       } catch {}
     }
 
-    if (slide === "slide45" && window.__footballCompletedPending) {
+    if (slide === "slide48" && window.__footballCompletedPending) {
       try {
         window.__footballCompletedPending = false;
       } catch {}

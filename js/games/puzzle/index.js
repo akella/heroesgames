@@ -50,6 +50,7 @@ export function createGame({ bus }) {
   let onPointerUpBound;
   let onKeyDownBound;
   let dragging = null; // {piece, startX, startY, offsetX, offsetY, originParent, originNext, startLeft, startTop}
+  let snapHintOverlay = null; // dark overlay showing where piece will snap
 
   // Debug mode: allow free movement and log positions to console
   const DEBUG_MODE = false;
@@ -134,6 +135,20 @@ export function createGame({ bus }) {
       pointerEvents: "none",
     });
     board.appendChild(boardLayer);
+
+    // Create snap hint overlay (will be an img element showing piece shape)
+    snapHintOverlay = document.createElement("img");
+    snapHintOverlay.className = "puzzlegame-snap-hint";
+    Object.assign(snapHintOverlay.style, {
+      position: "absolute",
+      pointerEvents: "none",
+      display: "none",
+      transition: "opacity 0.15s ease",
+      opacity: "0",
+      zIndex: "5",
+      filter: "brightness(0.7) opacity(0.3)",
+    });
+    boardLayer.appendChild(snapHintOverlay);
 
     tray = document.createElement("div");
     tray.className = "puzzlegame-tray";
@@ -411,15 +426,114 @@ export function createGame({ bus }) {
     const ny = e.clientY - offsetY;
     piece.el.style.left = nx + "px";
     piece.el.style.top = ny + "px";
+    
+    // Update snap hint overlay
+    updateSnapHint(piece, nx, ny);
+  }
+
+  function updateSnapHint(piece, pieceLeft, pieceTop) {
+    if (!snapHintOverlay) return;
+    
+    const el = piece.el;
+    const r = el.getBoundingClientRect();
+    const centerX = r.left + r.width / 2;
+    const centerY = r.top + r.height / 2;
+    
+    const { targetX, targetY, anchorX = 0, anchorY = 0 } = piece.meta;
+    const { w: dwOrig, h: dhOrig } = resolvePieceDims(piece.meta);
+    const dw = dwOrig * GROUP_SCALE;
+    const dh = dhOrig * GROUP_SCALE;
+    const scaledTargetX = targetX * GROUP_SCALE + groupOffsetX;
+    const scaledTargetY = targetY * GROUP_SCALE + groupOffsetY;
+    
+    const currentBoardRect = board.getBoundingClientRect();
+    const targetLeft = currentBoardRect.left + (scaledTargetX - anchorX * dw) * boardScale;
+    const targetTop = currentBoardRect.top + (scaledTargetY - anchorY * dh) * boardScale;
+    const targetW = dw * boardScale;
+    const targetH = dh * boardScale;
+    const targetCenterX = targetLeft + targetW / 2;
+    const targetCenterY = targetTop + targetH / 2;
+    
+    const dx = centerX - targetCenterX;
+    const dy = centerY - targetCenterY;
+    const absDx = Math.abs(dx);
+    const absDy = Math.abs(dy);
+    
+    const axisTol = Math.min(targetW, targetH) * 0.5;
+    const radialTol = Math.min(targetW, targetH) * 0.8;
+    const centerDist = Math.hypot(dx, dy);
+    
+    const overlapLeft = Math.max(r.left, targetLeft);
+    const overlapTop = Math.max(r.top, targetTop);
+    const overlapRight = Math.min(r.right, targetLeft + targetW);
+    const overlapBottom = Math.min(r.bottom, targetTop + targetH);
+    const overlapW = Math.max(0, overlapRight - overlapLeft);
+    const overlapH = Math.max(0, overlapBottom - overlapTop);
+    const overlapArea = overlapW * overlapH;
+    const targetArea = targetW * targetH;
+    const overlapRatio = targetArea ? overlapArea / targetArea : 0;
+    
+    let shouldShowHint = (absDx < axisTol && absDy < axisTol) || 
+                         centerDist < radialTol || 
+                         overlapRatio > 0.3;
+    
+    if (!shouldShowHint && overlapRatio > 0.05) {
+      shouldShowHint = true;
+    }
+    if (!shouldShowHint && centerDist < Math.max(targetW, targetH) * 0.9) {
+      shouldShowHint = true;
+    }
+    
+    if (DEBUG_MODE) {
+      shouldShowHint = false;
+    }
+    
+    if (shouldShowHint) {
+      // Convert to board-relative coordinates
+      const relLeft = targetLeft - currentBoardRect.left;
+      const relTop = targetTop - currentBoardRect.top;
+      
+      // Set the piece image as the hint source
+      if (snapHintOverlay.src !== piece.meta.src) {
+        snapHintOverlay.src = piece.meta.src;
+      }
+      
+      Object.assign(snapHintOverlay.style, {
+        left: relLeft + "px",
+        top: relTop + "px",
+        width: targetW + "px",
+        height: targetH + "px",
+        display: "block",
+        opacity: "1",
+      });
+    } else {
+      snapHintOverlay.style.opacity = "0";
+      setTimeout(() => {
+        if (snapHintOverlay.style.opacity === "0") {
+          snapHintOverlay.style.display = "none";
+        }
+      }, 150);
+    }
+  }
+
+  function hideSnapHint() {
+    if (snapHintOverlay) {
+      snapHintOverlay.style.opacity = "0";
+      setTimeout(() => {
+        snapHintOverlay.style.display = "none";
+      }, 150);
+    }
   }
 
   function onGlobalPointerUp() {
     if (!dragging) return;
+    hideSnapHint();
     attemptDrop();
   }
 
   function onGlobalPointerCancel() {
     if (!dragging) return;
+    hideSnapHint();
     const { piece } = dragging;
     const r = piece.el.getBoundingClientRect();
     finalizeFreePlacement(piece, r);

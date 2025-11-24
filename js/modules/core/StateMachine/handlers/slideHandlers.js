@@ -94,13 +94,13 @@ export function handleFootballRule({
   gameManager,
   emit,
 }) {
-  if (slide !== "slide42") return;
+  if (slide !== "slide45") return;
   activateGame("football", {
     ensureSlide: slide,
     active: true,
     gameRootZ: 40,
     roomHideIds: ["football-0", "sh-football"],
-    score: { init: { total: 10, value: 0 }, lock: true, show: true },
+    score: { init: { total: 8, value: 0 }, lock: true, show: true },
     scene: {
       parallax: false,
       view: { zoom: 1.5, offsetY: -Math.round(window.innerHeight * 0.25) },
@@ -134,9 +134,9 @@ export function handleFootballRule({
   } catch {}
 }
 
-// Handle post-football cleanup on slide45
+// Handle post-football cleanup on slide48
 export function handlePostFootball({ slide, gameManager, emit, gameRoot }) {
-  if (slide !== "slide45") return;
+  if (slide !== "slide48") return;
   if (gameManager.active?.id === "football") {
     try {
       gameManager.active?.api?.hide?.();
