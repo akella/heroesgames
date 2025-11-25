@@ -165,6 +165,7 @@ export const RULES = [
   { when: "slide44", roomRemove: ["wheel-pump", "sh-wheel-pump"] },
   { when: "slide45", football: true },
   { when: ["slide45", "slide46", "slide47"], pickers: { hide: true } },
+  { when: ["slide48", "slide49"], pickers: { hide: true } },
   // Ensure completed football object is visible starting from slide 48
   { when: "slide48", roomReveal: ["football"] },
   {

@@ -7,18 +7,34 @@ export function initHeaderProgress({ bus } = {}) {
   // Build DOM
   const wrap = document.createElement("div");
   wrap.className = "header-progress";
-  wrap.setAttribute("aria-label", "допоможи герою облаштувати кімнату");
+  wrap.setAttribute("aria-label", "прогрес виконання завдань");
   wrap.innerHTML = `
-    <div class="header-progress__cap" aria-hidden="true">
-      <svg class="header-progress__icon" width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path opacity="0.5" d="M14.0002 25.6667C20.4435 25.6667 25.6668 23.8385 25.6668 21.5833C25.6668 19.3282 20.4435 17.5 14.0002 17.5C7.55684 17.5 2.3335 19.3282 2.3335 21.5833C2.3335 23.8385 7.55684 25.6667 14.0002 25.6667Z" fill="white"/>
-        <path d="M14 1.45898C14.2321 1.45898 14.4546 1.55117 14.6187 1.71527C14.7828 1.87936 14.875 2.10192 14.875 2.33398V3.54265L20.7177 6.46398L20.7807 6.49548C21.637 6.92365 22.3673 7.28882 22.876 7.64348C23.3917 8.00398 23.933 8.52665 23.933 9.33398C23.933 10.1413 23.3917 10.664 22.876 11.0245C22.3673 11.3792 21.637 11.7443 20.7807 12.1725L14.875 15.1242V21.0007C14.875 21.2327 14.7828 21.4553 14.6187 21.6194C14.4546 21.7835 14.2321 21.8757 14 21.8757C13.7679 21.8757 13.5454 21.7835 13.3813 21.6194C13.2172 21.4553 13.125 21.2327 13.125 21.0007V2.33398C13.125 2.10192 13.2172 1.87936 13.3813 1.71527C13.5454 1.55117 13.7679 1.45898 14 1.45898Z" fill="white"/>
+    <div class="header-progress__circle">
+      <svg class="header-progress__circle-border" viewBox="0 0 56 56">
+        <circle class="header-progress__circle-bg" cx="28" cy="28" r="26" />
+        <circle class="header-progress__circle-progress" cx="28" cy="28" r="26" />
       </svg>
+      <div class="header-progress__circle-inner">
+        <img class="header-progress__smile" src="assets/header-progress/smile-1.png" alt="" />
+      </div>
     </div>
-    <div class="header-progress__body">
-      <div class="header-progress__body-inner">
-        <div class="header-progress__label">допоможи герою облаштувати кімнату</div>
-        <div class="header-progress__bar"><div class="header-progress__fill" style="width:0%"></div></div>
+    <div class="header-progress__track">
+      <div class="header-progress__track-gradient"></div>
+      <div class="header-progress__line header-progress__line--1"></div>
+      <div class="header-progress__dot header-progress__dot--1">
+        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+      </div>
+      <div class="header-progress__line header-progress__line--2"></div>
+      <div class="header-progress__dot header-progress__dot--2">
+        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+      </div>
+      <div class="header-progress__line header-progress__line--3"></div>
+      <div class="header-progress__dot header-progress__dot--3">
+        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+      </div>
+      <div class="header-progress__line header-progress__line--4"></div>
+      <div class="header-progress__dot header-progress__dot--4">
+        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
       </div>
     </div>
   `;
@@ -28,7 +44,13 @@ export function initHeaderProgress({ bus } = {}) {
     header.insertBefore(wrap, burger.nextSibling);
   else header.appendChild(wrap);
 
-  const fillEl = wrap.querySelector(".header-progress__fill");
+  const circleProgress = wrap.querySelector(".header-progress__circle-progress");
+  const circleInner = wrap.querySelector(".header-progress__circle-inner");
+  const smileImg = wrap.querySelector(".header-progress__smile");
+  const lines = wrap.querySelectorAll(".header-progress__line");
+  const dots = wrap.querySelectorAll(".header-progress__dot");
+  const gradientOverlay = wrap.querySelector(".header-progress__track-gradient");
+  
   let menuOpen = false;
   let slideEligible = false; // becomes true only after slide6
   const applyVisibility = () => {
@@ -46,29 +68,66 @@ export function initHeaderProgress({ bus } = {}) {
     applyVisibility();
   };
 
-  // Compute overall progress across minigames
+  // Track game completions (4 games total)
   const state = {
-    games: {
-      finddiff: false,
-      puzzle: false,
-      wordbox: false,
-      football: false,
-    },
-    toys: {
-      dino: false,
-      ship: false,
-      robot: false,
-    },
+    finddiff: false,
+    puzzle: false,
+    wordbox: false,
+    football: false,
   };
-  const GAME_KEYS = Object.keys(state.games);
-  const TOY_KEYS = Object.keys(state.toys);
+  
+  const GAME_ORDER = ["finddiff", "puzzle", "wordbox", "football"];
+  
+  const getSmileImage = (completed) => {
+    if (completed === 0) return "smile-1.png";
+    if (completed === 1) return "smile-1.png"; // 0-25%
+    if (completed === 2) return "smile-2.png"; // 50%
+    if (completed === 3) return "smile-3.png"; // 75%
+    return "smile-4.png"; // 100%
+  };
+  
+  const getProgressColor = (completed) => {
+    if (completed <= 1) return "#FFF769"; // 0-25%
+    if (completed === 2) return "#BDFAA2"; // 50%
+    if (completed === 3) return "#A1FBBA"; // 75%
+    return "#61FFEA"; // 100%
+  };
+  
   const update = () => {
-    const total = GAME_KEYS.length + TOY_KEYS.length;
-    const value =
-      GAME_KEYS.reduce((acc, k) => acc + (state.games[k] ? 1 : 0), 0) +
-      TOY_KEYS.reduce((acc, k) => acc + (state.toys[k] ? 1 : 0), 0);
-    const pct = total > 0 ? (value / total) * 100 : 0;
-    if (fillEl) fillEl.style.width = pct + "%";
+    const completed = GAME_ORDER.filter(k => state[k]).length;
+    const percent = (completed / 4) * 100;
+    const color = getProgressColor(completed);
+    
+    // Update circle progress (0%, 25%, 50%, 75%, 100%)
+    const circumference = 2 * Math.PI * 26;
+    const offset = circumference - (percent / 100) * circumference;
+    circleProgress.style.strokeDashoffset = offset;
+    circleProgress.style.stroke = color;
+    
+    // Update circle background to match progress color
+    circleInner.style.background = color;
+    
+    // Update smile image
+    smileImg.src = `assets/header-progress/${getSmileImage(completed)}`;
+    
+    // Update lines and dots based on completed games
+    lines.forEach((line, i) => {
+      if (i < completed) {
+        line.classList.add("is-active");
+      } else {
+        line.classList.remove("is-active");
+      }
+    });
+    
+    dots.forEach((dot, i) => {
+      if (i < completed) {
+        dot.classList.add("is-active");
+      } else {
+        dot.classList.remove("is-active");
+      }
+    });
+    
+
   };
   update();
 
@@ -92,26 +151,20 @@ export function initHeaderProgress({ bus } = {}) {
       } catch {}
     });
     bus.on("game.finddiff.complete", () => {
-      state.games.finddiff = true;
+      state.finddiff = true;
       update();
     });
     bus.on("game.puzzle.complete", () => {
-      state.games.puzzle = true;
+      state.puzzle = true;
       update();
     });
     bus.on("game.wordbox.complete", () => {
-      state.games.wordbox = true;
+      state.wordbox = true;
       update();
     });
     bus.on("game.football.complete", () => {
-      state.games.football = true;
+      state.football = true;
       update();
-    });
-    bus.on("toy.placed", ({ id }) => {
-      if (id && state.toys.hasOwnProperty(id)) {
-        state.toys[id] = true;
-        update();
-      }
     });
   }
 
@@ -119,9 +172,10 @@ export function initHeaderProgress({ bus } = {}) {
   try {
     window.__headerProgress = {
       set: (k, v) => {
-        if (state.games.hasOwnProperty(k)) state.games[k] = !!v;
-        if (state.toys.hasOwnProperty(k)) state.toys[k] = !!v;
-        update();
+        if (state.hasOwnProperty(k)) {
+          state[k] = !!v;
+          update();
+        }
       },
     };
   } catch {}
