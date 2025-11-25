@@ -14,6 +14,7 @@ export class InteractionManager {
     this._clickAllowedSlides = new Set();
     this._hoverRestricted = false;
     this._clickRestricted = false;
+    this._customizeMode = false;
   }
 
   register(config) {
@@ -53,6 +54,13 @@ export class InteractionManager {
   }
 
   _onPointerMove(e) {
+    if (this._customizeMode) {
+      if (this._hoverActive) {
+        this._hoverActive = false;
+        document.body.style.cursor = "";
+      }
+      return;
+    }
     if (
       this._currentSlide === "slide33" ||
       this._currentSlide === "slide34" ||
@@ -105,6 +113,9 @@ export class InteractionManager {
   }
 
   _onClick(e) {
+    if (this._customizeMode) {
+      return;
+    }
     if (
       this._currentSlide === "slide33" ||
       this._currentSlide === "slide34" ||
@@ -186,5 +197,21 @@ export class InteractionManager {
       } catch {}
     });
     this.items.length = 0;
+  }
+
+  hideAll() {
+    this.items.forEach((it) => {
+      try {
+        it.hide?.();
+      } catch {}
+    });
+  }
+
+  showAll() {
+    this.items.forEach((it) => {
+      try {
+        it.show?.();
+      } catch {}
+    });
   }
 }

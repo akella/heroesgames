@@ -30,22 +30,13 @@ export function bindGameCompletionHandlers({
         }
       } catch {}
       try {
-        emit("score.lock");
-        emit("score.show");
+        emit("score.hide");
       } catch {}
       try {
         emit("room.remove", { id: "picture" });
       } catch {}
       try {
         flowActor.send({ type: "NEXT" });
-      } catch {}
-      try {
-        setTimeout(() => {
-          try {
-            emit("score.unlock");
-            emit("score.hide");
-          } catch {}
-        }, 3000);
       } catch {}
     });
 

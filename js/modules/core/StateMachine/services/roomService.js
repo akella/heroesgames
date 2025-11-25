@@ -38,6 +38,11 @@ export function applyRoomOps(bus, rule, slide, allGamesDone = true) {
   if (rule.roomReveal) {
     const ids = filterRoomRevealIds(rule.roomReveal, slide);
     ids.forEach((id) => safeEmit(bus, "room.reveal", { id }));
+    
+    // On slide99, reveal football object only if football game is completed
+    if (slide === "slide99" && (window.__footballCompleted || window.__footballCompletedPending)) {
+      safeEmit(bus, "room.reveal", { id: "football" });
+    }
   }
   if (rule.roomRestore) {
     rule.roomRestore.forEach((id) => safeEmit(bus, "room.restore", { id }));

@@ -11,6 +11,7 @@ import { initShareOverlay } from "./overlays/ShareOverlay.js";
 import { initMessageOverlay } from "./overlays/MessageOverlay.js";
 import { initGameBackButton } from "./components/GameBackButton.js";
 import { initPsychOverlay } from "./overlays/PsychOverlay.js";
+import { initCustomizeButton } from "./components/CustomizeButton.js";
 
 const WEBP_URLS = (() => {
   try {
@@ -43,6 +44,7 @@ export class UIController {
     this._initPickers();
     this._initToyPickers();
     this._registerInteractions();
+    this._initCustomizeButton();
     this._wireBus();
     this._preloadHoverLayers();
     this._initPane();
@@ -58,6 +60,7 @@ export class UIController {
         if (fired) return;
         if (
           [
+            "slide16",
             "slide18",
             "slide19",
             "slide20",
@@ -84,6 +87,7 @@ export class UIController {
         if (fired) return;
         if (
           [
+            "slide16",
             "slide18",
             "slide19",
             "slide20",
@@ -109,7 +113,7 @@ export class UIController {
       return () => {
         if (fired) return;
         if (
-          ["slide50", "slide51", "slide29", "slide30", "slide31"].includes(
+          ["slide16", "slide50", "slide51", "slide29", "slide30", "slide31"].includes(
             currentSlide
           )
         )
@@ -204,9 +208,9 @@ export class UIController {
       shaderFG: this.shaderLayerFG,
       container,
       slideBehavior: {
-        hidden: ["slide29", "slide33", "slide34", "slide35", "slide36", "slide99"],
-        lockedVisible: ["slide30"],
-        unlockedVisible: ["slide31", "slide32"],
+        hidden: ["slide29", "slide30", "slide33", "slide34", "slide35", "slide36", "slide99"],
+        lockedVisible: ["slide31"],
+        unlockedVisible: ["slide32"],
       },
       anchors: {
         dino: {
@@ -257,6 +261,21 @@ export class UIController {
         });
       }
     } catch {}
+  }
+  // #endregion
+
+  // #region CustomizeButton
+  _initCustomizeButton() {
+    this.customizeButton = initCustomizeButton({
+      bus: this.bus,
+      flowActor: this.flowActor,
+      pickerWall: this.pickerWall,
+      pickerFloor: this.pickerFloor,
+      pickerTable: this.pickerTable,
+      toyController: this.toyController,
+      interactionManager: this.interactionManager,
+      interactionManagerBG: this.interactionManagerBG,
+    });
   }
   // #endregion
 

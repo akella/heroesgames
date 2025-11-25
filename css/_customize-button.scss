@@ -1,0 +1,147 @@
+@use "variables" as *;
+
+// Customize button for room customization
+.customize-button {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  width: auto;
+  height: auto;
+  padding: 14px 32px 14px 24px;
+  border-radius: 64px;
+  background: #ffffff;
+  border: 0;
+  cursor: pointer;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease,
+    filter 0.2s ease;
+  transform-origin: center;
+  will-change: transform, opacity;
+  box-shadow: $shadow-inset-strong;
+
+  &.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  &:hover {
+    transform: translateX(-50%) scale(1.04);
+    filter: brightness(1.02);
+  }
+
+  &:active {
+    transform: translateX(-50%) scale(0.98) translateY(1px);
+    filter: brightness(0.98);
+  }
+
+  &:focus-visible {
+    outline: none;
+    transform: translateX(-50%) scale(1.04);
+  }
+}
+
+.customize-button__border {
+  position: absolute;
+  inset: -2px;
+  border-radius: 64px;
+  border: 2px solid rgba(255, 255, 255, 0);
+  pointer-events: none;
+  transition: opacity 0.3s ease, border-color 0.3s ease;
+  opacity: 0;
+}
+
+.customize-button.has-borders .customize-button__border {
+  opacity: 1;
+  animation: pulseBorder 2s ease-in-out infinite;
+}
+
+.customize-button__border--outer {
+  inset: -8px;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.customize-button.has-borders .customize-button__border--outer {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.customize-button__border--inner {
+  inset: -4px;
+  border-color: rgba(255, 255, 255, 0.4);
+  animation-delay: 0.15s;
+}
+
+.customize-button.has-borders .customize-button__border--inner {
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+@keyframes pulseBorder {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.02);
+  }
+}
+
+.customize-button__content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.customize-button__icon {
+  width: 28px;
+  height: 28px;
+  display: block;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.customize-button__text {
+  font-family: $font-family-base;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 28px;
+  letter-spacing: 0.2px;
+  color: $color-brand;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// Responsive adjustments
+
+@media (max-width: 768px) {
+  .customize-button {
+    padding: 12px 24px 12px 20px;
+    top: auto;
+    bottom: 100px;
+  }
+
+  .customize-button__icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .customize-button__text {
+    font-size: 16px;
+    line-height: 24px;
+  }
+}
+
+@media (max-height: 800px) {
+  .customize-button {
+    top: auto;
+    bottom: 80px;
+  }
+}

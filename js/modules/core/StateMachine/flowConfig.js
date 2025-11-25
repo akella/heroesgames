@@ -5,9 +5,9 @@ export const AUTO_SLIDES = {
   slide5: 2000,
   slide6: 2000,
   slide8: 2000,
-  slide16: 2000,
   slide20: 2000,
   slide23: 1500,
+  slide31: 2000,
   slide48: 2000,
   slide49: 3000,
 };
@@ -59,9 +59,8 @@ export const RULES = [
   { when: "slide44", gamePreload: ["football"] },
   {
     when: "slide99",
-    pickers: { show: true, locked: false, close: true },
-    // Reveal both variants; filterRoomRevealIds will hide football-0 after completion
-    roomReveal: ["book-floor", "box", "football-0", "football"],
+    pickers: { hide: true },
+    roomReveal: ["book-floor", "box", "football-0"],
     roomRevealAll: true,
     depthMap: "full",
     score: { unlock: true, hide: true },
@@ -75,14 +74,22 @@ export const RULES = [
   {
     when: "slide16",
     character: "show",
-    pickers: { show: true, locked: true },
+    pickers: { hide: true },
   },
   {
-    when: ["slide17", "slide18", "slide19", "slide20", "slide21", "slide22"],
-    pickers: { show: true, locked: false, closeOn: "slide20" },
+    when: ["slide17", "slide18", "slide19"],
+    pickers: { show: true, locked: false },
   },
   {
-    when: ["slide29", "slide30", "slide31"],
+    when: ["slide20", "slide21", "slide22"],
+    pickers: { hide: true },
+  },
+  {
+    when: ["slide29", "slide30"],
+    pickers: { hide: true },
+  },
+  {
+    when: "slide31",
     pickers: { show: true, locked: false, close: true },
   },
   { when: ["slide33", "slide34", "slide35", "slide36"], pickers: { hide: true } },
