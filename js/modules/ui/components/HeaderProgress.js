@@ -1,4 +1,9 @@
 // HeaderProgress
+import smile1 from "../../../../assets/header-progress/smile-1.png";
+import smile2 from "../../../../assets/header-progress/smile-2.png";
+import smile3 from "../../../../assets/header-progress/smile-3.png";
+import smile4 from "../../../../assets/header-progress/smile-4.png";
+import starSvg from "../../../../assets/header-progress/star.svg";
 
 export function initHeaderProgress({ bus } = {}) {
   const header = document.querySelector(".app-header");
@@ -15,26 +20,26 @@ export function initHeaderProgress({ bus } = {}) {
         <circle class="header-progress__circle-progress" cx="28" cy="28" r="26" />
       </svg>
       <div class="header-progress__circle-inner">
-        <img class="header-progress__smile" src="assets/header-progress/smile-1.png" alt="" />
+        <img class="header-progress__smile" src="${smile1}" alt="" />
       </div>
     </div>
     <div class="header-progress__track">
       <div class="header-progress__track-gradient"></div>
       <div class="header-progress__line header-progress__line--1"></div>
       <div class="header-progress__dot header-progress__dot--1">
-        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+        <img class="header-progress__star" src="${starSvg}" alt="" />
       </div>
       <div class="header-progress__line header-progress__line--2"></div>
       <div class="header-progress__dot header-progress__dot--2">
-        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+        <img class="header-progress__star" src="${starSvg}" alt="" />
       </div>
       <div class="header-progress__line header-progress__line--3"></div>
       <div class="header-progress__dot header-progress__dot--3">
-        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+        <img class="header-progress__star" src="${starSvg}" alt="" />
       </div>
       <div class="header-progress__line header-progress__line--4"></div>
       <div class="header-progress__dot header-progress__dot--4">
-        <img class="header-progress__star" src="assets/header-progress/star.svg" alt="" />
+        <img class="header-progress__star" src="${starSvg}" alt="" />
       </div>
     </div>
   `;
@@ -79,11 +84,11 @@ export function initHeaderProgress({ bus } = {}) {
   const GAME_ORDER = ["finddiff", "puzzle", "wordbox", "football"];
   
   const getSmileImage = (completed) => {
-    if (completed === 0) return "smile-1.png";
-    if (completed === 1) return "smile-1.png"; // 0-25%
-    if (completed === 2) return "smile-2.png"; // 50%
-    if (completed === 3) return "smile-3.png"; // 75%
-    return "smile-4.png"; // 100%
+    if (completed === 0) return smile1;
+    if (completed === 1) return smile1; // 0-25%
+    if (completed === 2) return smile2; // 50%
+    if (completed === 3) return smile3; // 75%
+    return smile4; // 100%
   };
   
   const getProgressColor = (completed) => {
@@ -108,7 +113,7 @@ export function initHeaderProgress({ bus } = {}) {
     circleInner.style.background = color;
     
     // Update smile image
-    smileImg.src = `assets/header-progress/${getSmileImage(completed)}`;
+    smileImg.src = getSmileImage(completed);
     
     // Update lines and dots based on completed games
     lines.forEach((line, i) => {

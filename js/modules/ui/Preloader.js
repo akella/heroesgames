@@ -1,11 +1,15 @@
+import preloaderVideo from "../../../assets/preloader/preloader.webm";
+import backgroundPreloader from "../../../assets/preloader/background-preloader.png";
+import heroesLogoImg from "../../../assets/preloader/heroes-logo-img.png";
+
 export class Preloader {
   constructor({ bus }) {
     this.bus = bus;
     this.assets = {
-      video: "./assets/preloader/preloader.webm",
+      video: preloaderVideo,
       images: [
-        "./assets/preloader/background-preloader.png",
-        "./assets/preloader/heroes-logo-img.png",
+        backgroundPreloader,
+        heroesLogoImg,
       ],
     };
     this.state = {

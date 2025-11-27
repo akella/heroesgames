@@ -16,7 +16,7 @@ export class AppController {
     this.height = this.container.offsetHeight;
 
     this.bgRenderer = new THREE.WebGLRenderer({ antialias: true });
-    this.bgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.bgRenderer.setPixelRatio(1);
     this.bgRenderer.setSize(this.width, this.height);
     this.bgRenderer.autoClear = true;
     this.bgRenderer.toneMapping = THREE.NeutralToneMapping;
@@ -31,7 +31,7 @@ export class AppController {
     this.container.appendChild(this.filterEl);
 
     this.fgRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    this.fgRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.fgRenderer.setPixelRatio(1);
     this.fgRenderer.setSize(this.width, this.height);
     this.fgRenderer.autoClear = false;
     this.fgRenderer.toneMapping = THREE.NeutralToneMapping;

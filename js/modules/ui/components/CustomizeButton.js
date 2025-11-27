@@ -5,6 +5,8 @@
  * - Shows animated borders on slides 16 and 29
  * - Controls visibility of room pickers and interaction buttons
  */
+import roomEditIcon from "../../../../assets/room/room-edit-icon.png";
+import roomApproveIcon from "../../../../assets/room/room-approve-icon.png";
 
 const CUSTOMIZE_TEXT = "кастомізувати";
 const CONFIRM_TEXT = "підтвердити";
@@ -92,11 +94,11 @@ export function initCustomizeButton({
     button.classList.toggle("has-borders", showBorders);
 
     if (customizing) {
-      icon.src = "assets/room/room-approve-icon.png";
+      icon.src = roomApproveIcon;
       text.textContent = CONFIRM_TEXT;
       button.setAttribute("aria-label", CONFIRM_TEXT);
     } else {
-      icon.src = "assets/room/room-edit-icon.png";
+      icon.src = roomEditIcon;
       text.textContent = CUSTOMIZE_TEXT;
       button.setAttribute("aria-label", CUSTOMIZE_TEXT);
     }

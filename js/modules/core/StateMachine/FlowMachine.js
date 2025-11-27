@@ -18,6 +18,12 @@ export function createFlowMachine(slideIds = [], startSlide) {
     const next = uniqueSlides[i + 1] || "outro";
     states[cur] = { on: { NEXT: next } };
   }
+  
+  // Custom transitions: skip slide15, go from slide14 to slide16
+  if (states["slide14"]) {
+    states["slide14"] = { on: { NEXT: "slide16" } };
+  }
+  
   if (uniqueSlides.includes("slide99")) {
     states["slide99"] = { on: { NEXT: "outro" } };
   }

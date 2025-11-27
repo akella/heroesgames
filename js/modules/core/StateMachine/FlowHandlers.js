@@ -130,11 +130,14 @@ export function setupFlowSubscription({
         emit("scene.parallax", { enabled: true });
         emit("model.view.reset");
         if (pictureTemporarilyHidden) {
-          try {
-            ["picture-1", "picture-2", "picture-sh"].forEach((id) => {
-              bus.emit("room.reveal", { id });
-            });
-          } catch {}
+          // Keep pictures hidden after slide 8 (slideNumber > 8)
+          if (slideNumber <= 8) {
+            try {
+              ["picture-1", "picture-2", "picture-sh"].forEach((id) => {
+                bus.emit("room.reveal", { id });
+              });
+            } catch {}
+          }
           pictureTemporarilyHidden = false;
         }
         try {
