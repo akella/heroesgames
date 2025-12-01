@@ -35,9 +35,9 @@ export function createGame({ bus }) {
   let complete = false;
   let highlightTemplate;
   let brushFollower;
-  let quadCenters = [];
+  let miniSquares = [];
   let handImg;
-  let lastQuadrant = -1;
+  let lastSquareIndex = -1;
   let posX = 0,
     posY = 0,
     velX = 0,
@@ -80,7 +80,14 @@ export function createGame({ bus }) {
     handImg.src = HAND_IMG_SRC;
     stage.appendChild(handImg);
     root.append(stage);
-    container.append(root);
+    
+    // Create mini-squares container
+    const squaresContainer = document.createElement("div");
+    squaresContainer.className = "finddiff-squares";
+    container.append(squaresContainer, root);
+    
+    // Create 8 mini-squares (100x100) at specified positions
+    createMiniSquares(squaresContainer);
   }
 
   // Create and inject custom brush cursor element
@@ -100,8 +107,47 @@ export function createGame({ bus }) {
     document.body.appendChild(brushFollower);
   }
 
+  function createMiniSquares(container) {
+    const positions = [
+      { position: 'top-left', index: 0 },
+      { position: 'top-center', index: 1 },
+      { position: 'top-right', index: 2 },
+      { position: 'center-left', index: 3 },
+      { position: 'center-right', index: 4 },
+      { position: 'bottom-left', index: 5 },
+      { position: 'bottom-center', index: 6 },
+      { position: 'bottom-right', index: 7 },
+    ];
+
+    positions.forEach(({ position, index }) => {
+      const square = document.createElement("div");
+      square.className = `finddiff-square finddiff-square--${position}`;
+      square.dataset.index = index;
+      
+      square.addEventListener('mouseenter', () => {
+        if (active && !complete) {
+          onSquareHover(index);
+        }
+      });
+      
+      container.appendChild(square);
+      miniSquares.push(square);
+    });
+  }
+
+  function computeSquareCenters() {
+    return miniSquares.map(square => {
+      const rect = square.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    });
+  }
+
   // Precompute 4 clamped movement centers (corners-ish)
   function computeQuadrants() {
+    // Not used anymore, but keeping for compatibility
     const w = window.innerWidth,
       h = window.innerHeight;
     const halfW = (rootSize?.w || 0) / 2;
@@ -111,12 +157,6 @@ export function createGame({ bus }) {
     const minY = halfH + SAFE_MARGIN;
     const maxY = h - halfH - SAFE_MARGIN_BOTTOM;
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
-    quadCenters = [
-      { x: w * 0.25, y: h * 0.25 },
-      { x: w * 0.75, y: h * 0.25 },
-      { x: w * 0.25, y: h * 0.75 },
-      { x: w * 0.75, y: h * 0.75 },
-    ].map((c) => ({ x: clamp(c.x, minX, maxX), y: clamp(c.y, minY, maxY) }));
   }
 
   // Update target center (spring drives actual motion)
@@ -206,11 +246,19 @@ export function createGame({ bus }) {
     requestAnimationFrame(loop);
   }
 
-  // Map mouse pos to quadrant index 0..3
-  function quadrantFromMouse(mx, my) {
-    const left = mx < window.innerWidth / 2;
-    const top = my < window.innerHeight / 2;
-    return top ? (left ? 0 : 1) : left ? 2 : 3;
+  // Handle square hover - move picture to square center
+  function onSquareHover(squareIndex) {
+    if (squareIndex === lastSquareIndex) return;
+    
+    lastSquareIndex = squareIndex;
+    const centers = computeSquareCenters();
+    const center = centers[squareIndex];
+    
+    if (center) {
+      lastTarget.x = center.x;
+      lastTarget.y = center.y;
+      centerRootAt(center.x, center.y, false);
+    }
   }
 
   // Move brush & maybe tween root to new quadrant center
@@ -219,21 +267,6 @@ export function createGame({ bus }) {
       brushFollower.style.transform = `translate(${e.clientX - 24}px,${
         e.clientY - 24
       }px)`;
-    if (active && !complete) {
-      const qIdx = quadrantFromMouse(e.clientX, e.clientY);
-      const q = quadCenters[qIdx];
-      if (q) {
-        const need =
-          qIdx !== lastQuadrant ||
-          (lastTarget.x - q.x) ** 2 + (lastTarget.y - q.y) ** 2 > 25;
-        if (need) {
-          lastQuadrant = qIdx;
-          lastTarget.x = q.x;
-          lastTarget.y = q.y;
-          centerRootAt(q.x, q.y, false);
-        }
-      }
-    }
   }
 
   // Recompute centers on resize and reposition
@@ -244,11 +277,13 @@ export function createGame({ bus }) {
       rootSize = { w: r.width, h: r.height };
     }
     computeQuadrants();
-    if (!complete) {
-      const idx = lastQuadrant >= 0 ? lastQuadrant : 0;
-      const q = quadCenters[idx];
-      if (q) centerRootAt(q.x, q.y, true);
-    } else freezeBottomRight();
+    if (!complete && lastSquareIndex >= 0) {
+      const centers = computeSquareCenters();
+      const center = centers[lastSquareIndex];
+      if (center) centerRootAt(center.x, center.y, true);
+    } else if (complete) {
+      freezeBottomRight();
+    }
   }
 
   // Convert mask image to pixel data
@@ -571,9 +606,10 @@ export function createGame({ bus }) {
     if (v && !complete) {
       document.body.style.cursor = "none";
       if (brushFollower) brushFollower.style.display = "block";
-      if (lastQuadrant >= 0) {
-        const q = quadCenters[lastQuadrant];
-        if (q) centerRootAt(q.x, q.y, false);
+      if (lastSquareIndex >= 0) {
+        const centers = computeSquareCenters();
+        const center = centers[lastSquareIndex];
+        if (center) centerRootAt(center.x, center.y, false);
       }
       bus.emit("score.show");
       // Start hints only when game is active
@@ -638,12 +674,13 @@ export function createGame({ bus }) {
       const r = root.getBoundingClientRect();
       rootSize = { w: r.width, h: r.height };
       computeQuadrants();
-      const startQ = quadCenters[3] || quadCenters[0];
-      if (startQ) {
-        lastQuadrant = quadCenters.indexOf(startQ);
-        lastTarget.x = startQ.x;
-        lastTarget.y = startQ.y;
-        centerRootAt(startQ.x, startQ.y, true);
+      const centers = computeSquareCenters();
+      const startCenter = centers[7] || centers[0]; // Start at bottom-right square
+      if (startCenter) {
+        lastSquareIndex = 7;
+        lastTarget.x = startCenter.x;
+        lastTarget.y = startCenter.y;
+        centerRootAt(startCenter.x, startCenter.y, true);
       }
       if (initial) {
         requestAnimationFrame(() => {
@@ -656,9 +693,9 @@ export function createGame({ bus }) {
             ) {
               rootSize = { w: r2.width, h: r2.height };
               computeQuadrants();
-              const q2 =
-                quadCenters[lastQuadrant] || quadCenters[3] || quadCenters[0];
-              if (q2) centerRootAt(q2.x, q2.y, true);
+              const centers2 = computeSquareCenters();
+              const c2 = centers2[lastSquareIndex] || centers2[7] || centers2[0];
+              if (c2) centerRootAt(c2.x, c2.y, true);
             }
             runSpringLoop();
           });
@@ -672,9 +709,9 @@ export function createGame({ bus }) {
           ) {
             rootSize = { w: cr.width, h: cr.height };
             computeQuadrants();
-            const q =
-              quadCenters[lastQuadrant] || quadCenters[3] || quadCenters[0];
-            if (q) centerRootAt(q.x, q.y, true);
+            const centers3 = computeSquareCenters();
+            const c3 = centers3[lastSquareIndex] || centers3[7] || centers3[0];
+            if (c3) centerRootAt(c3.x, c3.y, true);
           }
         });
         resizeObserver.observe(root);
@@ -715,7 +752,7 @@ export function createGame({ bus }) {
   async function resetRound(round = 2) {
     found = [];
     complete = false;
-    lastQuadrant = -1;
+    lastSquareIndex = -1;
     lastTarget = { x: null, y: null };
     clearMarkers();
     let room;
@@ -735,8 +772,9 @@ export function createGame({ bus }) {
     ctx.drawImage(room, 0, 0);
     rootSize = null;
     computeQuadrants();
-    const q = quadCenters[3] || quadCenters[0];
-    if (q) centerRootAt(q.x, q.y, true);
+    const centers = computeSquareCenters();
+    const center = centers[7] || centers[0];
+    if (center) centerRootAt(center.x, center.y, true);
     runSpringLoop();
   }
 
